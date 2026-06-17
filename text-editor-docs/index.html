@@ -308,15 +308,39 @@ th { font-weight:600; background:var(--bg-alt); }
 <img src="images/config-access-control.png" alt="Access Control section showing per-feature role allow-lists for Upload, Download, and Annotation Isolation Bypass" style="width:100%; border-radius:8px; border:1px solid var(--border); margin:16px 0;">
 
 <h2 id="config-tool-modes">Tool Modes</h2>
-<p>Tool Modes determine <em>how</em> each role experiences the editor. There are three modes:</p>
+<p>Tool Modes determine <em>how</em> each role experiences the editor. Each project role is mapped to <strong>exactly one</strong> mode through a single-select dropdown. There are four modes:</p>
 <table>
   <tr><th>Mode</th><th>What the user sees</th><th>Typical use</th></tr>
-  <tr><td><strong>Edit Mode</strong></td><td>The full rich-text editor with every authoring control. This is the default when a role matches neither list.</td><td>Content authors writing or editing source text.</td></tr>
-  <tr><td><strong>Annotation Mode</strong></td><td>A focused NER interface: text is read-only, classes and properties are front-and-centre, the authoring toolbar is suppressed.</td><td>Annotators labelling spans without accidentally altering content.</td></tr>
-  <tr><td><strong>View-Only</strong></td><td>Read-only version of the current content — no editing, no annotating, no property changes.</td><td>Reviewers, stakeholders, auditors.</td></tr>
+  <tr><td><strong>Editor</strong></td><td>The full rich-text editor with every authoring control. This is the default for every role.</td><td>Content authors writing or editing source text.</td></tr>
+  <tr><td><strong>Annotation</strong></td><td>A focused NER interface: text is read-only, classes and properties are front-and-centre, the authoring toolbar is suppressed.</td><td>Annotators labelling spans without accidentally altering content.</td></tr>
+  <tr><td><strong>View Only</strong></td><td>Read-only version of the current content — no editing, no annotating, no property changes.</td><td>Reviewers, stakeholders, auditors.</td></tr>
+  <tr><td><strong>Model Arena</strong></td><td>A dedicated workspace for generating side-by-side conversations against several AI models from one shared prompt. See <a href="#editor-arena" class="internal">Model Arena Mode</a> in the editor and <a href="#config-model-arena" class="internal">Model Arena Settings</a> below.</td><td>Building multi-model comparison datasets / preference data.</td></tr>
 </table>
-<p>Roles are assigned by listing them under <em>View-Only</em> or <em>Annotation Mode</em>. Anything unlisted falls through to Edit Mode. If a role appears in both lists, <strong>Annotation Mode wins</strong> — the safer, more locked-down option.</p>
-<img src="images/config-tool-modes.png" alt="Tool Modes section with two side-by-side role lists labelled View-Only Access and Annotation Mode" style="width:100%; border-radius:8px; border:1px solid var(--border); margin:16px 0;">
+
+<h3 id="config-role-mode-mapping">Role-Mode Mapping</h3>
+<p>Click <strong>Mode selector…</strong> to open the <em>Tool Role-Mode Mapping</em> modal. It lists every project role (Admin always at the top, then your workflow roles, fetched live) with a single-select dropdown per row. Every role defaults to <strong>Editor</strong>; switch the dropdown to <em>View Only</em>, <em>Annotation</em>, or <em>Model Arena</em> as needed. Because each role resolves to one mode, a role can never fall into an ambiguous or unassigned state.</p>
+<ul>
+  <li><strong>Admin is just another role</strong> — it can be assigned any mode (including View Only or Annotation), exactly like the rest.</li>
+  <li><strong>Automatic migration</strong> — projects created under the old two-list model are migrated on first open: roles previously in the Annotation or View-Only lists keep that mode, and everything else becomes Editor. No manual re-entry is needed.</li>
+</ul>
+<p>The same card also hosts the <a href="#config-te-options" class="internal">Text Editor Options</a> and <a href="#config-model-arena" class="internal">Model Arena</a> launchers, so the entire per-role experience is configured from one place.</p>
+<img src="images/config-tool-modes.png" alt="Tool Modes card with a Mode selector button, Text Editor Options button, and Configure Model Arena button, plus the Role-Mode Mapping modal listing each role with a single-select mode dropdown" style="width:100%; border-radius:8px; border:1px solid var(--border); margin:16px 0;">
+
+<h2 id="config-model-arena">Model Arena Settings</h2>
+<p>Opened from the <strong>Configure Model Arena…</strong> button in the <a href="#config-tool-modes" class="internal">Tool Modes</a> card, this modal defines the model pool and behaviour for every role mapped to the <a href="#editor-arena" class="internal">Model Arena</a> mode. The settings are project-wide; individual items "freeze" their slice of the pool the first time a prompt is sent (see <a href="#editor-arena-states" class="internal">States &amp; Retirement</a>).</p>
+
+<h3 id="config-arena-pool">Model pool</h3>
+<p>Configure up to <strong>20</strong> proxy + model combinations. Each row pairs an <a href="#config-ai-proxy" class="internal">AI proxy</a> with one of that provider's models, using the same dropdown design as AI Property extraction — but the arena keeps its own independent list. Rows can be drag-reordered; only rows with both a proxy and a model selected count as "complete" and become eligible for items.</p>
+
+<h3 id="config-arena-behavior">Behaviour</h3>
+<ul>
+  <li><strong>Models per item</strong> (1–4, capped at the pool size) — how many models from the pool each item actually uses. Each item draws this many models <em>at random</em> from the complete pool, so a 12-model pool with "Models per item = 3" spreads coverage across many items while keeping each item to a manageable three-way comparison.</li>
+  <li><strong>Turn limit</strong> (1–50, default 50) — the maximum number of prompt rounds an item accepts. Once reached, the prompt area is replaced by a "Turn limit reached" notice; existing conversations stay viewable.</li>
+  <li><strong>Randomize model order</strong> (On / Off, default On) — when on, each item shuffles which model maps to which conversation, and the conversations are named uniformly (<em>Conversation 1, 2, …</em>) so the annotator can't tell which model produced which transcript. Useful for blind preference rating. When off, conversations still use the same uniform names but follow the pool order.</li>
+  <li><strong>Allow conversation editing</strong> (On / Off, default Off) — when on, each conversation card gains an <strong>Edit</strong> button so an arena user can manually correct a transcript in the full editor. When off, transcripts are generation-only.</li>
+</ul>
+<div class="callout"><strong>Clean config when unused:</strong> the model pool, models-per-item, and per-item randomization only exist in the saved configuration once you actually configure the arena. Projects that never touch Model Arena carry none of these keys, keeping the exported config tidy.</div>
+<img src="images/config-model-arena.png" alt="Model Arena settings modal with a Model pool section listing proxy + model rows and an Add model button, and a Behaviour section with Models per item, Turn limit, Randomize model order, and Allow conversation editing controls" style="width:100%; border-radius:8px; border:1px solid var(--border); margin:16px 0;">
 
 <h2 id="config-feature-control">Feature Control</h2>
 <p>Feature Control toggles NER-side capabilities. Turning a feature off hides every affordance for it across the editor.</p>
@@ -324,6 +348,8 @@ th { font-weight:600; background:var(--bg-alt); }
   <li><strong>Object Comments</strong> (Off / On) — enables <a href="#editor-comments" class="internal">comments</a> on instances. When on, sub-controls appear for which roles can <em>resolve</em> and which can <em>delete</em> comments.</li>
   <li><strong>Instance Relationships</strong> (Off / On) — enables <a href="#editor-relationships" class="internal">relationships</a> between instances. When on, a <strong>Relationship Types</strong> editor appears so admins can curate the relationship taxonomy. Relationship type names must be unique (case-insensitive); duplicate or empty names are silently reverted on blur.</li>
   <li><strong>Annotation Panel</strong> — controls which views of the <a href="#editor-panel" class="internal">annotation panel</a> are available: Instance + Table, Instance only, Table only, or None. The adjacent <a href="#config-panel-settings" class="internal">Configure Annotation Panel</a> button becomes active whenever the panel is enabled (any mode other than None); the <a href="#config-table-cols" class="internal">Table Column Settings</a> button further activates when the table view is specifically reachable (Instance + Table or Table only).</li>
+  <li><strong>Default Split View</strong> (Off / Split View 2 / 3 / 4) — for items with more than one text file, opens the editor directly in <a href="#editor-split-view" class="internal">catalog split view</a> instead of the single viewport (Editor, View Only, and Annotation modes only — Model Arena keeps its own forced split). If the item has fewer text files than the configured column count, the largest fitting split is used. Single-file items always open normally. Best suited to comparison workflows where every item has the same small text-file count.</li>
+  <li><strong>Fullscreen on First Interaction</strong> (Off / On) — the first pointer interaction inside the editor requests fullscreen (browsers cannot enter fullscreen without a user gesture). Applies once per editor mount; annotators can exit with Esc or the toolbar button and are not forced again until the next item load. A brief informational notice confirms when fullscreen was triggered by this setting.</li>
   <li><strong>Text Editor Options</strong> — opens the Text Editor settings/features modal (see <a href="#config-te-options" class="internal">Text Editor Options</a> below).</li>
 </ul>
 <img src="images/config-feature-control.png" alt="Feature Control section showing toggles for Object Comments, Instance Relationships, an Annotation Panel selector, and a Text Editor Options button" style="width:100%; border-radius:8px; border:1px solid var(--border); margin:16px 0;">
@@ -531,13 +557,12 @@ th { font-weight:600; background:var(--bg-alt); }
 <p>Project-level rules that apply to every item:</p>
 <ul>
   <li><strong>Editor Layout</strong> — fixed height, auto-grow, or full-page layout.</li>
-  <li><strong>Text Direction</strong> — LTR, RTL, or Auto (detected per paragraph / new line so mixed-script content reads correctly without manual switching).</li>
   <li><strong>Height / Max height</strong> — conditional inputs that appear for fixed and auto layouts.</li>
   <li><strong>Paste Score Visibility</strong> — role allow-list controlling who sees the <a href="#editor-content-length" class="internal">paste-score</a> chip in the editor footer. Default is "no one".</li>
   <li><strong>Content Length Limit</strong> — None, by character, or by word; with optional <code>min</code> / <code>max</code> bounds. See <a href="#editor-content-length" class="internal">Content Length</a>.</li>
 </ul>
 
-<div class="callout"><strong>Match Text Direction to your content (prefer Auto):</strong> <strong>Auto</strong> infers each block's flow from its first strong character, so mixed LTR / RTL content reads — and <em>selects</em> — correctly without manual switching. A forced <strong>LTR</strong> or <strong>RTL</strong> applies one base direction to every block regardless of the actual script. When a forced direction conflicts with a block's natural flow (e.g. RTL forced onto English text, or LTR forced onto Arabic), the Unicode bidirectional algorithm reorders that line <em>for display only</em> — the logical character order and the stored offsets of any <a href="#editor-ner-concept" class="internal">NER instances</a> are unchanged, but text selection and annotation highlights can look mirrored, land on the wrong edge, or appear to skip a leading list number. Unless every file in the project is genuinely single-direction <em>and</em> matches the mode you choose, leave this on <strong>Auto</strong>. Annotators who hit a conflict see an informational banner at the top of the editor pointing them back to you.</div>
+<div class="callout"><strong>Text direction is automatic.</strong> Direction is detected per paragraph from each block's first strong character, so mixed LTR / RTL content (e.g. English and Arabic) reads — and <em>selects</em> — correctly without any setting or manual switching. It is purely visual: the logical character order and the stored offsets of any <a href="#editor-ner-concept" class="internal">NER instances</a> are never affected, and nothing is written into saved content. Code blocks and tables always stay left-to-right so syntax and column order remain stable.</div>
 
 <h3>Features</h3>
 <p>A grid of toggles for individual rich-text features, grouped by category:</p>
@@ -641,7 +666,7 @@ th { font-weight:600; background:var(--bg-alt); }
 <div class="tab-content" data-tab="editor">
 
 <h1>Editor</h1>
-<p>The editor is where the actual work happens — authoring content, annotating spans, reviewing output. Its layout adapts to the user's <a href="#config-tool-modes" class="internal">Tool Mode</a> and keeps the content front-and-centre while surfacing the right controls for the task at hand.</p>
+<p>The editor is where the actual work happens — authoring content, annotating spans, reviewing output, or generating multi-model conversations in <a href="#editor-arena" class="internal">Model Arena</a>. Its layout adapts to the user's <a href="#config-tool-modes" class="internal">Tool Mode</a> and keeps the content front-and-centre while surfacing the right controls for the task at hand.</p>
 
 <h2 id="editor-layout">Editor Layout</h2>
 <p>Three regions, each with a purpose:</p>
@@ -664,16 +689,20 @@ th { font-weight:600; background:var(--bg-alt); }
 <p>Layout adapts to the <a href="#config-tool-modes" class="internal">Tool Mode</a> your role resolves to:</p>
 <table>
   <tr><th>Mode</th><th>Top toolbar</th><th>Content area</th><th>Annotation panel</th></tr>
-  <tr><td>Edit Mode</td><td>Authoring toolbar visible; no tool/class selectors</td><td>Fully editable rich text (linked files still read-only)</td><td>Hidden by default</td></tr>
-  <tr><td>Annotation Mode</td><td>Tool / class selectors visible; authoring toolbar hidden</td><td>Read-only, selectable for span creation</td><td>Primary surface — instance list, properties, comments, relationships</td></tr>
-  <tr><td>View-Only</td><td>Read-only — no tool / class selectors, no upload</td><td>Read-only display</td><td>Hidden</td></tr>
+  <tr><td>Editor</td><td>Authoring toolbar visible; no tool/class selectors</td><td>Fully editable rich text (linked files still read-only)</td><td>Hidden by default</td></tr>
+  <tr><td>Annotation</td><td>Tool / class selectors visible; authoring toolbar hidden</td><td>Read-only, selectable for span creation</td><td>Primary surface — instance list, properties, comments, relationships</td></tr>
+  <tr><td>View Only</td><td>Read-only — no tool / class selectors, no upload</td><td>Read-only display</td><td>Hidden</td></tr>
+  <tr><td>Model Arena</td><td>Read-only top toolbar; upload / file-creation suppressed</td><td>Conversation cards in a forced <a href="#editor-split-view" class="internal">split view</a> plus a shared prompt dock</td><td>Hidden</td></tr>
 </table>
+<p>See <a href="#editor-arena" class="internal">Model Arena Mode</a> for the dedicated workspace.</p>
 <p>Edit Mode:</p>
 <img src="images/editor-mode-sample.png" alt="Keypoint configuration modal: options to add properties and add/edit skeleton" style="height:300px; width:auto; border-radius:8px; border:1px solid var(--border);">
 <p>View Only Mode:</p>
 <img src="images/viewonly-mode-sample.png" alt="Skeleton Configuration modal: points left eye, right eye, nose, chin with connections between them" style="height:300px; width:auto; border-radius:8px; border:1px solid var(--border);">
 <p>Annotation Mode:</p>
 <img src="images/annotation-mode-sample.png" alt="Skeleton Configuration modal: points left eye, right eye, nose, chin with connections between them" style="height:300px; width:auto; border-radius:8px; border:1px solid var(--border);">
+<p>Model Arena Mode:</p>
+<img src="images/model-arena-mode-sample.png" alt="Skeleton Configuration modal: points left eye, right eye, nose, chin with connections between them" style="height:250px; width:auto; border-radius:8px; border:1px solid var(--border);">
 
 <hr>
 
@@ -836,6 +865,49 @@ th { font-weight:600; background:var(--bg-alt); }
 
 <hr>
 
+<h2 id="editor-arena">Model Arena Mode</h2>
+<p>Model Arena turns a single item into a multi-model comparison workspace. From one shared prompt, the tool sends the same message to several AI models in parallel and appends each model's reply to its own conversation — so a reviewer can compare answers side by side, or build preference / ranking datasets. It's enabled by mapping a role to <strong>Model Arena</strong> in <a href="#config-tool-modes" class="internal">Tool Modes</a> and configuring a <a href="#config-model-arena" class="internal">model pool</a>.</p>
+<p><strong>What the workspace looks like.</strong> When an eligible item opens in this mode:</p>
+<ul>
+  <li>The tool auto-creates one blank conversation "file" per model the item uses (the <a href="#config-model-arena" class="internal">Models per item</a> count) and shows them together in a forced <a href="#editor-split-view" class="internal">split view</a> of read-only cards. The single-file (Split 0) view and manual file upload / creation are suppressed — you navigate between conversations, you don't add them.</li>
+  <li>A <strong>prompt dock</strong> sits below the cards: a rich-text input, a <strong>Send</strong> button, and a compact "sent to N conversations" hint.</li>
+  <li>Conversations are named uniformly (<em>Conversation 1, 2, …</em>). When <a href="#config-model-arena" class="internal">Randomize model order</a> is on, which model sits behind which conversation is shuffled per item and hidden from the user.</li>
+</ul>
+<p><strong>Speaker styling.</strong> Each turn is labelled with an <strong>H1</strong> title — <em>User</em> in amber, <em>Model</em> in blue — and the two speakers hug opposite edges (User pinned right, Model left) like a chat thread, independent of the text's own writing direction. The styling is baked into the content as ordinary formatting, so it survives editing and export.</p>
+
+<h3 id="editor-arena-flow">Sending Prompts &amp; Turns</h3>
+<p>Type a prompt and click <strong>Send</strong>. The prompt is dispatched to every model the item uses; each reply is appended to that model's conversation. <strong>One prompt + all of its replies = one turn.</strong></p>
+<ul>
+  <li><strong>Atomic turns</strong> — the prompt and every model's response are written to the item together. You'll never end up with a prompt saved but its answers lost to a refresh.</li>
+  <li><strong>Full history as context</strong> — each model receives the entire prior transcript of <em>its own</em> conversation plus the new prompt, so multi-turn threads stay coherent. Models never see each other's replies.</li>
+  <li><strong>One round at a time</strong> — while a round is in flight the prompt field and Send are disabled; you can't queue a second prompt until the current one resolves for all models.</li>
+</ul>
+
+<h4 id="editor-arena-failures">Partial Failures &amp; Retry</h4>
+<p>If a model call fails (bad key, proxy/billing issue, empty response), the tool automatically retries that model <strong>once</strong>. If it still fails, the round pauses with the successful answers kept and the failed ones flagged on their cards. The prompt dock swaps Send for a <strong>Retry failed</strong> button (plus <strong>Cancel</strong>):</p>
+<ul>
+  <li><strong>Retry failed</strong> re-attempts only the models that didn't succeed, reusing the same prompt (which can't be edited once it has reached at least one model).</li>
+  <li><strong>Cancel</strong> discards the in-flight round entirely and returns the prompt to a draft state, so you can revise and resend.</li>
+  <li>If the page was closed mid-round, any still-unanswered models are marked <em>Interrupted</em> on reload and offered the same Retry, rather than being assumed successful.</li>
+  <li>Failure messages are deliberately generic (e.g. "Empty response") so they don't leak which backend a model runs on.</li>
+</ul>
+
+<h3 id="editor-arena-editing">Editing Conversations</h3>
+<p>When <a href="#config-model-arena" class="internal">Allow conversation editing</a> is enabled, each conversation card shows an <strong>Edit</strong> button. It opens that transcript in a full-screen editor that is the <em>exact same</em> rich-text canvas used everywhere else in the tool — same formatting, lists, code blocks, tables, math, and text-direction handling — so manual corrections behave identically to authored content. Discard or save the changes from the editor's action bar. When the setting is off, transcripts are generation-only and the Edit button doesn't appear.</p>
+
+<h3 id="editor-arena-states">States &amp; Retirement</h3>
+<p>An item can be in one of a few arena states, surfaced as a notice in place of the prompt dock (the conversation cards above always stay viewable):</p>
+<ul>
+  <li><strong>Eligibility</strong> — Model Arena can only initialize on an item with <em>no meaningful existing text</em> (a brand-new authored item, or one whose single text tab is empty). Linked items, or items that already contain content, show a "Model Arena unavailable" notice rather than overwriting anything. Once an item carries arena data, its blank-conversation files are hidden from other modes' upload UI too.</li>
+  <li><strong>Frozen model set</strong> — the first time you send a prompt, the item locks in <em>which</em> models it uses and how many. Reordering the pool, or adding more models in config later, does <strong>not</strong> disturb an existing item.</li>
+  <li><strong>Retirement</strong> — if the config later drifts so the item no longer matches it — the <a href="#config-model-arena" class="internal">Models per item</a> count changed, or one of the item's frozen provider+model pairs was removed/replaced in the pool — the item is <em>retired</em>: a "Configuration changed" notice replaces the prompt dock and no new turns can be generated. The existing conversations remain available to view here, and to annotate in a role mapped to a viewing/annotation mode. (Swapping one proxy for another of the <em>same</em> provider+model does not retire an item — only the provider and model identity are matched, not the proxy id.)</li>
+  <li><strong>Turn limit reached</strong> — once the item hits the configured <a href="#config-model-arena" class="internal">Turn limit</a>, a "Turn limit reached" notice blocks further prompts.</li>
+</ul>
+<p><strong>Saving.</strong> Drafts and committed turns flow through the same <a href="#ie-autosave" class="internal">auto-save</a> pipeline as the rest of the editor — the unsaved-changes indicator and the periodic durable save pick up arena writes like any other change.</p>
+<p><strong>Stored data.</strong> Each conversation is stored exactly like manually authored content — HTML for rendering, Markdown for model context, and plain text for any annotation offsets — so arena items can be opened, viewed, and annotated in the other modes with no special handling. The only extra per-conversation metadata is the model's name/id; it's hidden in the UI but present in the <a href="#ie-export" class="internal">download / export</a>.</p>
+
+<hr>
+
 <h2 id="editor-annotation-mode">Annotation Mode</h2>
 <p>Annotation Mode is where NER work happens. The authoring toolbar is hidden, the content is read-only, and the full width of attention is on highlighting spans and filling structured data.</p>
 
@@ -848,7 +920,7 @@ th { font-weight:600; background:var(--bg-alt); }
   <li>Optional <strong>comments</strong> and <strong>relationships</strong>, plus standard creator / last-updated metadata.</li>
 </ul>
 <p>Spans with different classes can overlap; the tool handles layered rendering so every instance stays visible and selectable. See <a href="#tips-overlap" class="internal">Overlapping NER Spans</a> for details.</p>
-<div class="callout"><strong>Text direction & selecting spans:</strong> a span is stored as character offsets into the file's <em>logical</em> (reading-order) text, so the saved instance is always correct no matter how the line is displayed. However, if the project's <a href="#config-te-options" class="internal">Text Direction</a> is forced to LTR or RTL while a block's content naturally flows the other way, the bidirectional reorder can make a drag-selection <em>look</em> like it grabs the wrong edge, includes the opposite-side line break, or skips a list number — the visual is misleading even though the stored span is right. If selection feels mirrored or off, ask your project admin to switch Text Direction to <strong>Auto</strong> (or to a mode that matches your data's actual direction).</div>
+<div class="callout"><strong>Text direction & selecting spans:</strong> a span is stored as character offsets into the file's <em>logical</em> (reading-order) text, so the saved instance is always correct no matter how the line is displayed. Direction is detected automatically per paragraph from its first strong character, so a block's on-screen flow always matches its content (LTR or RTL) — drag-selection and highlights line up naturally with no setting to configure.</div>
 <img src="images/editor-ner-concept.png" alt="Text block with three overlapping highlighted spans of different colors, each labelled with its class name in a small tag" style="width:100%; border-radius:8px; border:1px solid var(--border); margin:16px 0;">
 
 <h3 id="editor-drawing">Creating an Annotation</h3>
@@ -1544,7 +1616,13 @@ const navData = {
   ],
   configuration: [
     { id: 'config-access-control', label: 'Access Control' },
-    { id: 'config-tool-modes', label: 'Tool Modes' },
+    { id: 'config-tool-modes', label: 'Tool Modes', children: [
+      { id: 'config-role-mode-mapping', label: 'Role-Mode Mapping' },
+    ]},
+    { id: 'config-model-arena', label: 'Model Arena Settings', children: [
+      { id: 'config-arena-pool', label: 'Model pool' },
+      { id: 'config-arena-behavior', label: 'Behaviour' },
+    ]},
     { id: 'config-feature-control', label: 'Feature Control', children: [
       { id: 'config-panel-settings', label: 'Annotation Panel Settings' },
       { id: 'config-table-cols', label: 'Table Column Settings' },
@@ -1586,6 +1664,12 @@ const navData = {
       { id: 'editor-math-input', label: 'How equations get in' },
       { id: 'editor-math-notations', label: 'Supported notations' },
       { id: 'editor-math-text', label: 'What stays as text' },
+    ]},
+    { id: 'editor-arena', label: 'Model Arena Mode', children: [
+      { id: 'editor-arena-flow', label: 'Sending Prompts & Turns' },
+      { id: 'editor-arena-failures', label: 'Partial Failures & Retry' },
+      { id: 'editor-arena-editing', label: 'Editing Conversations' },
+      { id: 'editor-arena-states', label: 'States & Retirement' },
     ]},
     { id: 'editor-annotation-mode', label: 'Annotation Mode', children: [
       { id: 'editor-ner-concept', label: 'NER Instance Concept' },
