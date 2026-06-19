@@ -408,9 +408,9 @@ th { font-weight:600; background:var(--bg-alt); }
 <table>
   <tr><th>Type</th><th>What it captures</th><th>Example</th></tr>
   <tr><td><strong>Free Text</strong></td><td>Open-ended string input.</td><td>Notes, normalised forms, IDs, canonical spellings.</td></tr>
-  <tr><td><strong>AI Text</strong></td><td>Text auto-filled by the configured AI proxy from the span and document context. A per-property <strong>default prompt</strong> guides the extraction. See <a href="#editor-ai-autofill" class="internal">AI Autofill</a>.</td><td>Entity canonicalisation, short descriptions, disambiguation.</td></tr>
+  <tr><td><strong>AI Text</strong></td><td>Text auto-filled by the configured <a href="#config-ai-proxy" class="internal">AI proxy</a> (or an optional <a href="#config-ai-property-proxy-override" class="internal">per-property override</a>) from the highlighted span and document context. A per-property <strong>default prompt</strong> guides the extraction. See <a href="#editor-ai-autofill" class="internal">AI Autofill</a>.</td><td>Entity canonicalisation, short descriptions, disambiguation.</td></tr>
   <tr><td><strong>Select</strong></td><td>Predefined option list. Toggle <em>Allow multi-select</em> to switch between dropdown (single) and checkbox (multi) behaviour.</td><td>Sentiment, polarity, multi-label classification, attribute tagging.</td></tr>
-  <tr><td><strong>AI Select</strong></td><td>Select field whose options are auto-chosen by the configured AI proxy from the span and document context. Combines a predefined option list with AI-driven pre-selection. A per-property <strong>default prompt</strong> guides the extraction. See <a href="#editor-ai-autofill" class="internal">AI Autofill</a>.</td><td>Auto-classification, sentiment, topic categorisation, attribute tagging.</td></tr>
+  <tr><td><strong>AI Select</strong></td><td>Select field whose options are auto-chosen by the configured <a href="#config-ai-proxy" class="internal">AI proxy</a> (or an optional <a href="#config-ai-property-proxy-override" class="internal">per-property override</a>) from the span and document context. Combines a predefined option list with AI-driven pre-selection. A per-property <strong>default prompt</strong> guides the extraction. See <a href="#editor-ai-autofill" class="internal">AI Autofill</a>.</td><td>Auto-classification, sentiment, topic categorisation, attribute tagging.</td></tr>
   <tr><td><strong>Numeric</strong></td><td>Number input with optional <code>min</code>, <code>max</code>, <code>step</code>, and <code>unit</code>.</td><td>Confidence score, severity rating, count.</td></tr>
   <tr><td><strong>Approval</strong></td><td>Three-state verdict captured via a compact thumbs-up / thumbs-down picker. Stores <code>"true"</code> when approved, <code>"false"</code> when disapproved, and is omitted (or set to blank) when no verdict has been given. Carries no options, no AI configuration, and no numeric or text-display options.</td><td>Reviewer sign-off, span-level QA verdict, accept/reject for an extracted entity.</td></tr>
 </table>
@@ -425,11 +425,21 @@ th { font-weight:600; background:var(--bg-alt); }
     </ul>
   </li>
   <li><strong>Enable Editing</strong> (AI Text and AI Select) — controls whether the AI output is editable at extraction time. For AI Text, when <em>off</em>, the model auto-extracts using the predefined prompt as-is; when <em>on</em>, annotators can tweak the prompt before triggering extraction. For AI Select, when <em>off</em>, the model's chosen option is applied directly; when <em>on</em>, annotators can review and override the AI's selection.</li>
-  <li><strong>Default value / Default prompt</strong> — a starting value (or default AI prompt) auto-populated on each new instance.</li>
+  <li><strong>AI Text / AI Select: Default Prompt</strong> — the system prompt the model receives when extraction runs. Annotators with prompt editing enabled can also override it per-run from the Edit prompt flow.</li>
+  <li><strong>AI Text / AI Select: Proxy / Model override</strong> — optional per-property routing. By default each AI property inherits the project-wide <a href="#config-ai-proxy" class="internal">AI Property Proxy</a> and model. In the property card, use the <em>Proxy/Model override</em> row to send <em>this property only</em> through a different proxy and/or model tier. Overrides are included when you <a href="#config-properties-copy" class="internal">copy a property to other classes</a>. See <a href="#config-ai-property-proxy-override" class="internal">Per-property proxy &amp; model routing</a>.</li>
+  <li><strong>Default value</strong> (Select only) — a starting option auto-populated on each new instance.</li>
   <li><strong>Hide From Roles / View-Only Roles</strong> — restrict who sees and edits this property.</li>
   <li><strong>Info</strong> — optional helper text shown next to the field for annotator guidance.</li>
 </ul>
 <img src="images/config-properties-modal.png" alt="Properties modal for the Person class showing an AI Text property Canonical name and a Single Select property Role with options" style="width:100%; border-radius:8px; border:1px solid var(--border); margin:16px 0;">
+
+<h4 id="config-ai-property-proxy-override">Per-property proxy &amp; model routing</h4>
+<p>Every AI Text and AI Select property can optionally override the project defaults set under <a href="#config-ai-proxy" class="internal">AI Proxy</a>. In the property modal, below the <em>Default System Prompt</em>, the <strong>Proxy/Model override</strong> row exposes two dropdowns:</p>
+<ul>
+  <li><strong>Proxy</strong> — starts at <em>Default (project AI proxy / model)</em>. Pick any team proxy whose domain routes to OpenAI, Gemini, or Anthropic to override the project selection for this property only.</li>
+  <li><strong>Model</strong> — enabled once a non-default proxy is chosen. Lists the same three tiers as the project-level model picker for that provider (cheapest → most capable). Changing the override proxy resets the model to that provider's default middle tier.</li>
+</ul>
+<p>At extraction time the editor routes each property through its resolved proxy + model. Properties sharing the same route are batched into one API call; properties with different overrides (or a mix of overrides and project defaults) run as separate batches in sequence. A property with an override can still extract when the project default is unset — but any property <em>without</em> an override still requires the project <strong>AI Property Proxy</strong> to be configured. The Ask AI documentation assistant always uses the project proxy/model; it does not read per-property overrides.</p>
 
 <h3 id="config-property-rules">Property Visibility Rules</h3>
 <p>A property visibility rule controls whether an <strong>entire property</strong> is visible and editable on a given NER instance or tag, based on the value of one or more sibling Select / AI Select properties. Use this when a whole field only makes sense in a specific context — e.g. only show "Treatment Dose" when "Has Treatment" is "Yes", or only show "Sub-category" when "Category" is "Clinical". This is the property-scope equivalent of <a href="#config-option-rules" class="internal">option visibility rules</a>: option rules hide individual <em>options</em> inside a Select; property rules hide the <em>whole property</em>.</p>
@@ -449,7 +459,7 @@ th { font-weight:600; background:var(--bg-alt); }
   <li><strong>Greyed-out field</strong> — when the rule is unsatisfied, the property still appears in the popover and table column (so annotators can see the field exists), but it's rendered dimmed with a <em>not-allowed</em> cursor. Hovering anywhere over the disabled field shows a tooltip explaining what controls it (e.g. "Controlled by: Material = Wood").</li>
   <li><strong>Stored value cleared</strong> — the moment a rule becomes unsatisfied (e.g. the user changes a controller value), any value stored on that property is automatically cleared. The clear cascades: if A controls B, and B itself controls C, changing A clears both B and C in one step.</li>
   <li><strong>Required validation suppressed</strong> — an inaccessible property is <strong>not</strong> counted as "missing required" even when marked Required. The red required indicator on the NER / tag row only reactivates when the rule becomes satisfied and the field becomes editable again.</li>
-  <li><strong>AI extraction skipped</strong> — for AI Text / AI Select properties, the wand and "Extract" / "Edit prompt" buttons in the property popover (and per-cell wand icons in the table) skip any AI property whose rule is unsatisfied. The buttons appear / disappear immediately as the controller value changes, no popover reopen needed.</li>
+  <li><strong>AI extraction skipped</strong> — for AI Text / AI Select properties, the row-level Extract / Edit prompt controls, the per-property icons in the property popover, and the per-cell extract icons in the table skip any AI property whose rule is unsatisfied. The buttons appear / disappear immediately as the controller value changes, no popover reopen needed.</li>
   <li><strong>Modal / Rich Text properties</strong> — a property gated by an unsatisfied rule renders as a plain "—" placeholder; its modal (plain-text or rich-text) cannot be opened.</li>
   <li><strong>Default values disabled</strong> — when a Select property has a property visibility rule, the per-option "Default" checkboxes in the configuration screen are disabled. Defaults wouldn't make sense for a property that may not even be visible on instance creation; the configuration UI prevents the contradiction up-front.</li>
 </ul>
@@ -615,7 +625,10 @@ th { font-weight:600; background:var(--bg-alt); }
   <tr><td>Gemini</td><td><code>gemini-3.1-flash-lite</code>, <code>gemini-3.5-flash</code>, <code>gemini-3.1-pro-preview</code></td></tr>
   <tr><td>Anthropic</td><td><code>claude-haiku-4-5</code>, <code>claude-sonnet-4-6</code>, <code>claude-opus-4-7</code></td></tr>
 </table>
-<p>Changing the proxy to a different provider resets the model to that provider's default (middle tier). The selected model applies to both text-based property extraction and the Ask AI assistant — annotators in the editor are not affected and do not see which model is active.</p>
+<p>Changing the proxy to a different provider resets the model to that provider's default (middle tier). The selected model applies to both text-based property extraction and the Ask AI assistant — annotators in the editor are not affected and do not see which model is active, except when a property has its own <a href="#config-ai-property-proxy-override" class="internal">proxy/model override</a>.</p>
+
+<h4 id="config-panel-bulk-ai-extraction">Bulk annotation panel extraction toggle</h4>
+<p>Below the AI Property Proxy card, the checkbox <strong>Allow Bulk Extraction of all AI Properties</strong> controls whether annotators see the panel-header bulk extract control in the editor (see <a href="#editor-ai-bulk-panel-extraction" class="internal">Bulk annotation panel extraction</a>). It is <strong>off by default</strong> — enable it when you want annotators to run AI extraction across every visible row in the annotation panel in one action. The toggle does not change single-property, row-level, or table-cell extract controls; it only exposes the all-rows shortcut. Works in both Instance View and Table View. Requires an AI Property Proxy to be configured (or at least one AI property with a per-property override and runnable empty values).</p>
 <img src="images/config-ai-proxy-setup.png" alt="AI Property Proxy card with a Select Proxy dropdown" style="width:100%; border-radius:8px; border:1px solid var(--border); margin:16px 0;">
 
 <h3>Troubleshooting</h3>
@@ -964,6 +977,8 @@ th { font-weight:600; background:var(--bg-alt); }
   <li>Columns adapt to the class of each row — properties not defined on a class show as empty cells.</li>
   <li>Sort by any column; filter via column headers. <strong>Approval</strong> columns offer a fixed three-state picker — <em>Approved</em>, <em>Disapproved</em>, <em>(Blank)</em> — regardless of which states currently appear in the data, so you can always pre-filter for "no verdict yet" before any rows have been approved.</li>
   <li>Inline edit each cell; changes <a href="#ie-autosave" class="internal">auto-save</a> immediately.</li>
+  <li><strong>AI extraction column</strong> (Table View) — when a class or text-scoped tag has AI Text / AI Select properties, the table adds a leading <strong>AI</strong> column with <strong>row-level</strong> actions: <strong>Extract</strong> (all empty, runnable AI properties on that row) and, when <a href="#config-properties" class="internal">Enable Editing</a> is on, <strong>Edit prompt</strong>. These mirror the action bar at the top of the property popover.</li>
+  <li><strong>Per-property extract icons</strong> (Table View) — individual AI Text and AI Select cells also show compact extract (and optional edit-prompt) icons beside the field, matching the per-property icons beside each AI field label in the property popover.</li>
   <li>Use the <strong>Columns</strong> dropdown in the table header to reorder or hide columns for the current session. Your starting order and which columns are visible come from the project-wide <a href="#config-table-cols" class="internal">Table Column Settings</a>; per-session adjustments here don't persist across reloads, while the admin default does.</li>
   <li><strong>Pin columns</strong> — open the <em>Columns</em> dropdown in the table toolbar and click the pin icon next to any column to glue it to the leading edge of the table. Pinned columns stay visible while the rest of the table scrolls horizontally underneath them; the rightmost pinned column has a thin shadow to mark the boundary. Pinned columns always sort to the top of the dropdown and the table; drag-reorder is restricted to within the same cluster (pinned ↔ pinned, or unpinned ↔ unpinned). Pin state is per-session, seeded from the project default in <a href="#config-table-cols" class="internal">Table Column Settings</a>.</li>
   <li><strong>Text Name column</strong> — on multi-file items, an additional column shows which text file each instance or tag belongs to. Text-level tags and NER instances display their file name; item-level tags show blank. The column supports text-search filtering.</li>
@@ -985,12 +1000,12 @@ th { font-weight:600; background:var(--bg-alt); }
 <hr>
 
 <h2 id="editor-property-editing">Property Editing</h2>
-<p>Click the <strong>info</strong> icon on an instance row in the <a href="#editor-panel-instance" class="internal">Instance View</a> to open the property popover. The popover anchors next to the row so the source text and the structured fields stay visible together. In <a href="#editor-panel-table" class="internal">Table View</a>, fields are inline-editable in their cells.</p>
+<p>Click the <strong>property popover icon</strong> on an instance or tag row in the <a href="#editor-panel-instance" class="internal">Instance View</a> to open the property popover. The popover anchors next to the row so the source text and the structured fields stay visible together. For AI Text and AI Select fields, compact extract icons sit beside each property label (single-property scope); a separate action bar at the top of the popover runs extraction for the whole row. In <a href="#editor-panel-table" class="internal">Table View</a>, fields are inline-editable in their cells.</p>
 <ul>
   <li><strong>Free Text</strong> — editable text; its <a href="#config-properties" class="internal">Text Display</a> mode controls presentation: <em>Inline</em> (default), <em>Modal</em> (a roomy verbatim <a href="#editor-rich-text-modal" class="internal">plain-text modal</a>), or <em>Rich Text</em> (a formatted <a href="#editor-rich-text-modal" class="internal">rich-text modal</a>).</li>
-  <li><strong>AI Text</strong> — press the <strong>Extract</strong> button to run <a href="#editor-ai-autofill" class="internal">autofill</a>, or edit manually if Enable Editing is on. Supports the same <a href="#config-properties" class="internal">Text Display</a> modes (Inline / Modal / Rich Text).</li>
+  <li><strong>AI Text</strong> — auto-fill at four scopes: a <strong>single property</strong> (extract icon beside the field in the property popover or table cell), a <strong>whole row</strong> (popover action bar or table AI column), <strong>all visible panel rows</strong> when bulk extraction is enabled, or after creating a new span with empty AI properties. Manual edit if <a href="#config-properties" class="internal">Enable Editing</a> is on. Supports the same <a href="#config-properties" class="internal">Text Display</a> modes (Inline / Modal / Rich Text).</li>
   <li><strong>Select</strong> — always a dropdown; the <em>Allow multi-select</em> property option controls whether one or multiple options can be picked at the same time.</li>
-  <li><strong>AI Select</strong> — dropdown with predefined options, pre-selected by <a href="#editor-ai-autofill" class="internal">AI autofill</a>. The model picks from the configured option list based on the span and document context. Manual override is always possible; when <a href="#config-properties" class="internal">Enable Editing</a> is on, annotators can also tweak the prompt.</li>
+  <li><strong>AI Select</strong> — dropdown with predefined options, pre-selected by <a href="#editor-ai-autofill" class="internal">AI autofill</a> through the same single-property, row-level, or bulk panel entry points. The model picks from the configured option list based on the span and document context. Manual override is always possible; when <a href="#config-properties" class="internal">Enable Editing</a> is on, annotators can also tweak the prompt before extraction.</li>
   <li><strong>Numeric</strong> — number input with optional bounds and unit.</li>
   <li><strong>Approval</strong> — a compact two-button picker (thumbs-up / thumbs-down) for capturing a three-state verdict. Click the up icon to mark the row <em>approved</em> (stores <code>"true"</code>), the down icon to mark it <em>disapproved</em> (<code>"false"</code>); clicking the active icon again clears the verdict, and clicking the opposite icon swaps the verdict in place. Both surfaces — the property popover and the Table View cell — render the same picker, and changes flip on click without needing to dismiss the popover or refresh the panel. In view-only contexts (role lacks edit access, class is view-only) the icons keep their green / red palette but read as dimmed so the verdict is still legible at a glance; the buttons are not interactive. Approval columns are <strong>excluded from the table's free-text search</strong> — filter by verdict via the column dropdown's three-state picker instead.</li>
   <li><strong>Required indicator</strong> — required properties are visually flagged when empty so incomplete instances are easy to spot.</li>
@@ -998,14 +1013,50 @@ th { font-weight:600; background:var(--bg-alt); }
 <img src="images/editor-property-popover.png" alt="Property popover anchored to an instance row, showing Free Text, AI Text with an Extract button, Select, AI Select, and Numeric fields" style="width:100%; border-radius:8px; border:1px solid var(--border); margin:16px 0;">
 
 <h3 id="editor-ai-autofill">AI Property Autofill</h3>
-<p>The <strong>Extract</strong> button on an AI Text or AI Select field triggers a call to your configured <a href="#config-ai-proxy" class="internal">AI proxy</a>. For each AI Text and AI Select property in the popover, the tool sends one combined request to the LLM containing:</p>
+<p>The <a href="#config-properties" class="internal">AI Text</a> and <a href="#config-properties" class="internal">AI Select</a> property types send the highlighted span, surrounding document context, and each property's configured prompt to your <a href="#config-ai-proxy" class="internal">AI proxy</a>. By default the model and proxy come from project configuration; individual properties can override that routing. See <a href="#solutions-ner" class="internal">NER workflows</a> and <a href="#solutions-canonicalisation" class="internal">canonicalisation</a> for applications.</p>
+
+<h4>Where to trigger extraction</h4>
+<p>AI extraction is available at four scopes. Single-property and row-level controls exist in both the property popover and Table View; bulk extraction runs from the annotation panel header regardless of which panel mode you are in.</p>
 <ul>
-  <li>A built-in <strong>system message</strong> instructing the model to act as an information-extraction assistant returning JSON.</li>
-  <li>The <strong>full document</strong> as plain text. If the document exceeds <strong>~60,000 characters</strong>, it's clipped symmetrically around the selected span (keeping the span's neighbourhood intact and trimming the far ends).</li>
-  <li>The <strong>selected span</strong> with its character offsets.</li>
-  <li>The <strong>per-property prompt</strong> defined on each AI Text or AI Select property in configuration.</li>
+  <li><strong>Single property</strong> — run one AI Text or AI Select field at a time.
+    <ul>
+      <li><strong>Property popover</strong> — each AI property shows compact <strong>Extract</strong> (and, when <a href="#config-properties" class="internal">Enable Editing</a> is on, <strong>Edit prompt</strong>) icons beside its label.</li>
+      <li><strong>Table view</strong> — the same per-property icons appear inside that property's table cell. See <a href="#editor-panel-table" class="internal">Table View</a>.</li>
+    </ul>
+  </li>
+  <li><strong>Whole row</strong> — run every empty, runnable AI property on one NER instance or text-scoped tag row at once.
+    <ul>
+      <li><strong>Property popover</strong> — the AI action bar at the top of the popover offers <strong>Extract</strong> and <strong>Edit prompt</strong> (when editing is enabled for any AI property on the row).</li>
+      <li><strong>Table view</strong> — the leading <strong>AI</strong> column mirrors those same row-level actions.</li>
+    </ul>
+  </li>
+  <li><strong>Full annotation panel</strong> — when <a href="#config-panel-bulk-ai-extraction" class="internal">bulk extraction is enabled</a>, the panel-header extract button runs AI extraction across every visible row in the panel — NER instances and text-scoped tags, in Instance View or Table View. See <a href="#editor-ai-bulk-panel-extraction" class="internal">Bulk annotation panel extraction</a>.</li>
+  <li><strong>After creating a span</strong> — when a new annotation has empty AI properties, the row-level extraction flow can open automatically.</li>
+  <li><strong>Edit prompt modal</strong> — opened from any Edit prompt entry point above; shows editable per-property prompts before running.</li>
 </ul>
-<p>For AI Text properties, the returned values are parsed and dropped into each field. For AI Select properties, the model returns one (or more, if multi-select is enabled) option labels from the property's predefined list; unrecognised values are silently dropped. When <a href="#config-properties" class="internal">Enable Editing</a> is on for a property, annotators can tweak its prompt before pressing Extract; when off, the configured prompt is used as-is. Errors (rate limits, provider failures, missing proxy) surface inline.</p>
+
+<h4>Prompts and routing</h4>
+<ul>
+  <li>System prompts are <a href="#config-properties" class="internal">configured per property</a> as the <em>Default Prompt</em> and can be overridden per-run when editing is enabled.</li>
+  <li><strong>Per-property proxy / model</strong> — properties with a <a href="#config-ai-property-proxy-override" class="internal">configuration override</a> route independently. A single row or popover extract may issue multiple API batches when its empty AI properties resolve to different proxy/model pairs.</li>
+  <li>For each request the tool sends a built-in system message, the full document (clipped symmetrically around the span when it exceeds <strong>~60,000 characters</strong>), the selected span with offsets, and each property's prompt.</li>
+  <li>For AI Select, the model returns one (or more, if multi-select is enabled) option labels from the property's predefined list; unrecognised values are silently dropped.</li>
+  <li>Requires a configured route for each property being extracted — either the project <a href="#config-ai-proxy" class="internal">AI Property Proxy</a> or a per-property override.</li>
+  <li>Text-scoped <a href="#config-tags" class="internal">tags</a> with AI Text or AI Select properties run against the relevant text file's content. Item-level tags do not support AI properties.</li>
+  <li>The same models also power the <em>Ask AI</em> assistant in this in-app documentation popup — that path always uses the project proxy, not per-property overrides.</li>
+  <li>When <a href="#config-properties" class="internal">Enable Editing</a> is on, annotators can tweak a property's prompt before pressing Extract; when off, the configured prompt is used as-is. Errors (rate limits, provider failures, missing proxy) surface as toasts.</li>
+</ul>
+
+<h4 id="editor-ai-bulk-panel-extraction">Bulk annotation panel extraction</h4>
+<p>When an admin enables <a href="#config-panel-bulk-ai-extraction" class="internal">Allow Bulk Extraction of all AI Properties</a>, a compact extract button appears in the annotation panel header (alongside the view / group-by controls). Click it to run AI extraction across <strong>every visible row</strong> in the panel — NER instances and text-scoped tags — whether you are in Instance View or Table View.</p>
+<ul>
+  <li><strong>Scope</strong> — respects the current panel filters, table search (when in Table View), column filters, text/class filters, and collapsed group sections. Collapsed sections are skipped; only expanded groups contribute rows.</li>
+  <li><strong>What runs</strong> — for each qualifying row, the bulk job extracts the same set of properties the row-level Extract button would — empty AI Text / AI Select fields that pass visibility and accessibility checks. Already-filled values and view-only AI properties are skipped.</li>
+  <li><strong>Confirmation &amp; progress</strong> — a confirm dialog shows the row count. During the run a non-dismissible progress banner counts completed rows; row-level and per-property extract icons show a spinner while that row is queued. Outcome toasts stack beneath the banner.</li>
+  <li><strong>Summary</strong> — when finished, a dismissible banner reports how many rows were fully filled, partially filled, failed, or skipped.</li>
+  <li><strong>Concurrency</strong> — rows are processed in parallel (up to 15 at a time); each row still batches its own properties by proxy/model route.</li>
+  <li>The button is hidden entirely when the configuration toggle is off, and disabled when no visible rows have anything left to extract.</li>
+</ul>
 <img src="images/editor-ai-autofill.png" alt="Property popover with an Extract button at the top and AI Text fields populated by the model response" style="width:100%; border-radius:8px; border:1px solid var(--border); margin:16px 0;">
 
 <h3 id="editor-rule-hierarchy">Property &amp; Option Visibility Rules</h3>
@@ -1017,7 +1068,7 @@ th { font-weight:600; background:var(--bg-alt); }
   <li>The field still renders in the popover and as a table column so annotators can see the field exists, but it's <strong>dimmed and read-only</strong>, with a <em>not-allowed</em> cursor and a hover tooltip explaining what controls it (e.g. "Controlled by: Material = Wood").</li>
   <li>Any stored value on that property is <strong>automatically cleared</strong> the moment the rule flips to unsatisfied — and the clear cascades, so if A controls B and B controls C, changing A can clear both B and C in a single step.</li>
   <li><strong>Required validation is suppressed</strong> while the property is inaccessible — the red required indicator on the NER / tag row only reactivates when the rule becomes satisfied again.</li>
-  <li><strong>AI extraction is skipped</strong> on AI Text / AI Select properties whose rule is unsatisfied. The per-cell wand in the table and the Extract / Edit-prompt buttons in the property popover all hide or grey out for these fields, and re-appear the instant the controller flips back — no popover reopen needed.</li>
+  <li><strong>AI extraction is skipped</strong> on AI Text / AI Select properties whose rule is unsatisfied. The row-level Extract / Edit prompt controls, the per-property icons in the property popover, and the per-cell extract icons in the table all hide or grey out for these fields, and re-appear the instant the controller flips back — no popover reopen needed.</li>
   <li>Modal / Rich Text properties gated by an unsatisfied rule render as a plain "—" placeholder; their modal (<a href="#editor-rich-text-modal" class="internal">plain-text or rich-text</a>) cannot be opened. <strong>Approval columns</strong> behave the same way in the table — the cell collapses to "—" rather than rendering a dimmed picker, matching the convention used by every other column type. The property popover keeps the dimmed-disabled picker so users still see what the field <em>would</em> look like.</li>
 </ul>
 
@@ -1631,12 +1682,15 @@ const navData = {
       { id: 'config-classes', label: 'Classes' },
       { id: 'config-tags', label: 'Tags' },
       { id: 'config-properties', label: 'Properties' },
+      { id: 'config-ai-property-proxy-override', label: 'Per-property proxy override' },
       { id: 'config-property-rules', label: 'Property Visibility Rules' },
       { id: 'config-properties-copy', label: 'Copying properties between classes' },
     ]},
     { id: 'config-option-rules', label: 'Option Visibility Rules' },
     { id: 'config-te-options', label: 'Text Editor Options' },
-    { id: 'config-ai-proxy', label: 'AI Proxy' },
+    { id: 'config-ai-proxy', label: 'AI Proxy', children: [
+      { id: 'config-panel-bulk-ai-extraction', label: 'Bulk panel extraction toggle' },
+    ]},
     { id: 'config-instructions', label: 'Project Instructions' },
     { id: 'config-item-context', label: 'Item Context' },
     { id: 'config-import-export', label: 'Import / Export' },
@@ -1686,6 +1740,7 @@ const navData = {
     ]},
     { id: 'editor-property-editing', label: 'Property Editing', children: [
       { id: 'editor-ai-autofill', label: 'AI Property Autofill' },
+      { id: 'editor-ai-bulk-panel-extraction', label: 'Bulk Panel Extraction' },
       { id: 'editor-rule-hierarchy', label: 'Property & Option Visibility Rules' },
       { id: 'editor-rich-text-modal', label: 'Text Display Modals' },
     ]},
