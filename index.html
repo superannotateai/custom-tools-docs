@@ -37,7 +37,7 @@ body { font-family: var(--font); color: var(--text); background: var(--bg); font
 .hero p { font-size:17px; color:var(--text-secondary); max-width:600px; margin:0 auto; }
 
 /* Cards grid */
-.cards { display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:20px; max-width:1000px; margin:0 auto; padding:8px 24px 64px; width:100%; }
+.cards { display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:20px; max-width:1400px; margin:0 auto; padding:8px 24px 64px; width:100%; }
 .card { display:flex; flex-direction:column; background:var(--bg-alt); border:1px solid var(--border); border-radius:14px; padding:26px; text-decoration:none; color:inherit; box-shadow:var(--card-shadow); transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
 .card:hover { transform:translateY(-3px); box-shadow:var(--card-shadow-hover); border-color:var(--accent); }
 .card-icon { width:46px; height:46px; border-radius:11px; background:var(--accent-light); color:var(--accent); display:flex; align-items:center; justify-content:center; margin-bottom:18px; }
@@ -106,6 +106,18 @@ body { font-family: var(--font); color: var(--text); background: var(--bg); font
       </div>
       <div class="card-title">Video Annotation Tool</div>
       <p class="card-desc">Browser-based video annotation with frame-accurate timeline labeling and AI acceleration for teams training video models.</p>
+      <span class="card-cta">View documentation
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+      </span>
+    </a>
+
+    <!-- Audio Annotation Tool -->
+    <a class="card" href="audio-tool-docs/" target="_blank" rel="noopener noreferrer">
+      <div class="card-icon">
+        <svg viewBox="0 0 56 56" fill="currentColor" aria-hidden="true"><path d="M24.59 49.57c.96 0 1.66-.73 1.66-1.64V8.07c0-.91-.7-1.64-1.66-1.64-.94 0-1.64.73-1.64 1.64v39.86c0 .91.7 1.64 1.64 1.64Zm13.64-4.68c.94 0 1.64-.75 1.64-1.67V12.78c0-.92-.7-1.67-1.64-1.67s-1.66.75-1.66 1.67v30.44c0 .92.72 1.67 1.66 1.67Zm-20.44-3.8c.94 0 1.64-.73 1.64-1.64v-22.9c0-.91-.7-1.64-1.64-1.64-.96 0-1.66.73-1.66 1.64v22.9c0 .91.7 1.64 1.66 1.64Zm13.62-2.53c.94 0 1.66-.73 1.66-1.64V19.08c0-.91-.72-1.64-1.66-1.64s-1.64.73-1.64 1.64v17.84c0 .91.7 1.64 1.64 1.64Zm13.64-4.2c.94 0 1.64-.75 1.64-1.66v-9.4c0-.91-.7-1.66-1.64-1.66-.96 0-1.66.75-1.66 1.66v9.4c0 .91.7 1.66 1.66 1.66Zm-34.08-1.85c.94 0 1.64-.73 1.64-1.64v-5.74c0-.92-.7-1.64-1.64-1.64-.96 0-1.66.72-1.66 1.64v5.74c0 .91.7 1.64 1.66 1.64Z"/></svg>
+      </div>
+      <div class="card-title">Audio Annotation Tool</div>
+      <p class="card-desc">Audio and video annotation with timeline segments, transcript entities, simple video boxes, waveform visualization, and AI-assisted transcription and labeling.</p>
       <span class="card-cta">View documentation
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
       </span>
