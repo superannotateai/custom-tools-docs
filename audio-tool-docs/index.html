@@ -1,0 +1,2252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Audio Annotation Tool — Documentation</title>
+<style>
+:root {
+  --bg: #ffffff;
+  --bg-alt: #f8f9fb;
+  --bg-code: #f3f4f6;
+  --border: #e5e7eb;
+  --text: #1a1a2e;
+  --text-secondary: #6b7280;
+  --accent: #4271FF;
+  --accent-light: #e0eaff;
+  --link: #6c5ce7;
+  --err-bg: #fef2f2;
+  --err-fg: #dc2626;
+  --err-border: #fecaca;
+  --dropdown-shadow: 0 8px 24px rgba(0,0,0,.12);
+  --panel-shadow: -4px 0 24px rgba(0,0,0,0.1);
+  --scrim: rgba(0,0,0,0.2);
+  --sidebar-w: 240px;
+  --header-h: 52px;
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, sans-serif;
+  --mono: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+}
+/* Dark palette mirrors the main editor's neutral grey scale
+   (--n-0 / --n-50 / --n-100 / --n-200 / --n-600 / --n-900 / --accent)
+   so the docs feel like a natural extension of the tool rather than a
+   separate blue-tinted surface. */
+[data-theme="dark"] {
+  --bg: #1a1a1a;
+  --bg-alt: #222222;
+  --bg-code: #2a2a2a;
+  --border: #3a3a3a;
+  --text: #e5e5e5;
+  --text-secondary: #a0a0a0;
+  --accent: #5a8aff;
+  --accent-light: #2a3550;
+  --link: #a78bfa;
+  --err-bg: #2a1f1f;
+  --err-fg: #ff8a8a;
+  --err-border: #5a2f2f;
+  --dropdown-shadow: 0 8px 24px rgba(0,0,0,.6);
+  --panel-shadow: -4px 0 24px rgba(0,0,0,0.55);
+  --scrim: rgba(0,0,0,0.6);
+  color-scheme: dark;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: var(--font); color: var(--text); background: var(--bg); font-size: 15px; line-height: 1.65; }
+
+/* Header */
+.header { position:fixed; top:0; left:0; right:0; height:var(--header-h); background:var(--bg); border-bottom:1px solid var(--border); display:flex; align-items:center; z-index:100; padding:0 24px; gap:8px; }
+.header-logo { font-weight:700; font-size:16px; color:var(--accent); margin-right:24px; white-space:nowrap; }
+.tab-bar { display:flex; gap:2px; }
+.tab-btn { background:none; border:none; font:inherit; font-size:14px; padding:8px 16px; cursor:pointer; border-radius:6px; color:var(--text-secondary); transition:all .15s; white-space:nowrap; }
+.tab-btn:hover { background:var(--bg-alt); color:var(--text); }
+.tab-btn.active { background:var(--accent-light); color:var(--accent); font-weight:600; }
+
+/* Layout */
+.layout { display:flex; padding-top:var(--header-h); min-height:100vh; }
+
+/* Left Sidebar */
+.left-sidebar { position:fixed; top:var(--header-h); left:0; bottom:0; width:var(--sidebar-w); overflow-y:auto; border-right:1px solid var(--border); background:var(--bg-alt); padding:16px 0; z-index:50; }
+.nav-section { padding:0 16px; margin-bottom:4px; }
+.nav-heading { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text-secondary); padding:12px 0 6px; }
+.nav-link { display:block; font-size:13.5px; padding:5px 12px; border-radius:6px; color:var(--text-secondary); text-decoration:none; transition:all .12s; cursor:pointer; }
+.nav-link:hover { background:var(--border); color:var(--text); }
+.nav-link.active { background:var(--accent-light); color:var(--accent); font-weight:600; }
+.nav-sub { padding-left:14px; }
+.nav-sub .nav-link { font-size:13px; padding:5px 10px; cursor:pointer; }
+
+/* Main Content */
+.main { margin-left:var(--sidebar-w); padding:32px 48px 80px; max-width:820px; flex:1; }
+.tab-content { display:none; }
+.tab-content.active { display:block; }
+
+h1 { font-size:28px; font-weight:700; margin-bottom:8px; }
+h2 { font-size:22px; font-weight:700; margin-top:40px; margin-bottom:8px; scroll-margin-top:70px; }
+h3 { font-size:17px; font-weight:700; margin-top:32px; margin-bottom:6px; scroll-margin-top:70px; }
+h4 { font-size:15px; font-weight:600; margin-top:24px; margin-bottom:4px; scroll-margin-top:70px; }
+p { margin-bottom:12px; }
+ul, ol { margin-bottom:12px; padding-left:22px; }
+li { margin-bottom:4px; }
+a { color:var(--link); text-decoration:none; }
+a:hover { text-decoration:underline; }
+strong { font-weight:600; }
+code { font-family:var(--mono); font-size:13px; background:var(--bg-code); padding:2px 5px; border-radius:4px; }
+pre { background:var(--bg-code); padding:16px; border-radius:8px; overflow-x:auto; margin-bottom:16px; font-size:13px; line-height:1.5; font-family:var(--mono); }
+hr { border:none; border-top:1px solid var(--border); margin:32px 0; }
+
+.callout { background:var(--accent-light); border-left:3px solid var(--accent); padding:12px 16px; border-radius:0 6px 6px 0; margin-bottom:16px; font-size:14px; }
+.callout strong { color:var(--accent); }
+
+.screenshot-placeholder { border:2px dashed var(--border); border-radius:8px; padding:32px 24px; text-align:center; color:var(--text-secondary); font-size:13px; margin:16px 0; background:var(--bg-alt); }
+.screenshot-placeholder::before { content:'📷'; display:block; font-size:24px; margin-bottom:8px; }
+
+.doc-img-centered { text-align:center; margin:16px 0; display: flex; justify-content: center; gap: 16px;}
+.doc-img-centered img { display:inline-block; max-width:100%; vertical-align:middle; }
+.doc-shortcuts-row { display:flex; flex-wrap:wrap; gap:16px; justify-content:center; align-items:flex-start; margin:16px 0; }
+.doc-shortcuts-row img { height:300px; width:auto; max-width:100%; border-radius:8px; border:1px solid var(--border); object-fit:contain; }
+
+.doc-triple-img-row { display:flex; flex-wrap:wrap; gap:12px; justify-content:center; align-items:stretch; margin:16px 0; }
+.doc-triple-img-row .doc-triple-cell { flex:1 1 200px; min-width:0; max-width:100%; display:flex; justify-content:center; align-items:center; }
+.doc-triple-img-row img { height:300px; width:auto; max-width:100%; object-fit:contain; border-radius:8px; border:1px solid var(--border); }
+
+table { width:100%; border-collapse:collapse; margin-bottom:16px; font-size:14px; }
+th, td { text-align:left; padding:8px 12px; border-bottom:1px solid var(--border); }
+th { font-weight:600; background:var(--bg-alt); }
+
+/* Search bar */
+.header-search-wrap { position:relative; margin-left:auto; }
+.header-search-icon { position:absolute; left:10px; top:50%; transform:translateY(-50%); pointer-events:none; }
+.header-search-input { font:inherit; font-size:13px; padding:6px 12px 6px 32px; border:1px solid var(--border); border-radius:6px; width:220px; background:var(--bg-alt); color:var(--text); outline:none; transition:border-color .15s, width .2s; }
+.header-search-input:focus { border-color:var(--accent); width:280px; }
+.header-search-input::placeholder { color:var(--text-secondary); }
+.header-search-dropdown { display:none; position:absolute; top:calc(100% + 4px); right:0; width:360px; max-height:400px; overflow-y:auto; background:var(--bg); border:1px solid var(--border); border-radius:8px; box-shadow:var(--dropdown-shadow); z-index:200; }
+.header-search-dropdown.open { display:block; }
+.search-result-item { display:flex; flex-direction:column; padding:10px 14px; cursor:pointer; border-bottom:1px solid var(--border); transition:background .1s; }
+.search-result-item:last-child { border-bottom:none; }
+.search-result-item:hover, .search-result-item.active { background:var(--accent-light); }
+.search-result-title { font-size:13.5px; font-weight:600; color:var(--text); }
+.search-result-title mark { background:var(--accent-light); color:var(--accent); font-weight:700; border-radius:2px; padding:0 1px; }
+.search-result-snippet { display:block; font-size:12px; color:var(--text-secondary); line-height:1.4; margin-top:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.search-result-snippet mark { background:var(--accent-light); color:var(--accent); font-weight:600; border-radius:2px; padding:0 1px; }
+.search-result-path { font-size:11.5px; color:var(--text-secondary); margin-top:3px; }
+.search-result-path .search-tab-badge { display:inline-block; background:var(--bg-alt); border:1px solid var(--border); border-radius:4px; padding:0 5px; font-size:10.5px; font-weight:600; margin-right:4px; text-transform:capitalize; }
+.search-no-results { padding:16px; text-align:center; color:var(--text-secondary); font-size:13px; }
+
+/* Ask AI Button */
+.header-ask-ai-btn { display:flex; align-items:center; gap:6px; padding:6px 14px; border:none; border-radius:6px; background:var(--accent); color:#fff; font:inherit; font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap; transition:background .15s, transform .1s; flex-shrink:0; margin-left:8px; }
+.header-ask-ai-btn:hover { background:#3561e0; }
+.header-ask-ai-btn:active { transform:scale(0.97); }
+.header-ask-ai-btn svg { flex-shrink:0; }
+.ask-ai-sparkle { animation:aiSparkle 2s ease-in-out infinite; }
+@keyframes aiSparkle { 0%,100% { opacity:1; transform:scale(1) rotate(0deg); } 50% { opacity:.75; transform:scale(1.15) rotate(12deg); } }
+
+/* AI Chat Panel */
+.ai-chat-overlay { display:none; position:fixed; inset:0; background:var(--scrim); z-index:199; }
+.ai-chat-overlay.open { display:block; }
+.ai-chat-panel { position:fixed; top:0; right:-420px; bottom:0; width:400px; background:var(--bg); border-left:1px solid var(--border); box-shadow:var(--panel-shadow); display:flex; flex-direction:column; z-index:200; transition:right .25s ease; }
+.ai-chat-panel.open { right:0; }
+.ai-chat-header { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid var(--border); flex-shrink:0; }
+.ai-chat-header-left { display:flex; align-items:center; gap:8px; font-weight:700; font-size:15px; color:var(--text); }
+.ai-chat-header-left svg { color:var(--accent); }
+.ai-chat-close { background:none; border:none; font-size:22px; cursor:pointer; color:var(--text-secondary); padding:2px 6px; border-radius:4px; line-height:1; }
+.ai-chat-close:hover { background:var(--bg-alt); color:var(--text); }
+.ai-chat-messages { flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:12px; }
+.ai-chat-welcome { display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:40px 20px; flex:1; }
+.ai-chat-welcome svg { margin-bottom:12px; }
+.ai-chat-welcome-title { font-weight:700; font-size:16px; color:var(--text); margin-bottom:6px; }
+.ai-chat-welcome-desc { font-size:13px; color:var(--text-secondary); line-height:1.55; max-width:280px; }
+.ai-chat-msg { max-width:92%; padding:10px 14px; border-radius:12px; font-size:13.5px; line-height:1.55; word-wrap:break-word; }
+.ai-chat-msg-user { align-self:flex-end; background:var(--accent); color:#fff; border-bottom-right-radius:4px; }
+.ai-chat-msg-ai { align-self:flex-start; background:var(--bg-alt); color:var(--text); border:1px solid var(--border); border-bottom-left-radius:4px; }
+.ai-chat-msg-ai p { margin-bottom:8px; }
+.ai-chat-msg-ai p:last-child { margin-bottom:0; }
+.ai-chat-msg-ai code { font-family:var(--mono); font-size:12px; background:var(--bg-code); padding:1px 4px; border-radius:3px; }
+.ai-chat-msg-ai strong { font-weight:600; }
+.ai-chat-msg-ai ul, .ai-chat-msg-ai ol { margin:6px 0; padding-left:18px; }
+.ai-chat-msg-ai li { margin-bottom:3px; }
+.ai-chat-msg-error { align-self:flex-start; background:var(--err-bg); color:var(--err-fg); border:1px solid var(--err-border); border-radius:8px; font-size:12.5px; }
+.ai-chat-typing { align-self:flex-start; padding:10px 14px; }
+.ai-chat-typing-dots { display:flex; gap:4px; }
+.ai-chat-typing-dots span { width:6px; height:6px; border-radius:50%; background:var(--text-secondary); animation:aiTyping 1.2s infinite; }
+.ai-chat-typing-dots span:nth-child(2) { animation-delay:0.2s; }
+.ai-chat-typing-dots span:nth-child(3) { animation-delay:0.4s; }
+@keyframes aiTyping { 0%,60%,100% { opacity:0.3; transform:translateY(0); } 30% { opacity:1; transform:translateY(-3px); } }
+.ai-chat-input-wrap { display:flex; align-items:flex-end; gap:8px; padding:12px 16px; border-top:1px solid var(--border); flex-shrink:0; background:var(--bg); }
+.ai-chat-input { flex:1; resize:none; border:1px solid var(--border); border-radius:8px; padding:8px 12px; font:inherit; font-size:13.5px; line-height:1.45; max-height:120px; outline:none; background:var(--bg-alt); color:var(--text); transition:border-color .15s; }
+.ai-chat-input:focus { border-color:var(--accent); }
+.ai-chat-input::placeholder { color:var(--text-secondary); }
+.ai-chat-send { width:36px; height:36px; border:none; border-radius:8px; background:var(--accent); color:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:background .15s, opacity .15s; }
+.ai-chat-send:hover:not(:disabled) { background:#3561e0; }
+.ai-chat-send:disabled { opacity:0.4; cursor:not-allowed; }
+
+@media (max-width:800px) {
+  .left-sidebar { display:none; }
+  .main { margin-left:0; padding:24px 20px 60px; }
+  .header-search-wrap { display:none; }
+  .ai-chat-panel { width:100%; right:-100%; }
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="header">
+  <div class="header-logo">Audio Annotation Tool</div>
+  <nav class="tab-bar">
+    <button class="tab-btn active" data-tab="overview">Overview</button>
+    <button class="tab-btn" data-tab="configuration">Configuration</button>
+    <button class="tab-btn" data-tab="editor">Editor</button>
+    <button class="tab-btn" data-tab="import-export">Import / Export</button>
+    <button class="tab-btn" data-tab="solutions">Solutions</button>
+    <button class="tab-btn" data-tab="tips">Tips &amp; Limitations</button>
+  </nav>
+  <div class="header-search-wrap">
+    <svg class="header-search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="text" class="header-search-input" id="docSearchInput" placeholder="Search docs…" autocomplete="off" />
+    <div class="header-search-dropdown" id="docSearchDropdown"></div>
+  </div>
+  <button type="button" class="header-ask-ai-btn" id="askAiBtn" title="Ask AI about this documentation">
+    <svg class="ask-ai-sparkle" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L13.09 8.26L18 6L14.74 10.91L21 12L14.74 13.09L18 18L13.09 15.74L12 22L10.91 15.74L6 18L9.26 13.09L3 12L9.26 10.91L6 6L10.91 8.26L12 2Z"/></svg>
+    <span>Ask AI</span>
+  </button>
+</header>
+
+<!-- AI Chat Panel -->
+<div class="ai-chat-panel" id="aiChatPanel">
+  <div class="ai-chat-header">
+    <div class="ai-chat-header-left">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+      <span>Ask AI</span>
+    </div>
+    <button type="button" class="ai-chat-close" id="aiChatClose" title="Close">&times;</button>
+  </div>
+  <div class="ai-chat-messages" id="aiChatMessages">
+    <div class="ai-chat-welcome">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+      <p class="ai-chat-welcome-title">Documentation Assistant</p>
+      <p class="ai-chat-welcome-desc">Ask any question about the Audio Annotation Tool. I have full context of the documentation and can help you find answers quickly.</p>
+    </div>
+  </div>
+  <div class="ai-chat-input-wrap">
+    <textarea class="ai-chat-input" id="aiChatInput" placeholder="Ask a question…" rows="1"></textarea>
+    <button type="button" class="ai-chat-send" id="aiChatSend" title="Send" disabled>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </button>
+  </div>
+</div>
+<div class="ai-chat-overlay" id="aiChatOverlay"></div>
+
+<div class="layout">
+
+<!-- Left Sidebar -->
+<aside class="left-sidebar" id="leftNav"></aside>
+
+<!-- Main Content -->
+<main class="main">
+
+<!-- ==================== TAB: OVERVIEW ==================== -->
+<div class="tab-content active" data-tab="overview">
+
+<h1>Overview</h1>
+<p>Teams that train speech, audio-event, and video models need large volumes of cleanly structured, precisely timed annotations. This tool is a browser-based audio waveform and video annotation component for the <strong>SuperAnnotate multimodal platform</strong> — configurable, AI-accelerated, and built for teams who need more than a basic timeline labeller.</p>
+
+<div class="screenshot-placeholder">Editor layout: top toolbar, waveform / video player at the centre, annotation panel on the right, optional transcript panel at the bottom.</div>
+
+<h2 id="overview-capabilities">Key Capabilities</h2>
+<ul>
+  <li><strong>Audio waveform with regions</strong> — multi-channel waveforms with timeline, minimap, zoom, playback rate, mute, and overlay labels. Drag to draw <em>segments</em>; resize and move with snapping. <a href="#editor-waveform" class="internal">Waveform →</a></li>
+  <li><strong>Video annotation</strong> — synchronised video player with axis-aligned <em>bounding boxes</em> drawn over the frame and tracked across time with keyframes. Live brightness / contrast / saturation / shape-opacity adjustments. For frame-level video work (frame panel, cuboids, rotated boxes, visible ranges), use the dedicated <strong>Video Annotation Tool</strong>. <a href="#editor-video" class="internal">Video →</a></li>
+  <li><strong>Three annotation tool types</strong> — <strong>Segment</strong> (time interval on audio/video), <strong>Box</strong> (axis-aligned rectangle on a video frame, optionally keyframed), and <strong>Entity</strong> (span over a transcript). <a href="#config-classes" class="internal">Classes &amp; Tools →</a></li>
+  <li><strong>Per-class properties</strong> — Free Text, AI Text, AI Select, Select (single / multi), and Numeric properties on every class. Per-role visibility and option-visibility rules. <a href="#config-properties" class="internal">Properties →</a></li>
+  <li><strong>Auto-transcription</strong> — Whisper or Gemini turns audio into a timed transcript that pairs 1-to-1 with segment annotations. Edit text inline or via AI re-extraction. <a href="#editor-transcript" class="internal">Transcript →</a></li>
+  <li><strong>AI autofill</strong> — for each AI Text or AI Select property, the model receives the segment's transcribed text (or the raw audio when no transcript exists) and the per-property prompt, then fills the value (for AI Select, choosing from the predefined option list). <a href="#editor-ai-autofill" class="internal">AI Autofill →</a></li>
+  <li><strong>In-browser recording</strong> — record fresh audio directly into the editor when the role and project allow it. <a href="#editor-recording" class="internal">Recording →</a></li>
+  <li><strong>Multi-media items</strong> — a single item can hold up to <strong>10</strong> audio / video files, each with its own annotations, transcript, and tags. Navigate via tabs, or open <a href="#editor-split-view" class="internal">Split View</a> to play and compare every file in parallel as live, interactive cards. <a href="#editor-multifile" class="internal">Multi-File Items →</a></li>
+  <li><strong>Tags &amp; relationships</strong> — item-scoped or media-scoped tags for classification; admin-curated relationships for linking annotations into graphs. <a href="#config-tags" class="internal">Tags →</a> · <a href="#editor-relationships" class="internal">Relationships →</a></li>
+  <li><strong>Comments &amp; isolation</strong> — scoped comments on every annotation; per-user isolation with role-based bypass for QA. <a href="#editor-comments" class="internal">Comments →</a> · <a href="#editor-isolation" class="internal">Annotation Isolation →</a></li>
+  <li><strong>JSONL ingest / ZIP export</strong> — load media (uploaded, public, presigned, or integration-signed URLs) at the platform level; export annotations + transcript + name-id maps as a ZIP. <a href="#ie-jsonl-import" class="internal">Import →</a> · <a href="#ie-export" class="internal">Export →</a></li>
+  <li><strong>Continuous auto-save</strong> — local state debounces every ~1 s; the platform receives a server save every 60 s. <a href="#ie-autosave" class="internal">Auto-Save →</a></li>
+</ul>
+
+<h2 id="overview-how-it-works">How It Works</h2>
+<p>The tool has two runtime modes, keeping <em>setup</em> separate from <em>working</em>:</p>
+<ol>
+  <li><strong><a href="#config-access-control" class="internal">Configuration mode</a></strong> — An admin defines classes (with tool type), tags, properties, feature toggles, the AI proxy, and per-role instructions. This schema determines what every annotator sees and can do.</li>
+  <li><strong><a href="#editor-layout" class="internal">Working mode</a></strong> — Users open items, draw segments / boxes, fill properties, transcribe, and review. Everything <a href="#ie-autosave" class="internal">auto-saves</a>.</li>
+</ol>
+<p>Typical flow: admin configures the project → items arrive (uploaded media or <a href="#ie-jsonl-url" class="internal">URL-linked</a> media via JSONL) → annotators work → <a href="#ie-export" class="internal">export annotations</a> for model training.</p>
+
+<h2 id="overview-first-annotation">First Annotation</h2>
+<ol>
+  <li>Open an item in the editor and let the media load.</li>
+  <li>Pick a <a href="#config-classes" class="internal">class</a> from the dropdown (or press <kbd>1</kbd>–<kbd>9</kbd> for the first nine classes). The matching <a href="#editor-tool-selector" class="internal">tool</a> (Segment, Box, or Entity) auto-selects.</li>
+  <li>For <strong>Segment</strong>, drag across the waveform to set <em>start</em> and <em>end</em>. For <strong>Box</strong> (video items only), drag a rectangle on the video. For <strong>Entity</strong>, select a span of transcript text.</li>
+  <li>The annotation appears in the <a href="#editor-panel" class="internal">annotation panel</a> on the right.</li>
+  <li>Fill any <a href="#editor-property-editing" class="internal">properties</a> the class defines, or run <a href="#editor-ai-autofill" class="internal">AI autofill</a> on configured AI Text and AI Select properties.</li>
+  <li>Move on. Everything <a href="#ie-autosave" class="internal">auto-saves</a> as you go.</li>
+</ol>
+
+</div>
+
+<!-- ==================== TAB: CONFIGURATION ==================== -->
+<div class="tab-content" data-tab="configuration">
+
+<h1>Configuration</h1>
+<p>Configuration defines the labeling schema and the experience each role gets — what users can see, do, and capture. A well-designed configuration is the single most impactful step before annotation begins.</p>
+
+<h2 id="config-access-control">Access Control</h2>
+<p>Access Control is a set of <strong>per-feature role allow-lists</strong>. Each control gates a separate capability:</p>
+<ul>
+  <li><strong>Upload Files</strong> — which roles can use the in-editor <a href="#editor-upload" class="internal">upload</a> button to add new audio / video files.</li>
+  <li><strong>Download Annotations</strong> — which roles see the <a href="#ie-export" class="internal">Download</a> button.</li>
+  <li><strong>Annotation Isolation</strong> — Off or <em>By User</em>. When set to <em>By User</em>, each user only sees their own annotations; the <strong>Bypass Isolation</strong> role list lets specific roles see everyone's work. See <a href="#editor-isolation" class="internal">Annotation Isolation</a>.</li>
+</ul>
+<p>Each list is an allow-list: <strong>only the listed roles</strong> get the capability. The picker also supports a <em>"No one"</em> setting (stored internally as <code>[-1]</code>) for fully locking down upload, download, or bypass. Defaults are conservative — Upload and Download default to admin-only.</p>
+<div class="screenshot-placeholder">Access Control card showing per-feature role allow-lists: Upload Files, Download Annotations, Annotation Isolation mode, and Bypass Isolation roles.</div>
+
+<h2 id="config-feature-control">Feature Control</h2>
+<p>Feature Control toggles editor capabilities. Turning a feature off hides every affordance for it across the editor.</p>
+<ul>
+  <li><strong>Object Comments</strong> (Off / On) — enables <a href="#editor-comments" class="internal">comments</a> on annotations. When on, two sub-controls appear: which roles can <em>resolve</em> and which can <em>delete</em> comments.</li>
+  <li><strong>Instance Relationships</strong> (Off / On) — enables <a href="#editor-relationships" class="internal">relationships</a> between annotations. When on, a <strong>Relationship Types</strong> editor appears so admins can curate the relationship taxonomy. Relationship type names must be unique (case-insensitive); duplicate or empty names are silently reverted on blur.</li>
+  <li><strong>Annotation Panel</strong> — controls which views of the <a href="#editor-panel" class="internal">annotation panel</a> are available: Instance + Table, Instance only, Table only, or None. The adjacent <a href="#config-panel-settings" class="internal">Configure Annotation Panel</a> button becomes active whenever the panel is enabled (any mode other than None); the <a href="#config-table-cols" class="internal">Table Column Settings</a> button further activates when the table view is specifically reachable (Instance + Table or Table only).</li>
+  <li><strong>Default Split View</strong> (Off / Split View 2 / 3) — for items with more than one media file, opens the editor directly in <a href="#editor-split-view" class="internal">catalog split view</a> instead of the single viewport. If the item has fewer media files than the configured column count, the largest fitting split is used. Single-file items always open normally. Best suited to comparison workflows where every item has the same small media-file count.</li>
+  <li><strong>Fullscreen on First Interaction</strong> (Off / On) — the first pointer interaction inside the editor requests fullscreen (browsers cannot enter fullscreen without a user gesture). Applies once per editor mount; annotators can exit with Esc or the toolbar button and are not forced again until the next item load. A brief informational notice confirms when fullscreen was triggered by this setting.</li>
+  <li><strong>Video loading behavior</strong> — choose between <em>Download entire video before showing</em> and <em>Stream video immediately</em>. Streaming starts playback faster for large videos; if the source does not support streaming the editor automatically falls back to a full download. Applies to video items.</li>
+</ul>
+
+<h3 id="config-audio-subsettings">Annotation Sub-Settings</h3>
+<p>The following editor toggles are always available:</p>
+<ul>
+  <li><strong>Recording</strong> — when on, the <a href="#editor-recording" class="internal">Record Audio</a> button appears in the player controls so users can capture fresh audio in-browser.</li>
+  <li><strong>Overlapping Segments</strong> — when on, segments may overlap on the same waveform. When off, draws/resizes that would create an overlap are blocked.</li>
+  <li><strong>Segment Loops</strong> — when on, <em>currently selected</em> segments will replay during playback. In the editor, press <kbd>R</kbd> to toggle selected-segment looping for the current session. Useful for tight in-/out-point review.</li>
+  <li><strong>Restrict Segment Length</strong> — when on, exposes <strong>Min</strong> and <strong>Max</strong> length fields (seconds). New / resized segments outside the range are clamped or rejected.</li>
+  <li><strong>Transcript</strong> — when on, the <a href="#editor-transcript" class="internal">transcript panel</a> can be opened. The first time a user opens it on an item with no transcript yet, <a href="#editor-transcript-autotr" class="internal">auto-transcription</a> runs (when an AI proxy is configured).</li>
+  <li><strong>Editable Transcript</strong> — when on, segment text can be edited inline in the transcript panel and the table view; off makes the transcript read-only.</li>
+</ul>
+<div class="screenshot-placeholder">Feature Control card with toggles for Object Comments, Instance Relationships, Annotation Panel selector, Configure Annotation Panel button, Table Column Settings button, Video loading behavior, plus Recording, Overlapping Segments, Segment Loops, Restrict Segment Length min/max, Transcript, Editable Transcript.</div>
+
+<h3 id="config-panel-settings">Annotation Panel Settings</h3>
+<p>Click <strong>Configure Annotation Panel…</strong> to set the project-wide defaults that apply when an editor is first opened. Each control commits live — <strong>Done</strong> simply closes the modal and <strong>Restore to Default</strong> clears every setting in this modal back to the built-in baseline. Editors can still resize, regroup, or reorder per-session from the panel header; this modal only controls what they start with.</p>
+<ul>
+  <li><strong>Default panel width.</strong> Optional percentage (between <strong>20%</strong> and <strong>75%</strong> of the editor's container width) used as the starting width of the annotation panel. Out-of-range values snap to the closest valid percentage; leave the field blank to fall back to the built-in default of 480&nbsp;px. Once an annotator drags the resize handle in the editor, their per-session width takes over until they reload.</li>
+  <li><strong>Default Group By.</strong> Initial grouping mode for the panel (<em>Media Name</em>, <em>Class Name</em>, <em>Tool Type</em>, or any project property). Property options are gathered from every regular and tag class. If the chosen property has 100&nbsp;or more distinct values across the open item, the editor falls back to <em>Media Name</em> grouping for that session — the configured selection re-engages automatically once the dataset shrinks below 100.</li>
+  <li><strong>Default Order By.</strong> Initial ordering of instances (<em>JSON Export</em>, <em>Class Name</em>, <em>Tool Type</em>, <em>Start Time</em>, <em>Created By</em>, <em>Creator Role</em>, <em>Created At</em>, or any project property). <strong>Drag-to-reorder</strong> in the panel only writes to the JSON-export order, so it is only available when Group By is set to <em>Media Name</em> <strong>and</strong> Order By is set to <em>JSON Export</em> — either as project default or at the per-session level.</li>
+</ul>
+<p><strong>Reset chevron in the editor.</strong> Each Group&nbsp;By / Order&nbsp;By dropdown in the editor has a small reset arrow next to its title to revert to config-selected defaults.</p>
+
+<h3 id="config-table-cols">Table Column Settings</h3>
+<p>Click <strong>Configure columns &amp; groups…</strong> to open a two-panel modal that controls the <a href="#editor-panel-table" class="internal">Table View</a> columns for the whole project.</p>
+<p><strong>Left panel — Columns.</strong> Lists every column currently available (excluding role-hidden ones). Drag rows to reorder; uncheck <em>Show</em> to hide a column by default. Click the <strong>pin</strong> icon to keep a column glued to the leading edge while editors scroll the table horizontally. Changes are saved immediately — <strong>Done</strong> simply closes the modal. <strong>Restore to Default</strong> clears all column and group overrides.</p>
+<p><strong>Pinned columns.</strong> A pinned column sticks to the leading edge of the Table View when editors scroll horizontally; pinned columns always render before unpinned ones in both the editor's Columns dropdown and the table itself, preserving their relative order within each cluster. Drag-reordering inside the modal is also restricted to within a cluster — drop a row across the pinned/unpinned boundary and it snaps back. Pinning is independent of <em>Show</em>: a pinned-but-hidden column is dormant (its pin icon dims at 55% opacity) and reactivates the next time the column is shown. Pinning two or more columns can leave little room for unpinned columns on narrow annotation panels — a heads-up note appears when this happens.</p>
+<p><strong>Right panel — Column Groups.</strong> Groups let you bundle related columns so editors can show or hide them all at once with a single toggle chip in the Table View. Click <strong>+ Add Group</strong> to create a group, give it a short label, and pick columns from the dropdown. Group labels must be unique (case-insensitive); duplicate or empty labels are silently reverted. Each column can belong to at most one group. Columns assigned to a group have their individual <em>Show</em> checkbox controlled by the group's visibility toggle. Empty groups (no columns selected) are automatically removed when the modal closes.</p>
+<ul>
+  <li><strong>Per-session user adjustments.</strong> Annotators keep their existing per-session control via the <em>Columns</em> dropdown and the <a href="#editor-column-group-chips" class="internal">column group chips</a> — their adjustments don't persist across reloads; the project default does.</li>
+  <li><strong>New columns appear at the end, visible.</strong> Adding a new property or relationship type after configuring defaults appends it visible. Reopen the modal to reposition or hide it.</li>
+  <li><strong>Stale entries keep their position.</strong> Removing a column source (e.g. toggling Comments off) doesn't drop its stored position — it returns to the same spot if re-enabled later.</li>
+</ul>
+
+<h2 id="config-classes-tags">Classes &amp; Tags</h2>
+<p>Classes and tags together form the structured vocabulary of your project. Classes describe <em>what individual annotations are</em>; tags describe <em>what the media file or whole item is about</em>.</p>
+
+<h3 id="config-classes">Classes</h3>
+<p>A class is what a user assigns to a new annotation. Each class has:</p>
+<ul>
+  <li><strong>Name</strong> — the label shown in the class picker and the annotation panel.</li>
+  <li><strong>Color</strong> — the highlight / fill colour used for that class's regions, boxes, or transcript spans.</li>
+  <li><strong>Tool Type</strong> — one of <strong>Segment</strong>, <strong>Box</strong>, or <strong>Entity</strong>. Picking a class auto-selects the matching tool in the editor toolbar.</li>
+  <li><strong>Properties</strong> — the structured fields captured on each annotation of this class (see <a href="#config-properties" class="internal">Properties</a> below).</li>
+</ul>
+<p>The three tool types and what they produce:</p>
+<table>
+  <tr><th>Type</th><th>Where it draws</th><th>Captures</th></tr>
+  <tr><td><strong>Segment</strong></td><td>The audio waveform (or video timeline). Drag to set <em>start</em> and <em>end</em>.</td><td>A time interval in seconds. Pairs naturally with transcript segments.</td></tr>
+  <tr><td><strong>Box</strong></td><td>The video frame. Drag an axis-aligned rectangle; optionally add keyframes at multiple times to track movement.</td><td>A rectangle (<code>x</code>, <code>y</code>, <code>w</code>, <code>h</code>) plus a start/end interval, with optional <a href="#editor-keyframes" class="internal">keyframes</a>. Only available on <strong>video items</strong>.</td></tr>
+  <tr><td><strong>Entity</strong></td><td>A span of transcript text in the transcript panel.</td><td>A character range over a transcript segment's text. Requires <a href="#config-audio-subsettings" class="internal">Transcript</a> on.</td></tr>
+</table>
+<p>Class names must be unique (case-insensitive); duplicate or empty names are silently reverted on blur. The first nine classes (in the order they appear in the configuration list) become <a href="#tips-class-shortcuts" class="internal">number-key shortcuts</a> (<kbd>1</kbd>–<kbd>9</kbd>) in the editor — arrange your most-used classes first.</p>
+<p>Classes also accept per-role visibility:</p>
+<ul>
+  <li><strong>Hide From Roles</strong> — listed roles see no annotations or controls for this class.</li>
+  <li><strong>View Only Roles</strong> — listed roles see existing annotations of this class but cannot create new ones; the class shows a small lock icon in the dropdown.</li>
+</ul>
+<div class="screenshot-placeholder">Class list with each class showing its colour swatch, name, tool-type badge (Segment / Box / Entity), property count, and per-class hide / view-only role controls.</div>
+
+<h3 id="config-tags">Tags</h3>
+<p>Tags capture structured attributes that describe something broader than a single annotation. There are two scopes per tag class:</p>
+<ul>
+  <li><strong>Item-level tags</strong> — apply to the <strong>whole item</strong> regardless of how many media files it contains. Think topic, language, dataset partition, or any coarse attribute about the entire item. Shown at the top of the annotation panel independently of the active file.</li>
+  <li><strong>Media-level tags</strong> — apply to a <strong>specific media file</strong> within the item. In multi-file items, each file can have its own media-level tags (e.g. per-file quality, language, domain, speaker). Shown under <em>Media tags</em> sub-headers in the annotation panel.</li>
+</ul>
+<p>Tag scope is configured per tag class in the admin settings. Tags are ideal for:</p>
+<ul>
+  <li>Routing items through triage (e.g. "English", "Needs-Review", "Music-only").</li>
+  <li>Capturing ground-truth for whole-clip classification training.</li>
+  <li>Filtering and grouping in dashboards downstream.</li>
+  <li>Per-file quality or metadata signals (media-level scope).</li>
+</ul>
+<p>Tag names must be unique (case-insensitive); duplicate or empty names are silently reverted on blur.</p>
+<div class="screenshot-placeholder">Tag list with item-scoped and media-scoped tag classes, each with name, color chip, scope label, and per-tag-class properties.</div>
+
+<h3 id="config-properties">Properties</h3>
+<p>Raw segments and boxes only tell a model <em>where</em> something is. Properties attach structured metadata — text, options, numbers, AI-generated content — to each annotation, turning bare regions into rich training samples. Property names must be unique within their class or tag (case-insensitive); duplicate or empty names are silently reverted on blur. There are six property types:</p>
+<table>
+  <tr><th>Type</th><th>What it captures</th><th>Example</th></tr>
+  <tr><td><strong>Free Text</strong></td><td>Open-ended string input.</td><td>Speaker name, notes, IDs, manual transcript correction.</td></tr>
+  <tr><td><strong>AI Text</strong></td><td>Text auto-filled by the configured <a href="#config-ai-proxy" class="internal">AI proxy</a> (or an optional <a href="#config-ai-property-proxy-override" class="internal">per-property override</a>) from the segment's transcribed text (or from the raw audio when no transcript exists). A per-property <strong>default prompt</strong> guides the extraction. See <a href="#editor-ai-autofill" class="internal">AI Autofill</a>. <em>Not available on tag classes (item or media scope).</em></td><td>Speaker intent, summary, key phrases, sentiment, normalised entity name.</td></tr>
+  <tr><td><strong>Select</strong></td><td>Predefined option list. Toggle <em>Allow multi-select</em> to switch between dropdown (single) and checkbox (multi) behaviour.</td><td>Speaker role, scene type, audio quality bucket, multi-label tagging.</td></tr>
+  <tr><td><strong>AI Select</strong></td><td>Select field whose options are auto-chosen by the configured <a href="#config-ai-proxy" class="internal">AI proxy</a> (or an optional <a href="#config-ai-property-proxy-override" class="internal">per-property override</a>) from the segment's transcribed text (or raw audio). Combines a predefined option list with AI-driven pre-selection. A per-property <strong>default prompt</strong> guides the extraction. See <a href="#editor-ai-autofill" class="internal">AI Autofill</a>. <em>Not available on tag classes (item or media scope).</em></td><td>Auto-classification, speaker role, scene type, multi-label tagging.</td></tr>
+  <tr><td><strong>Numeric</strong></td><td>Number input with optional <code>min</code>, <code>max</code>, <code>step</code>, and <code>unit</code>.</td><td>Confidence score, loudness, dB level, sample count.</td></tr>
+  <tr><td><strong>Approval</strong></td><td>Three-state verdict captured via a compact thumbs-up / thumbs-down picker. Stores <code>"true"</code> when approved, <code>"false"</code> when disapproved, and is omitted (or set to blank) when no verdict has been given. Carries no options, no AI configuration, and no numeric or text-display options.</td><td>Reviewer sign-off on a segment / box, accept/reject for a detected event, QA verdict for a transcript snippet.</td></tr>
+</table>
+<p>Common property options:</p>
+<ul>
+  <li><strong>Required</strong> — flags the annotation as incomplete until filled.</li>
+  <li><strong>Text Display</strong> (Free Text and AI Text) — a three-way toggle that sets how the field is presented; the three modes are mutually exclusive:
+    <ul>
+      <li><strong>Inline</strong> (default) — a compact resizable textarea shown directly in the popover / table cell. Best for short values.</li>
+      <li><strong>Modal</strong> — opens a roomy <a href="#editor-rich-text-modal" class="internal">plain-text modal</a> that stores the value <em>exactly</em> as typed (no formatting, no conversion). Best for long or structured plain text — e.g. raw HTML, JSON, or multi-line snippets you need preserved verbatim.</li>
+      <li><strong>Rich Text</strong> — opens a <a href="#editor-rich-text-modal" class="internal">rich-text modal</a> with inline formatting, useful for longer values like detailed descriptions or multi-paragraph captions.</li>
+    </ul>
+  </li>
+  <li><strong>Enable Editing</strong> (AI Text and AI Select) — controls whether the AI output is editable at extraction time. For AI Text, when <em>off</em>, the model auto-extracts using the predefined prompt as-is; when <em>on</em>, annotators can tweak the prompt before triggering extraction. For AI Select, when <em>off</em>, the model's chosen option is applied directly; when <em>on</em>, annotators can review and override the AI's selection.</li>
+  <li><strong>AI Text / AI Select: Default Prompt</strong> — the system prompt the model receives when extraction runs. Annotators with prompt editing enabled can also override it per-run from the Edit prompt flow.</li>
+  <li><strong>AI Text / AI Select: Proxy / Model override</strong> — optional per-property routing. By default each AI property inherits the project-wide <a href="#config-ai-proxy" class="internal">AI Property Proxy</a> and model. In the property card, use the <em>Proxy/Model override</em> row to send <em>this property only</em> through a different proxy and/or model tier. Overrides are included when you <a href="#config-properties-copy" class="internal">copy a property to other classes</a>. See <a href="#config-ai-property-proxy-override" class="internal">Per-property proxy &amp; model routing</a>.</li>
+  <li><strong>Default value</strong> (Select only) — a starting option auto-populated on each new annotation.</li>
+  <li><strong>Hide From Roles / View-Only Roles</strong> — restrict who sees and edits this property.</li>
+  <li><strong>Info</strong> — optional helper text shown next to the field for annotator guidance.</li>
+</ul>
+<div class="screenshot-placeholder">Properties modal for a Speaker class showing an AI Text property "Summary", a Single Select "Role", and a Numeric "Confidence", each with the per-property options panel expanded.</div>
+
+<h4 id="config-ai-property-proxy-override">Per-property proxy &amp; model routing</h4>
+<p>Every AI Text and AI Select property can optionally override the project defaults set under <a href="#config-ai-proxy" class="internal">AI Proxy</a>. In the property modal, below the <em>Default System Prompt</em>, the <strong>Proxy/Model override</strong> row exposes two dropdowns:</p>
+<ul>
+  <li><strong>Proxy</strong> — starts at <em>Default (project AI proxy / model)</em>. Pick any team proxy whose domain routes to OpenAI or Gemini to override the project selection for this property only.</li>
+  <li><strong>Model</strong> — enabled once a non-default proxy is chosen. Lists the same three tiers as the project-level model picker for that provider (cheapest → most capable). Changing the override proxy resets the model to that provider's default middle tier.</li>
+</ul>
+<p>At extraction time the editor routes each property through its resolved proxy + model. Properties sharing the same route are batched into one API call; properties with different overrides (or a mix of overrides and project defaults) run as separate batches in sequence. A property with an override can still extract when the project default is unset — but any property <em>without</em> an override still requires the project <strong>AI Property Proxy</strong> to be configured. The Ask AI documentation assistant always uses the project proxy/model; it does not read per-property overrides.</p>
+
+<h3 id="config-property-rules">Property Visibility Rules</h3>
+<p>A property visibility rule controls whether an <strong>entire property</strong> is visible and editable on a given annotation or tag, based on the value of one or more sibling Select / AI Select properties. Use this when a whole field only makes sense in a specific context — e.g. only show "Background Noise Type" when "Has Background Noise" is "Yes", or only show "Music Genre" when "Sound Category" is "Music". This is the property-scope equivalent of <a href="#config-option-rules" class="internal">option visibility rules</a>: option rules hide individual <em>options</em> inside a Select; property rules hide the <em>whole property</em>.</p>
+<p>Property visibility rules can be set on <strong>any</strong> property type (not just Select / AI Select). A Free Text, Numeric, AI Text, AI Select, Select, or Approval property can all be gated by a rule. The controller must still be a sibling Select-like property in the same class or tag class.</p>
+
+<h4>Setting Up a Rule</h4>
+<ol>
+  <li>Open the property modal for a class or tag class.</li>
+  <li>In the property card's right-hand header, click the <strong>chain icon</strong> next to the copy / delete buttons. The icon is only enabled when the class has at least one sibling Select-like property to use as a controller.</li>
+  <li>An inline rule editor expands below the property card — same shape as the <a href="#config-option-rules" class="internal">option-rule editor</a>: choose <strong>All conditions match</strong> (AND) or <strong>Any condition matches</strong> (OR), then add one or more conditions picking a controller property and which value(s) it must hold.</li>
+  <li>Click the chain icon again (or the editor's × / <strong>Remove rule</strong> button) to collapse / clear the rule.</li>
+</ol>
+<p>The chain icon switches to a bolder blue tint when a rule is active, so you can spot rule-bearing properties at a glance in the property list. Hovering the icon shows a tooltip naming the controlling property and required value(s).</p>
+
+<h4>Behavior in the Editor</h4>
+<ul>
+  <li><strong>Greyed-out field</strong> — when the rule is unsatisfied, the property still appears in the popover and table column (so annotators can see the field exists), but it's rendered dimmed with a <em>not-allowed</em> cursor. Hovering anywhere over the disabled field shows a tooltip explaining what controls it (e.g. "Controlled by: Sound Category = Music").</li>
+  <li><strong>Stored value cleared</strong> — the moment a rule becomes unsatisfied (e.g. the user changes a controller value), any value stored on that property is automatically cleared. The clear cascades: if A controls B, and B itself controls C, changing A clears both B and C in one step.</li>
+  <li><strong>Required validation suppressed</strong> — an inaccessible property is <strong>not</strong> counted as "missing required" even when marked Required. The red required indicator on the annotation / tag row only reactivates when the rule becomes satisfied and the field becomes editable again.</li>
+  <li><strong>AI extraction skipped</strong> — for AI Text / AI Select properties, the row-level Extract / Edit prompt controls, the per-property icons in the property popover, and the per-cell extract icons in the table skip any AI property whose rule is unsatisfied. The buttons appear / disappear immediately as the controller value changes, no popover reopen needed.</li>
+  <li><strong>Modal / Rich Text properties</strong> — a property gated by an unsatisfied rule renders as a plain "—" placeholder; its modal (plain-text or rich-text) cannot be opened.</li>
+  <li><strong>Default values disabled</strong> — when a Select property has a property visibility rule, the per-option "Default" checkboxes in the configuration screen are disabled. Defaults wouldn't make sense for a property that may not even be visible on instance creation; the configuration UI prevents the contradiction up-front.</li>
+</ul>
+<p>For details on how property visibility rules interact with <a href="#config-option-rules" class="internal">option visibility rules</a> on the same property, see <a href="#editor-rule-hierarchy" class="internal">Property &amp; Option Visibility Rules</a> in the editor section.</p>
+
+<h3 id="config-properties-copy">Copying properties between classes</h3>
+<p>Most projects end up with the same property defined on several classes — a <em>Confidence</em> Numeric on a handful, a <em>Speaker</em> Free Text shared between two or three, a <em>Quality</em> Single Select on every class. Recreating each one by hand is tedious and error-prone. Every property row in the Properties modal has a small <strong>copy icon</strong> next to the remove (×) button that opens a picker for replicating that property across other classes and tags in one step.</p>
+<div class="screenshot-placeholder">Property row with the copy icon highlighted next to the remove button.</div>
+
+<p>The picker lists every class and tag in the project. Each row carries a state badge that tells you what will happen if you select it:</p>
+<table>
+  <tr><th>Row state</th><th>Meaning</th><th>What you can do</th></tr>
+  <tr><td><strong>Will add</strong></td><td>The target has no property by this name. Safe paste.</td><td>Tick the row to include it.</td></tr>
+  <tr><td><strong>Already identical — will skip</strong></td><td>The target already has a property with the same name <em>and</em> the same shape (type, options, prompt, numeric range, etc.). Pasting would be a no-op.</td><td>Locked off — nothing to do.</td></tr>
+  <tr><td><strong>Conflict: name exists with different shape</strong></td><td>The target has a property with the same name but a different definition (e.g. it's a Free Text on one class and a Select on another).</td><td>Tick the row, then choose <strong>Overwrite property</strong> to replace the target's definition with the source's, or <strong>Add as duplicate</strong> to add a second property with a <code>" (2)"</code> suffix on its name.</td></tr>
+  <tr><td><strong>Source — excluded</strong></td><td>This is the class you're copying from.</td><td>Always excluded; you can't copy a property onto itself.</td></tr>
+</table>
+<p>The footer shows a running summary (<em>"3 to add · 1 to overwrite · 2 already identical"</em>) and the <strong>Copy</strong> button only enables once at least one row is in the to-add / to-overwrite / to-duplicate set.</p>
+
+<p>A few details worth knowing:</p>
+<ul>
+  <li><strong>Copies are independent.</strong> Each paste mints a fresh property ID — there's no hidden link back to the source. Editing the original later <em>does not</em> propagate to the copies, and vice versa. Think of this as a faster "create the same property again" rather than a shared definition. The editor's table view and panel still aggregate properties across classes by <em>name</em>, so a <em>Confidence</em> column will show every class's annotation regardless of which class the property was originally created on.</li>
+  <li><strong>Visibility rules are remapped where possible.</strong> If the source property carries any <a href="#config-option-rules" class="internal">option visibility rules</a> or a <a href="#config-property-rules" class="internal">property visibility rule</a>, the copy tool tries to <strong>remap</strong> each rule's controller references against the target class's properties: it looks for a sibling property with the same <strong>name</strong> (case-insensitive) <em>and</em> whose option list contains every value the rule references. When all of a rule's conditions can be remapped this way, the rule carries through fully into the target. When even one condition cannot be remapped (controller absent, or its option list is missing required values), the <strong>entire rule is dropped</strong> on that target — partial remapping is refused because keeping a "best-effort" subset of an "all conditions match" rule would silently weaken it.</li>
+  <li><strong>Quiet on success — warns on drops.</strong> The copy modal stays silent when every rule carries through cleanly and only surfaces a per-target warning when one or more rules will actually be dropped, so you can spot the targets where shape divergence matters before confirming.</li>
+  <li><strong>Role visibility</strong> — the <em>Copy role visibility (Hide From / View Only)</em> checkbox at the top of the modal controls whether the source property's role rules travel with the copy. Turn it off when target classes have their own role-restriction conventions you don't want to overwrite. On the <em>Overwrite property</em> path, the target's existing role visibility is preserved when this option is off.</li>
+  <li><strong>AI Text / AI Select on tag classes</strong> — AI Text and AI Select properties are not supported on tag classes (item or media scope). When copying an AI Text property into a tag class, it is automatically downgraded to Free Text; when copying an AI Select property, it is downgraded to plain Select. In both cases the default prompt and "Enable Editing" setting are dropped, and the picker row flags this with a small note.</li>
+  <li><strong>Overwrite is destructive on the target's definition.</strong> Annotators' <em>stored values</em> for the property remain wired to the same row (the property's ID is preserved), but the type, options, and other settings switch to the source's. If a stored value no longer matches the new shape (e.g. an option that was removed from a Single Select), the destructive-warnings banner in the Properties modal will flag it at publish time.</li>
+</ul>
+
+<h2 id="config-option-rules">Option Visibility Rules</h2>
+<p>When a class or tag has multiple Select properties, you can create <strong>dependencies</strong> between them. An option visibility rule makes one property's options conditionally visible based on what is selected in another property of the same class/tag. This lets you build hierarchical relationships — for example only showing relevant subcategory options when a particular category is selected.</p>
+<p>Option visibility rules apply to <strong>Select</strong> and <strong>AI Select</strong> properties alike. An AI Select property can be a controller or a dependent in a rule chain — the AI pre-selection respects the same filtering, and cascade clearing applies to AI-chosen values exactly as it does to manual ones.</p>
+
+<h3>When to Use</h3>
+<ul>
+  <li><strong>Category → Subcategory</strong> — A "Sound Category" property has 5 options (Speech, Music, SFX, Ambient, Silence); a "Subcategory" property has 20 options. Instead of showing all 20 regardless, you configure each subcategory option to only appear when its parent category is selected.</li>
+  <li><strong>Conditional attributes</strong> — A "Speaker Gender" dropdown controls which "Voice Type" options are relevant.</li>
+  <li><strong>Multi-level filtering</strong> — Rules can reference multiple controller properties and combine with AND/OR logic for complex taxonomies.</li>
+</ul>
+
+<h3>Key Concepts</h3>
+<table>
+  <tr><th>Term</th><th>Meaning</th></tr>
+  <tr><td><strong>Controller property</strong></td><td>The Select property whose value determines what options appear on the dependent property. Must be a sibling (in the same class or tag class).</td></tr>
+  <tr><td><strong>Dependent property</strong></td><td>The Select property whose options are conditionally shown/hidden based on the controller's value.</td></tr>
+  <tr><td><strong>Visibility rule</strong></td><td>A per-option configuration that says "only show this option when condition X is met on the controller".</td></tr>
+  <tr><td><strong>Unconditional option</strong></td><td>An option with no visibility rule — always shown regardless of what the controller says. This is the default.</td></tr>
+</table>
+
+<h3>Setting Up a Rule (Configuration Screen)</h3>
+<ol>
+  <li>Open the property modal for a class or tag class.</li>
+  <li>On any Select property that has at least one sibling Select property, each option row shows a <strong>chain icon</strong> (⛓).</li>
+  <li>Click the chain icon on the option you want to make conditional. The inline <strong>Visibility Rule Editor</strong> expands below that option.</li>
+  <li>Click <strong>+ Add condition</strong>. Choose the <strong>controller property</strong> from the dropdown, then select which of the controller's option values must be active for this option to be visible.</li>
+  <li>For multi-condition rules, choose <strong>All</strong> (AND) or <strong>Any</strong> (OR) at the top to control how conditions combine.</li>
+  <li>When done, click the collapse arrow or click the chain icon again to close the editor.</li>
+</ol>
+<div class="screenshot-placeholder">The inline visibility rule editor showing a condition: <em>Sound Category</em> has <em>Speech</em>.</div>
+
+<h3>Rule Logic</h3>
+<ul>
+  <li><strong>Single-select controller</strong> — The condition passes if the controller's stored value is any one of the listed values (implicit OR across the selected values in the rule picker).</li>
+  <li><strong>Multi-select controller</strong> — You choose <strong>any</strong> (at least one of the listed values is selected) or <strong>all</strong> (every listed value must be selected).</li>
+  <li><strong>Multiple conditions</strong> — Combined with a top-level <strong>All</strong> (every condition must pass) or <strong>Any</strong> (at least one must pass).</li>
+  <li><strong>Empty controller</strong> — An empty/blank controller value always counts as "unsatisfied" — the dependent option stays hidden.</li>
+</ul>
+
+<h3>Behavior in the Editor</h3>
+<p>Once rules are published, annotators see them enforced immediately in both the property popover and the table view:</p>
+<ul>
+  <li><strong>Option filtering</strong> — The dependent property's dropdown only shows options whose rule is currently satisfied by the controller's value on that same row (annotation or tag).</li>
+  <li><strong>Cascade clearing</strong> — If the annotator changes the controller value and a previously-selected dependent option is no longer valid, it is automatically cleared. This cascades: if A controls B and B controls C, changing A can clear both B and C in one step.</li>
+  <li><strong>Controller indicator</strong> — Dependent properties show a small chain icon on their label with a tooltip listing which properties control their options (e.g. "Options here are filtered by: Category, Speaker Gender").</li>
+  <li><strong>Config-triggered cleanup</strong> — If an admin changes rules after annotations already exist, the next time an annotator opens an item, any stored values that violate the new rules are cleaned in memory. The cleanup persists on the annotator's next save.</li>
+</ul>
+<div class="screenshot-placeholder">Editor property popover showing filtered subcategory options based on the selected sound category.</div>
+
+<h3>Interaction with Default Values</h3>
+<p>Default values and visibility rules are <strong>mutually exclusive</strong> on the same option. An option marked as Default cannot have a visibility rule, and vice versa. The configuration UI enforces this:</p>
+<ul>
+  <li>If "Default" is checked on an option, the chain icon is disabled (tooltip explains why).</li>
+  <li>If a visibility rule exists on an option, the Default checkbox is disabled.</li>
+</ul>
+<p>This prevents the scenario where a default value would be immediately cascade-cleared on instance creation because its rule isn't satisfied.</p>
+
+<h3>Cross-Property Copy</h3>
+<p>When copying a property that has visibility rules to another class, the copy tool attempts to <strong>remap</strong> each rule's controller references against the target class's properties. For a rule to carry through, every controller referenced by its conditions must exist in the target by <strong>name</strong> (case-insensitive) <em>and</em> the target controller's option list must contain every value the rule references. If even one condition can't be remapped, the <strong>entire rule is dropped</strong> on that target — partial remapping is refused because silently dropping conditions from an "all conditions match" rule would weaken its logic (e.g. <code>A AND B</code> collapsing to just <code>A</code>).</p>
+<p>The copy modal stays quiet when every rule carries through cleanly, and surfaces a per-target warning only on targets where one or more rules will be dropped. The same name + shape check applies whether the rule is a per-option rule on this property or a property-level <a href="#config-property-rules" class="internal">visibility rule</a>. See <a href="#config-properties-copy" class="internal">Copying properties between classes</a> for the full copy flow.</p>
+
+<h3>Broken References</h3>
+<p>If a controller property is deleted or its type is changed away from Select while a dependent still references it, the condition is shown with a <strong>red border and alert icon</strong> in the configuration screen. The broken condition is preserved during the config session so admins can see what happened. On publish, broken conditions are automatically stripped.</p>
+
+<h2 id="config-ai-proxy">AI Proxy</h2>
+<p>All AI features in this tool — <a href="#editor-transcript-autotr" class="internal">auto-transcription</a>, <a href="#editor-ai-autofill" class="internal">AI Text and AI Select autofill</a>, and the documentation <em>Ask AI</em> assistant — communicate with external providers (OpenAI or Gemini) through a single <strong>SuperAnnotate Proxy</strong>. Proxies act as secure intermediaries: your team's API keys live in SuperAnnotate, never in the browser.</p>
+
+<h3>Why proxies?</h3>
+<ul>
+  <li><strong>Security</strong> — API keys stay server-side. Annotators never see or handle raw keys.</li>
+  <li><strong>Central management</strong> — Team admins create and rotate proxies in one place; all projects inherit the change.</li>
+  <li><strong>Audit &amp; control</strong> — Proxy usage is logged per team, making cost tracking and rate limiting easy.</li>
+</ul>
+
+<h3>Provider &amp; model</h3>
+<p>The provider is auto-detected from the proxy's allowed domain. The model is fixed per provider:</p>
+<table>
+  <tr><th>Provider</th><th>Detected via</th><th>Transcription model</th><th>Chat model</th></tr>
+  <tr><td><strong>OpenAI</strong></td><td><code>api.openai.com</code></td><td><code>whisper-1</code> (fixed)</td><td>Admin-selected (see <a href="#config-ai-proxy" class="internal">AI Proxy</a>)</td></tr>
+  <tr><td><strong>Gemini</strong></td><td><code>generativelanguage.googleapis.com</code></td><td colspan="2">Admin-selected model handles both (see <a href="#config-ai-proxy" class="internal">AI Proxy</a>)</td></tr>
+</table>
+<p>A single proxy powers <em>both</em> transcription and chat — there is no separate "transcription proxy" / "chat proxy" split. Anthropic is not supported here because Claude has no first-party speech-to-text endpoint.</p>
+
+<h3>Step 1 — Create a proxy in SuperAnnotate</h3>
+<ol>
+  <li>Open <strong>SuperAnnotate → Team Settings → Security → Proxies</strong>.</li>
+  <li>Click <strong>Create Proxy</strong>. Give it a descriptive name (e.g. "OpenAI Audio Proxy").</li>
+  <li>Set <strong>Allowed domain</strong> to either <code>https://api.openai.com</code> or <code>https://generativelanguage.googleapis.com</code> — this is what determines the provider in this tool.</li>
+  <li>Under <strong>Secrets</strong>, add a header:
+    <table>
+      <tr><th>Provider</th><th>Header key</th><th>Header value</th></tr>
+      <tr><td>OpenAI</td><td><code>authorization</code></td><td><code>Bearer sk-proj-…</code></td></tr>
+      <tr><td>Gemini</td><td><code>x-goog-api-key</code></td><td><code>AIza…</code></td></tr>
+    </table>
+  </li>
+  <li>Save the proxy and note its name — you'll select it in the next step.</li>
+</ol>
+<div class="doc-shortcuts-row">
+  <img src="images/team-proxies.png" alt="Team Settings → Security → Proxies page with example proxies">
+  <img src="images/team-proxies-headers.png" alt="Proxy setup with the authorization header configured for OpenAI">
+</div>
+
+<h3>Step 2 — Select the proxy in configuration</h3>
+<p>In the configuration screen's <strong>AI Proxy Settings</strong> card, open the <strong>Select Proxy</strong> dropdown and pick the proxy you created. The dropdown is populated from your team's available proxies. A <strong>provider badge</strong> (OpenAI / Gemini) appears once a proxy is selected.</p>
+<p>Once a proxy is selected, a <strong>Model</strong> dropdown appears next to it. Three models are offered for each provider, sorted from cheapest/fastest to most capable — the middle option is selected by default. The currently available models are:</p>
+<table>
+  <tr><th>Provider</th><th>Models (cheapest → most capable)</th></tr>
+  <tr><td>OpenAI</td><td><code>gpt-5.4-nano</code>, <code>gpt-5.4-mini</code>, <code>gpt-5.5</code></td></tr>
+  <tr><td>Gemini</td><td><code>gemini-3.1-flash-lite</code>, <code>gemini-3.5-flash</code>, <code>gemini-3.1-pro-preview</code></td></tr>
+</table>
+<p>The selected model is used for property extraction chat calls and the Ask AI assistant. For OpenAI proxies, transcription always uses Whisper (<code>whisper-1</code>) regardless of the model selection. For Gemini proxies, the selected model handles both transcription and extraction. Changing the proxy to a different provider resets the model to that provider's default (middle tier). Annotators in the editor are not affected and do not see which model is active, except when a property has its own <a href="#config-ai-property-proxy-override" class="internal">proxy/model override</a>.</p>
+
+<h4 id="config-panel-bulk-ai-extraction">Bulk annotation panel extraction toggle</h4>
+<p>Below the AI Property Proxy card, the checkbox <strong>Allow Bulk Extraction of all AI Properties</strong> controls whether annotators see the panel-header bulk extract control in the editor (see <a href="#editor-ai-bulk-panel-extraction" class="internal">Bulk annotation panel extraction</a>). It is <strong>off by default</strong> — enable it when you want annotators to run AI extraction across every visible row in the annotation panel in one action. The toggle does not change single-property, row-level, or table-cell extract controls; it only exposes the all-rows shortcut. Works in both Instance View and Table View. Requires an AI Property Proxy to be configured (or at least one AI property with a per-property override and runnable empty values).</p>
+<div class="screenshot-placeholder">AI Proxy Settings card with a Select Proxy dropdown, Model dropdown, and a provider badge.</div>
+
+<h3>Troubleshooting</h3>
+<ul>
+  <li><strong>"No team available"</strong> — the component could not detect your team. Make sure it's loaded inside the SuperAnnotate platform.</li>
+  <li><strong>"Failed to load proxies"</strong> — network error fetching the proxy list. Refresh and retry.</li>
+  <li><strong>"No AI proxy configured"</strong> at runtime — return to configuration and pick a proxy.</li>
+  <li><strong>"Media is too large for Gemini transcription"</strong> — Gemini's inline-data path has a ~12 MB ceiling per request. Use shorter clips or switch to an OpenAI proxy.</li>
+  <li><strong>Errors from the model itself</strong> — verify the API key on your provider's side (OpenAI or Gemini dashboard) — valid, not revoked, with remaining quota / billing in good standing.</li>
+</ul>
+<p>See <a href="#limits-api" class="internal">API &amp; Media Limits</a> for guidance when running auto-transcription or autofill across large datasets.</p>
+
+<h3 id="config-tool-mode-filtering">Tool Availability by Media Type</h3>
+<p>The active media type determines which tool types are available in the editor:</p>
+<table>
+  <tr><th>Media type</th><th>Available tools</th><th>Unavailable tools</th></tr>
+  <tr><td><strong>Audio item</strong></td><td>Segment, Entity</td><td>Box (no video canvas)</td></tr>
+  <tr><td><strong>Video item</strong></td><td>Segment, Box, Entity</td><td>—</td></tr>
+</table>
+<p>Box (bbox) classes only surface on video items. If a project defines box classes, a <strong>note</strong> appears under the class list in configuration reminding admins that those classes are only available on video items. In the editor, the Box tool is hidden from the tool selector for audio items, and pressing its keyboard shortcut shows an informational toast ("The Box tool is only available on video items."). In <a href="#editor-split-view" class="internal">Split View</a> the Box tool is also unavailable, since there is no single active video frame to draw on.</p>
+
+<h2 id="config-instructions">Project Instructions</h2>
+<p>Project Instructions are <strong>PDF guidance documents</strong> attached per role. Each role can have its own PDF, so annotators and QAs see the instructions relevant to their job. Admins can see and manage all instruction files.</p>
+<ul>
+  <li>Upload one PDF per role — annotation conventions, edge cases, audio-quality examples, video-frame guidance, etc.</li>
+  <li>Change any time — users pick up the new file on next load.</li>
+  <li>The PDF is opened from the editor toolbar's Instructions button (when configured for the user's role).</li>
+</ul>
+<img src="images/config-project-instructions.png" alt="Project Instructions section with a per-role file picker and a list of uploaded PDF instruction files" style="width:100%; border-radius:8px; border:1px solid var(--border); margin:16px 0;">
+
+<h2 id="config-item-context">Item Context</h2>
+<p><strong>Item Context</strong> adds an optional strip of rich-text slots above the editor canvas. Use it for per-item system prompts, task-specific notes, or short instructions that arrive with the item or are written by annotators in the editor. Slot content supports the same rich text formatting as rich-text properties (bold, italic, headings, lists, blockquotes, code, links, and tables). Off by default; toggle it on from the Item Context card and click <strong>Configure slots…</strong> to manage the slot list.</p>
+<ul>
+  <li><strong>1–10 slots</strong> per project — each one becomes a tab in the <a href="#editor-item-context" class="internal">editor's Item Context section</a>. Add slots with the <em>+ Add slot</em> button; drag the handle to reorder; click the <em>×</em> to delete.</li>
+  <li><strong>Stable internal id</strong> — every slot gets an opaque id (e.g. <code>ctx-abc123</code>) at creation. Renaming or reordering a slot in config <em>never</em> moves stored item data; values stay attached to the same id forever. The id is also exposed in <a href="#ie-export-structure" class="internal">name2id.json</a> so JSONL authors can address slots by name on upload.</li>
+  <li><strong>Unique slot names</strong> — names must be unique per project (case-insensitive), same rule as classes and tags.</li>
+  <li><strong>Per-role visibility</strong> — each slot has independent <em>Hide From</em> and <em>View Only</em> role pickers (same widget as <a href="#config-classes" class="internal">class</a> and <a href="#config-tags" class="internal">tag</a> visibility). Defaults for new slots are <em>Hide From: No one</em> and <em>View Only: All Roles</em> — i.e. visible read-only to everyone until admin opts a role into editing. If a role is on both lists, <em>Hide From</em> wins.</li>
+  <li><strong>Default section height</strong> — admin sets the initial height of the strip in the editor (100–500 px, default 200 px). Annotators can drag-resize it for their session, but resized values are not persisted — every reload starts at the admin default.</li>
+  <li><strong>Disabling is non-destructive</strong> — toggling Item Context off keeps the configured slots and any per-item values on disk; turning it back on later restores everything as it was.</li>
+  <li><strong>Deleting a slot</strong> leaves prior values on disk as <em>orphans</em> — they no longer appear in the editor but ride through subsequent saves and downloads. Adding a new slot later generates a fresh id; orphan values do not reattach automatically.</li>
+  <li><strong>Minimum one slot when enabled</strong> — the last slot can't be deleted while the feature is on. Disable Item Context to clear the strip entirely.</li>
+</ul>
+<img src="images/config-item-context.png" alt="Item Context configuration card showing the on/off toggle, Configure slots button, and the slot management modal with drag handles, name fields, role visibility pickers, and add/delete controls" style="width:100%; border-radius:8px; border:1px solid var(--border); margin:16px 0;">
+
+<h2 id="config-import-export">Import / Export</h2>
+<p>The whole configuration — classes (with tool types), tags, properties, access control, feature toggles, audio sub-settings, AI proxy selection, relationships — can be exported as a single JSON file and re-imported into another project.</p>
+<ul>
+  <li><strong>Export config</strong> — downloads a JSON file with the full schema. Version-control it alongside your project code for reproducibility.</li>
+  <li><strong>Import config</strong> — reads a previously exported config JSON and <strong>replaces</strong> the current configuration. A confirmation prompt is shown first.</li>
+  <li>Use this to clone a proven configuration across projects, back up before a risky change, or share a template with another team.</li>
+</ul>
+<p>The header also includes a <strong>Download name2id.json</strong> button that exports the name-to-ID mapping file directly from the config screen. This is the same <code>name2id.json</code> included in annotation ZIP downloads, but available here so admins can obtain it without creating items or entering the editor — useful when preparing JSONL imports or integrating with external pipelines.</p>
+<img src="images/config-import-export.png" alt="Import / Export card with Export config and Import config buttons" style="width:100%; border-radius:8px; border:1px solid var(--border); margin:16px 0;">
+
+</div>
+
+<!-- ==================== TAB: EDITOR ==================== -->
+<div class="tab-content" data-tab="editor">
+
+<h1>Editor</h1>
+<p>The editor is where the actual work happens — uploading media, drawing segments and boxes, transcribing, filling properties, reviewing. The layout puts the media front-and-centre and surfaces the right controls for the task at hand.</p>
+
+<h2 id="editor-layout">Editor Layout</h2>
+<p>Three regions, each with a purpose:</p>
+<ul>
+  <li><strong><a href="#editor-top-toolbar" class="internal">Top toolbar</a></strong> — tool / class selectors, upload, download, instructions, split-view toggle, shortcuts, documentation, theme, video adjustments, fullscreen, undo / redo.</li>
+  <li><strong>Center media area</strong> — the audio waveform and / or the video player. Below them sits a row of <a href="#editor-controls" class="internal">playback controls</a>; above them, a tab strip on multi-file items. An optional <a href="#editor-transcript" class="internal">transcript panel</a> docks at the bottom.</li>
+  <li><strong>Right <a href="#editor-panel" class="internal">annotation panel</a></strong> — the list of segments, boxes, entities, and tags, with grouping, ordering, filtering, and quick access to properties, comments, and relationships. Can be collapsed.</li>
+</ul>
+<div class="screenshot-placeholder">Editor layout: top toolbar, waveform with timeline / minimap above the video player, playback controls underneath, transcript panel docked at the bottom, annotation panel on the right.</div>
+
+<h3 id="editor-layout-modes">Layout Conveniences</h3>
+<p>The <a href="#editor-top-toolbar" class="internal">top toolbar</a> exposes three layout helpers:</p>
+<ul>
+  <li><strong>Fullscreen</strong> — maximises the tool area within its host page to reduce visual clutter.</li>
+  <li><strong>Dark mode toggle</strong> — flips the UI to a dark palette. The same preference is applied to this documentation popup.</li>
+</ul>
+
+<hr>
+
+<h2 id="editor-media">Media Sources</h2>
+<p>Media reaches the editor through one of two paths:</p>
+<ul>
+  <li><strong>Uploaded</strong> — the user drops audio / video files onto the upload zone, into the <a href="#editor-upload" class="internal">Upload</a> modal, or records audio in-browser. The bytes live in SuperAnnotate storage; the editor references them via a <code>uniqueName</code>.</li>
+  <li><strong>URL-linked</strong> — the JSONL payload contains a <code>url</code> with a <code>urlKind</code> (<code>public</code>, <code>presigned</code>, or <code>integration</code>). The editor signs / fetches the URL on load. See <a href="#ie-jsonl-url" class="internal">URL-linked media</a>.</li>
+</ul>
+<p>Both kinds are equally annotatable. The difference is only <em>where the bytes come from</em> — the editor doesn't gate any feature on the source.</p>
+
+<h3 id="editor-upload">In-Editor Upload</h3>
+<p>When the user's role is on the <a href="#config-access-control" class="internal">Upload Files</a> allow-list, the <strong>Upload</strong> button on the top toolbar opens the upload modal. The modal lets you drag or browse for files and shows an <em>"X of 10 files used"</em> indicator (the per-item cap is <strong>10 media files</strong>).</p>
+<p>Accepted MIME types:</p>
+<ul>
+  <li><strong>Audio</strong> — MP3, WAV, OGG, FLAC, AAC, WebM, MP4 audio.</li>
+  <li><strong>Video</strong> — MP4, WebM, OGG, MOV (QuickTime).</li>
+</ul>
+<p>The empty drop zone shown when an item has no media yet supports drag-and-drop directly onto the canvas in addition to the modal. Uploads that exceed the 10-file cap are rejected with a banner.</p>
+<img src="images/editor-upload-modal.png" alt="Upload modal with a dropzone, supported media types, an Add Files button, and a counter showing how many files are already in the item" style="width:100%; border-radius:8px; border:1px solid var(--border); margin:16px 0;">
+
+<h3 id="editor-recording">Recording</h3>
+<p>When <a href="#config-audio-subsettings" class="internal">Recording</a> is on in configuration and the user can upload, the <strong>Record Audio</strong> button in the playback controls captures fresh audio in the browser:</p>
+<ul>
+  <li>Press to start recording — a small red overlay appears on the waveform with <strong>REC</strong>, a pause / resume control, and a <strong>Finish</strong> button.</li>
+  <li>The recorded blob is uploaded as a new media file in the item (subject to the 10-file cap).</li>
+  <li>The newly-added file becomes the active tab automatically.</li>
+</ul>
+
+<hr>
+
+<h2 id="editor-multifile">Multi-File Items</h2>
+<p>A single item can contain up to <strong>10 audio / video files</strong>. Each file has its own annotations, transcript, and media-scoped tags.</p>
+
+<h3 id="editor-multifile-tabs">Tab Navigation</h3>
+<p>When an item has more than one media file, a <strong>tab strip</strong> appears above the player. Click any tab to switch the active file. The active file's media fills the player, its annotations populate the panel, and its transcript loads into the transcript panel.</p>
+<ul>
+  <li><strong>Adding files</strong> — use the <a href="#editor-upload" class="internal">Upload</a> button or drop new files into the item.</li>
+  <li><strong>Per-file state</strong> — annotations, transcript, and media-scoped tags are stored per file. Item-scoped tags apply to the whole item regardless of which tab is active.</li>
+</ul>
+
+<h3 id="editor-multifile-panel">Panel &amp; Annotations</h3>
+<p>The <a href="#editor-panel" class="internal">annotation panel</a> aggregates annotations across <strong>all files</strong> in the item. Annotations from every file are shown regardless of which tab is active. Clicking an annotation from another file switches the active tab to that file and scrolls / seeks to it. The panel groups media-scoped tags under file sub-headers (<em>Media tags</em>), while item-level tags appear at the top independently.</p>
+
+<hr>
+
+<h2 id="editor-item-context">Item Context</h2>
+<p>When <a href="#config-item-context" class="internal">Item Context</a> is enabled in the project configuration, the editor renders a dedicated section at the very top of the canvas — above the multi-file tab strip and the player area — for the configured slots.</p>
+<ul>
+  <li><strong>Tab strip</strong> — one tab per visible slot, in the order set in config. The active tab uses a neutral grey accent stripe so it's clearly distinguishable from the blue file-tab strip directly below.</li>
+  <li><strong>Collapse / expand</strong> — a chevron button at the leading edge of the tab strip collapses the section down to just the tab row (hiding toolbar, content, and resize handle). The chevron is sticky-left and stays visible when the tab strip overflows and you scroll horizontally. When collapsed, clicking the chevron or the empty area of the strip expands the section; clicking a non-active tab expands <em>and</em> switches to that tab in a single action; clicking the active tab simply expands. Always starts expanded on load.</li>
+  <li><strong>Rich text editing</strong> — editable slots show a formatting toolbar between the tabs and content area. Available formatting: bold, italic, headings (H1/H2), bullet lists, numbered lists, blockquotes, inline code, code blocks, hyperlinks, and tables. The toolbar sits within the section's height and does not consume additional space.</li>
+  <li><strong>Read-only slots</strong> — slots set to <em>View Only</em> for the user's role render with a light grey background and no toolbar. Rich text content still renders fully formatted (headings, lists, tables, etc.) — only editing is disabled.</li>
+  <li><strong>Hidden slots</strong> — slots with the user's role on the <em>Hide From</em> list are not shown in the strip at all. If <em>every</em> slot is hidden for the user, the entire Item Context section disappears.</li>
+  <li><strong>Resize handle</strong> — drag the thin grey grip at the bottom of the section to resize it (clamped between roughly 80 px and 50 % of the editor height). The resized height is <em>session-only</em>; reloading the item resets to the admin's <a href="#config-item-context" class="internal">default height</a>.</li>
+  <li><strong>Autosave</strong> — edits feed the same debounced auto-save pipeline as the rest of the editor; the unsaved-changes indicator picks them up like any other change.</li>
+  <li><strong>Source of values</strong> — slot content is either typed directly by the annotator or pre-populated when the item arrives via <a href="#ie-jsonl-import" class="internal">JSONL upload</a> (see the <a href="#ie-jsonl-keys" class="internal">payload schema</a>).</li>
+</ul>
+<img src="images/editor-item-context.png" alt="Editor canvas showing the Item Context section at the top with a tab strip, an active tab with a grey accent stripe, and a textarea filled with task-specific notes" style="width:100%; border-radius:8px; border:1px solid var(--border); margin:16px 0;">
+
+<hr>
+
+<h2 id="editor-split-view">Split View</h2>
+<p>For items with multiple media files, the <strong>Split</strong> toggle in the top toolbar lays out every file side-by-side as a grid of <strong>live, fully playable cards</strong>. Split View is built for cross-file work — comparing, tagging, and reviewing several files in parallel — without leaving the editor.</p>
+<ul>
+  <li><strong>Split 0</strong> (default) — standard single-file editable view with tabs.</li>
+  <li><strong>Split 1 / 2 / 3</strong> — renders all of the item's files as a grid that wide. Each cell is an independent mini-player with its own waveform, video frame, and controls.</li>
+</ul>
+<p>The toggle only appears when the item has more than one media file. The single-pane tab strip, playback controls, and transcript panel are hidden while Split View is active — each card owns its own loading state and chrome.</p>
+
+<h3 id="editor-split-card-anatomy">Card Anatomy</h3>
+<p>Every card in the grid contains:</p>
+<ul>
+  <li><strong>Header</strong> — file name, plus a hover-revealed <em>"Open"</em> pill that disambiguates exit-split affordances from the in-card playback affordances.</li>
+  <li><strong>Main waveform</strong> — full-width rendering from the file's cached peaks. <em>Display only</em> — no segment editing in Split View. Existing segments are still drawn on the waveform (read-only) so you can spot them while comparing files.</li>
+  <li><strong>Video frame</strong> (video files) — a live <code>&lt;video&gt;</code> element that plays inline. Box annotation overlays render on top of the frame at the card's current time.</li>
+  <li><strong>Control strip</strong> at the bottom — mute toggle, play / pause button, current-time / duration readout, and an <strong>interactive minimap</strong>. Click or drag on the minimap to seek; the main waveform's playhead follows.</li>
+</ul>
+<p>Card sizing adapts to the media mix:</p>
+<ul>
+  <li><strong>Audio-only items</strong> use compact rows so more files fit on screen.</li>
+  <li><strong>Items containing any video file</strong> use taller rows for all cards so video frames stay legible (audio cards in mixed items get the same chunky row).</li>
+</ul>
+
+<h3 id="editor-split-interaction">Click Targets &amp; Exit Behaviour</h3>
+<p>Card surfaces are split into two zones with different effects:</p>
+<ul>
+  <li><strong>Card playback zone</strong> — the bottom control strip (play / pause, mute, time readout) <em>and</em> the minimap. Clicks here drive playback for that card only and stay in Split View. The hover pill is suppressed here so the interactive area is unambiguous.</li>
+  <li><strong>"Open in single view" zone</strong> — the header, main waveform, and video frame. Clicking here collapses to Split 0 and switches the active file to that card's file. The hover pill fades in to signal this behaviour.</li>
+</ul>
+<p>When you exit by clicking a card: any other cards still playing are paused, and the file you opened resumes from wherever it was in Split View (auto-resumes if it was playing in the card).</p>
+
+<h3 id="editor-split-parallel-playback">Parallel Playback &amp; Keyboard Focus</h3>
+<p>Multiple cards can play simultaneously — useful for A/B comparing similar takes or aligning content across files. Audio mixing is the user's responsibility (mute the cards you don't want to hear).</p>
+<p>The global transport strip above the card grid provides controls that apply to every card at once: play / pause all, mute / unmute all, seek all by seconds, and a shared playback speed.</p>
+
+<p>Keyboard shortcuts in Split View follow one of two modes:</p>
+<ul>
+  <li><strong>Focused mode</strong> (default) — shortcuts target whichever card you most recently interacted with directly (play, seek, mute, or selecting one of its annotations from the panel).</li>
+  <li><strong>Broadcast mode</strong> — when you interact with the global transport strip (e.g. play all, mute all), shortcuts automatically shift to apply to <em>every</em> card at once. Clicking any individual card returns to focused mode.</li>
+</ul>
+<p>Available shortcuts in both modes:</p>
+<ul>
+  <li><kbd>Space</kbd> — play / pause.</li>
+  <li><kbd>Shift+Space</kbd> — play / pause even while typing in transcript or property fields.</li>
+  <li><kbd>,</kbd> / <kbd>.</kbd> — seek 3 s back / forward.</li>
+  <li><kbd>&lt;</kbd> / <kbd>&gt;</kbd> — seek 10 s back / forward.</li>
+  <li><kbd>M</kbd> — mute / unmute.</li>
+</ul>
+<p>Tool shortcuts (<kbd>S</kbd>, <kbd>G</kbd>, <kbd>B</kbd>, <kbd>E</kbd>) and class shortcuts (<kbd>1</kbd>–<kbd>9</kbd>) are <em>ignored</em> in Split View — Split View is for playback and tagging only; annotation editing happens in Split 0.</p>
+
+<h3 id="editor-split-persistence">Position Persistence</h3>
+<p>The current playback position of <em>every</em> file is preserved as you move between Split 0 and the higher split modes:</p>
+<ul>
+  <li>Play a file in Split 0 to 0:30, switch to Split 2, drag two other cards' minimaps to 0:10 and 0:45, then click into either of those — it opens at 0:45 (or 0:10) in single view.</li>
+  <li>Return to Split View afterwards: every card is mounted at its last-known position, including files you only adjusted by dragging the minimap (without ever pressing play).</li>
+  <li>Positions are <em>session-only</em> — closing the item or refreshing the page resets every file to 0.</li>
+</ul>
+
+<h3 id="editor-split-panel">Panel Interaction in Split View</h3>
+<p>Selecting an annotation, tag, or instance from the <a href="#editor-panel" class="internal">annotation panel</a> while in Split View does <em>not</em> collapse the view. The corresponding file's card is scrolled into view, briefly highlighted, and becomes the keyboard-focused card so you can drive playback from the keyboard immediately.</p>
+
+<hr>
+
+<h2 id="editor-top-toolbar">Top Toolbar</h2>
+<p>Left to right, the top toolbar exposes:</p>
+<ul>
+  <li><strong><a href="#editor-tool-selector" class="internal">Tool selector</a></strong> — Select / Segment / Box / Entity. Picking a class auto-switches to its matching tool, but the dropdown lets you switch tools manually.</li>
+  <li><strong><a href="#editor-class-selector" class="internal">Class selector</a></strong> — pick the active class for new annotations. Searchable; first nine classes carry <kbd>1</kbd>–<kbd>9</kbd> shortcuts.</li>
+  <li><strong>Upload</strong> — opens the <a href="#editor-upload" class="internal">upload modal</a> (when allowed).</li>
+  <li><strong>Download</strong> — exports the current item as a ZIP (when allowed). See <a href="#ie-export" class="internal">Download / Export</a>.</li>
+  <li><strong>Instructions</strong> — opens the <a href="#config-instructions" class="internal">Project Instructions</a> PDF for the user's role (when uploaded).</li>
+  <li><strong>Split</strong> (multi-file items only) — toggles between Split 0/1/2/3. See <a href="#editor-split-view" class="internal">Split View</a>.</li>
+  <li><strong>Keyboard shortcuts</strong> — opens an in-app cheat sheet on hover.</li>
+  <li><strong>Documentation</strong> — opens this popup.</li>
+  <li><strong>Dark mode</strong> — toggles the UI palette (preference is saved per browser).</li>
+  <li><strong>Video adjustments</strong> (when video is visible) — slider dropdown for Brightness, Contrast, Saturation, and Shape Opacity. See <a href="#editor-video-adjust" class="internal">Video Adjustments</a>.</li>
+  <li><strong>Fullscreen</strong> — expands the tool within its host.</li>
+  <li><strong>Undo / Redo</strong> — see <a href="#editor-undo-redo" class="internal">Undo / Redo</a>.</li>
+</ul>
+<div class="screenshot-placeholder">Top toolbar: tool / class selectors on the left; Upload, Download, Instructions, Split, shortcuts, docs, theme, adjust, fullscreen, undo, redo on the right.</div>
+
+<h3 id="editor-tool-selector">Tool Selector</h3>
+<p>Four tools, plus a class-driven auto-pair behaviour:</p>
+<table>
+  <tr><th>Tool</th><th>Shortcut</th><th>Use</th></tr>
+  <tr><td><strong>Select</strong></td><td><kbd>S</kbd></td><td>Free cursor — click annotations to inspect, drag handles to resize, drag bodies to move. No new annotations are created.</td></tr>
+  <tr><td><strong>Segment</strong></td><td><kbd>G</kbd></td><td>Drag on the waveform to draw a time interval. Auto-selects when picking a class with type <em>Segment</em>.</td></tr>
+  <tr><td><strong>Box</strong></td><td><kbd>B</kbd></td><td>Drag an axis-aligned rectangle on the video frame (video items only). Auto-selects when picking a class with type <em>Box</em>.</td></tr>
+  <tr><td><strong>Entity</strong></td><td><kbd>E</kbd></td><td>Select a span of transcript text in the transcript panel. Disabled when transcript is hidden. Auto-selects when picking a class with type <em>Entity</em>.</td></tr>
+</table>
+<p>The tool selector only lists tools that have at least one matching class configured <em>and</em> that are available for the current <a href="#config-tool-mode-filtering" class="internal">media type</a> (the Box tool is hidden on audio items and in Split View). Shortcuts for hidden tools are disabled — pressing the Box shortcut on an audio item shows an informational toast.</p>
+
+<h3 id="editor-class-selector">Class Selector</h3>
+<p>The class dropdown lists every class visible to the user's role whose tool type is <a href="#config-tool-mode-filtering" class="internal">available for the current media type</a>, with a colour swatch, the class name, and a shortcut badge for the first nine. Type to filter by name. Selecting a class:</p>
+<ul>
+  <li>Sets it as the active class for new annotations.</li>
+  <li>Auto-selects the matching <a href="#editor-tool-selector" class="internal">tool</a> (Segment / Box / Entity) so the next gesture draws the right kind of annotation.</li>
+  <li>Classes flagged as <em>view-only</em> for the user's role show a small lock icon and cannot be selected for new annotations.</li>
+</ul>
+
+<hr>
+
+<h2 id="editor-waveform">Waveform &amp; Video</h2>
+<p>The center area renders one or both surfaces depending on the media and the project configuration.</p>
+
+<h3 id="editor-waveform-player">Audio Waveform</h3>
+<p>Always shown — for audio files as the primary surface, and for video files alongside the video frame. Powered by WaveSurfer with its Timeline, Minimap, and Regions plugins:</p>
+<ul>
+  <li><strong>Timeline</strong> — runs above the waveform with seconds / minutes ticks. Click anywhere to seek.</li>
+  <li><strong>Minimap</strong> — a compressed overview rendered below the waveform. Drag to scrub at large scale; useful for navigating long files at high zoom.</li>
+  <li><strong>Multi-channel toggle</strong> — for stereo / multi-channel sources, the <strong>Toggle Multi-channel</strong> button stacks one waveform per channel. Off, channels are mixed into a single track.</li>
+  <li><strong>Zoom in / out</strong> — buttons in the playback controls; useful for tightening in/out points on short events.</li>
+  <li><strong>Peaks file</strong> — on first decode, the editor uploads a small JSON peaks file alongside the media. Subsequent loads use it to render the waveform without re-decoding the full audio. See <a href="#ie-peaks" class="internal">Peaks Files</a>.</li>
+</ul>
+
+<h3 id="editor-video">Video Player</h3>
+<p>Shown automatically for video files (audio files show only the waveform). The video plays in lock-step with the waveform — WaveSurfer is bound to the <code>&lt;video&gt;</code> element so a single decode powers both.</p>
+<ul>
+  <li><strong>Box overlay</strong> — when the active tool is <em>Box</em>, drag on the video frame to draw an axis-aligned rectangle. Existing boxes are rendered on top of the frame at their current time and respect the <a href="#editor-video-adjust" class="internal">Shape Opacity</a> setting.</li>
+  <li><strong>Zoom and pan</strong> — mouse wheel zooms around the cursor; drag pans while zoomed. Overlay geometry stays aligned with the video under the transform.</li>
+  <li><strong>Hide / Show Video</strong> — the <strong>Toggle Video</strong> button in the playback controls hides the video frame to reclaim vertical space when you're focused on waveform-only work; the audio keeps playing.</li>
+  <li><strong>Overlay labels</strong> — toggled with <kbd>O</kbd> or the labels button: when on, hovering an annotation shows a small label chip with its class and primary text/value.</li>
+</ul>
+<p>This tool is audio-first: it offers a single video canvas with axis-aligned box tracking. For frame-level video work — a frame panel, cuboids, rotated boxes, or per-instance visible ranges — use the dedicated <strong>Video Annotation Tool</strong>.</p>
+
+<h3 id="editor-keyframes">Keyframes</h3>
+<p>Box annotations can hold multiple <em>keyframes</em> to track changes over time. Each keyframe stores a (time, rect) pair. Between keyframes, position and size are interpolated linearly so the box tracks moving objects without creating a separate instance per frame. Move or resize a selected box at a new playhead time to add a keyframe there.</p>
+
+<h3 id="editor-video-adjust">Video Adjustments</h3>
+<p>When video is visible, the <strong>Video adjustments</strong> button in the top toolbar opens a slider dropdown:</p>
+<ul>
+  <li><strong>Brightness / Contrast / Saturation</strong> — applied as a CSS filter on the video frame so the original bytes are never mutated.</li>
+  <li><strong>Shape Opacity</strong> — controls the fill opacity of bounding boxes rendered on top of the video. Useful for keeping the underlying frame readable when many overlapping annotations are present.</li>
+  <li><strong>Reset</strong> — restores all four sliders to their defaults.</li>
+</ul>
+
+<hr>
+
+<h2 id="editor-controls">Playback Controls</h2>
+<p>A row of controls under the player exposes everything needed to drive playback and switch view modes:</p>
+<ul>
+  <li><strong>Play / Pause</strong> (<kbd>Space</kbd>, or <kbd>Shift+Space</kbd> while typing), <strong>Mute</strong> (<kbd>M</kbd>).</li>
+  <li><strong>Time display</strong> — current / total in seconds.</li>
+  <li><strong>Zoom Out / In</strong> on the waveform.</li>
+  <li><strong>Toggle Multi-channel</strong> — stack channels or mix to mono.</li>
+  <li><strong>Show / Hide Video</strong>.</li>
+  <li><strong>Overlay labels</strong> (<kbd>O</kbd>).</li>
+  <li><strong>Transcript</strong> — opens / closes the <a href="#editor-transcript" class="internal">transcript panel</a>.</li>
+  <li><strong>Playback speed</strong> — dropdown with values from <code>0.25x</code> to <code>3x</code>.</li>
+  <li><strong>Record Audio</strong> — when <a href="#config-audio-subsettings" class="internal">Recording</a> is enabled.</li>
+</ul>
+<p>Use <kbd>,</kbd> / <kbd>.</kbd> to seek 3 s back / forward and <kbd>&lt;</kbd> / <kbd>&gt;</kbd> for 10 s jumps. Press <kbd>M</kbd> to toggle mute. Press <kbd>Shift+Space</kbd> to play / pause even while typing in transcript or property fields. All shortcuts also work in <a href="#editor-split-view" class="internal">Split View</a>, where they target the focused card (or all cards in broadcast mode).</p>
+
+<hr>
+
+<h2 id="editor-drawing">Creating Annotations</h2>
+<p>The exact gesture depends on the class's tool type:</p>
+
+<h3 id="editor-drawing-segment">Segment</h3>
+<ol>
+  <li>Pick a class of type <em>Segment</em> from the dropdown — or press <kbd>1</kbd>–<kbd>9</kbd>. The Segment tool selects automatically.</li>
+  <li>Drag horizontally on the waveform to set <em>start</em> and <em>end</em>. Releasing the mouse creates the segment.</li>
+  <li>The new segment appears as a coloured region on the waveform and as a row in the <a href="#editor-panel" class="internal">annotation panel</a>.</li>
+  <li>Drag the segment's edges to resize, or grab its body to move. <a href="#config-audio-subsettings" class="internal">Overlapping Segments</a> and <a href="#config-audio-subsettings" class="internal">Restrict Segment Length</a> rules are enforced live during drag.</li>
+</ol>
+<p>With <a href="#config-audio-subsettings" class="internal">Segment Loops</a> on, leaving the bounds of the <em>currently selected</em> segment during playback automatically loops back to its start — handy for tight in / out point review.</p>
+
+<h3 id="editor-drawing-box">Box</h3>
+<ol>
+  <li>Pick a class of type <em>Box</em> (video items only). The Box tool selects automatically and the video frame becomes the drawing surface.</li>
+  <li>Pause at the desired frame, then drag an axis-aligned rectangle on the video. The box receives a start / end time around the current playhead by default.</li>
+  <li>To track movement, scrub to a later frame, select the box, and move or resize it — a new keyframe is added at that time and the box position interpolates between keyframes.</li>
+</ol>
+
+<h3 id="editor-drawing-entity">Entity</h3>
+<ol>
+  <li>Open the <a href="#editor-transcript" class="internal">transcript panel</a> (transcribe first if needed).</li>
+  <li>Pick a class of type <em>Entity</em>. The Entity tool selects automatically.</li>
+  <li>Drag-select a span of transcript text. On mouse-up, the span becomes an entity annotation that ties back to its containing transcript segment.</li>
+</ol>
+
+<p>To remove any annotation, select it (panel row, region body, box, or transcript span) and press <kbd>Delete</kbd> or <kbd>Backspace</kbd>.</p>
+
+<hr>
+
+<h2 id="editor-panel">Annotation Panel</h2>
+<p>The annotation panel is the command-centre for structured data. It lists every annotation in the item and offers two complementary views.</p>
+
+<h3 id="editor-panel-instance">Instance View</h3>
+<p>The default layout: one row per annotation. Each row shows:</p>
+<ul>
+  <li>An eye icon for per-annotation visibility, copy-id button, the class chip (click to <a href="#editor-class-changes" class="internal">change class</a>), the annotation's start / end times (or transcript span text for entities).</li>
+  <li>Quick-action icons — comments, relationships, property popover icon (opens <a href="#editor-property-editing" class="internal">property popover</a>), delete.</li>
+</ul>
+<p>Click a row to seek the playhead to the annotation's start (segment / box) or scroll the transcript to its span (entity). The panel supports:</p>
+<ul>
+  <li><strong>Media filter</strong> — (multi-file items only) a dropdown at the top of the panel filtering annotations and tags to a specific media file.</li>
+  <li><strong>Group By</strong> — Media Name (default for multi-file), Class Name, or Tool Type.</li>
+  <li><strong>Order By</strong> — JSON Export (default), Class Name, Tool Type, Start Time, Created By, Creator Role, Created At.</li>
+  <li><strong>Filter</strong> — by class, by property, by comments (when comments are enabled).</li>
+  <li><strong>Reordering</strong> — when using the Group By Text Name and Order By JSON Export, drag handles appear on instance rows. Drag to reorder instances within the same text file. Reordering is reflected in the data and export.</li>
+</ul>
+<div class="screenshot-placeholder">Annotation panel Instance View grouped by Media Name with rows showing start/end times, class chips, and per-row action icons.</div>
+
+<h3 id="editor-panel-table">Table View</h3>
+<p>Toggle to Table View for a spreadsheet-style grid: one row per annotation, one column per property. This is the fastest way to scan and edit properties across many annotations at once, and ideal for bulk <a href="#editor-ai-autofill" class="internal">AI autofill</a> review (both AI Text and AI Select).</p>
+<ul>
+  <li>Fixed columns: <em>Media</em> (multi-file only), <em>Class</em>, <em>Tool Type</em>, <em>Start</em>, <em>End</em>, optional Comments column when comments are enabled, one column per relationship type, plus the three Created-By / Role / At meta columns (hidden by default).</li>
+  <li>Property columns adapt to the class of each row — properties not defined on a class show as empty cells.</li>
+  <li>Sort by any column; filter via column headers. <strong>Approval</strong> columns offer a fixed three-state picker — <em>Approved</em>, <em>Disapproved</em>, <em>(Blank)</em> — regardless of which states currently appear in the data, so you can always pre-filter for "no verdict yet" before any rows have been approved.</li>
+  <li>Inline edit each cell; changes <a href="#ie-autosave" class="internal">auto-save</a> immediately.</li>
+  <li><strong>AI extraction column</strong> (Table View) — when a class has AI Text / AI Select properties, the table adds a leading <strong>AI</strong> column with <strong>row-level</strong> actions: <strong>Extract</strong> (all empty, runnable AI properties on that row) and, when <a href="#config-properties" class="internal">Enable Editing</a> is on, <strong>Edit prompt</strong>. These mirror the action bar at the top of the property popover.</li>
+  <li><strong>Per-property extract icons</strong> (Table View) — individual AI Text and AI Select cells also show compact extract (and optional edit-prompt) icons beside the field, matching the per-property icons beside each AI field label in the property popover.</li>
+  <li>Use the <strong>Columns</strong> dropdown to reorder, hide, or <strong>pin</strong> columns for the current session. Your starting order and pin defaults come from the project-wide <a href="#config-table-cols" class="internal">Table Column Settings</a>.</li>
+  <li><strong>Pin columns</strong> — clicking the pin icon next to a column glues it to the leading edge of the table. Pinned columns always render before unpinned ones (preserving relative order within each cluster); the leading utility cells (eye icons, drag handle, copy-id) and group subheaders also stick to the leading edge once any column is pinned, so per-row controls and group labels stay visible during horizontal scroll. Drag-reordering inside the dropdown is restricted to within a cluster (pinned↔pinned or unpinned↔unpinned). Pin state is per-session.</li>
+</ul>
+<div class="screenshot-placeholder">Annotation panel Table View with columns: Media, Class, Tool Type, Start, End, plus property and relationship columns.</div>
+
+<h4 id="editor-column-group-chips">Column Group Chips</h4>
+<p>When an admin has configured <a href="#config-table-cols" class="internal">column groups</a>, a row of toggle chips appears above the table. Each chip represents one group and shows its label. Click a chip to show or hide all columns in that group at once. Chips display three visual states: <strong>active</strong> (all group columns visible), <strong>partial</strong> (some columns individually hidden), and <strong>inactive</strong> (all group columns hidden). Hovering a chip shows a tooltip listing the columns it contains. Editors can still show or hide individual columns from the <em>Columns</em> dropdown regardless of group state.</p>
+
+<h3 id="editor-panel-grouping">Grouping &amp; Bulk Edit</h3>
+<p>Both Instance View and Table View can group annotations by Media Name, Class Name, Tool Type, or any individual Property. In Table View, groups display visual <strong>subheader rows</strong> that break the grid into collapsible sections — one per group value. Group headers include collapse / expand controls.</p>
+<p>Editable groups expose an <strong>Edit</strong> action next to the group label. Clicking it opens a <strong>bulk-edit popover</strong> where you can apply changes to every annotation in the group at once:</p>
+<ul>
+  <li>Change the class of all grouped annotations (same tool-type constraint applies).</li>
+  <li>Edit shared property values across the group.</li>
+</ul>
+<p>Changes from the bulk-edit popover are applied immediately and feed the standard <a href="#editor-undo-redo" class="internal">undo</a> stack.</p>
+
+<hr>
+
+<h2 id="editor-property-editing">Property Editing</h2>
+<p>Click the <strong>property popover icon</strong> on a row in the <a href="#editor-panel-instance" class="internal">Instance View</a> to open the property popover. The popover anchors next to the row so the source annotation and the structured fields stay visible together. For AI Text and AI Select fields, compact extract icons sit beside each property label (single-property scope); a separate action bar at the top of the popover runs extraction for the whole row. In <a href="#editor-panel-table" class="internal">Table View</a>, fields are inline-editable in their cells.</p>
+<ul>
+  <li><strong>Free Text</strong> — inline editable by default. Its <a href="#config-properties" class="internal">Text Display</a> mode controls presentation: <em>Inline</em> (default), <em>Modal</em> (a roomy verbatim <a href="#editor-rich-text-modal" class="internal">plain-text modal</a>), or <em>Rich Text</em> (a formatted <a href="#editor-rich-text-modal" class="internal">rich-text modal</a>).</li>
+  <li><strong>AI Text</strong> — auto-fill at three scopes: a <strong>single property</strong> (extract icon beside the field in the property popover or table cell), a <strong>whole row</strong> (popover action bar or table AI column), or <strong>all visible panel rows</strong> when bulk extraction is enabled. Manual edit if <a href="#config-properties" class="internal">Enable Editing</a> is on. Supports the same <a href="#config-properties" class="internal">Text Display</a> modes (Inline / Modal / Rich Text).</li>
+  <li><strong>Select</strong> — always a dropdown; the <em>Allow multi-select</em> property option controls whether one or multiple options can be picked at the same time.</li>
+  <li><strong>AI Select</strong> — dropdown with predefined options, pre-selected by <a href="#editor-ai-autofill" class="internal">AI autofill</a> through the same single-property, row-level, or bulk panel entry points. The model picks from the configured option list based on the segment's transcript or audio content. Manual override is always possible; when <a href="#config-properties" class="internal">Enable Editing</a> is on, annotators can also tweak the prompt before extraction.</li>
+  <li><strong>Numeric</strong> — number input with optional bounds and unit.</li>
+  <li><strong>Approval</strong> — a compact two-button picker (thumbs-up / thumbs-down) for capturing a three-state verdict. Click the up icon to mark the row <em>approved</em> (stores <code>"true"</code>), the down icon to mark it <em>disapproved</em> (<code>"false"</code>); clicking the active icon again clears the verdict, and clicking the opposite icon swaps the verdict in place. Both surfaces — the property popover and the Table View cell — render the same picker, and changes flip on click without needing to dismiss the popover or refresh the panel. In view-only contexts (role lacks edit access, class is view-only) the icons keep their green / red palette but read as dimmed so the verdict is still legible at a glance; the buttons are not interactive. Approval columns are <strong>excluded from the table's free-text search</strong> — filter by verdict via the column dropdown's three-state picker instead.</li>
+  <li><strong>Required indicator</strong> — required properties are visually flagged when empty so incomplete annotations are easy to spot.</li>
+</ul>
+
+<h3 id="editor-ai-autofill">AI Property Autofill</h3>
+<p>The <a href="#config-properties" class="internal">AI Text</a> and <a href="#config-properties" class="internal">AI Select</a> property types send segment transcript text (or raw audio when no transcript exists) and each property's configured prompt to your <a href="#config-ai-proxy" class="internal">AI proxy</a>. By default the model and proxy come from project configuration; individual properties can override that routing.</p>
+
+<h4>Where to trigger extraction</h4>
+<p>AI extraction is available at three scopes. Single-property and row-level controls exist in both the property popover and Table View; bulk extraction runs from the annotation panel header regardless of which panel mode you are in.</p>
+<ul>
+  <li><strong>Single property</strong> — run one AI Text or AI Select field at a time.
+    <ul>
+      <li><strong>Property popover</strong> — each AI property shows compact <strong>Extract</strong> (and, when <a href="#config-properties" class="internal">Enable Editing</a> is on, <strong>Edit prompt</strong>) icons beside its label.</li>
+      <li><strong>Table view</strong> — the same per-property icons appear inside that property's table cell. See <a href="#editor-panel-table" class="internal">Table View</a>.</li>
+    </ul>
+  </li>
+  <li><strong>Whole row</strong> — run every empty, runnable AI property on one annotation row at once.
+    <ul>
+      <li><strong>Property popover</strong> — the AI action bar at the top of the popover offers <strong>Extract</strong> and <strong>Edit prompt</strong> (when editing is enabled for any AI property on the row).</li>
+      <li><strong>Table view</strong> — the leading <strong>AI</strong> column mirrors those same row-level actions.</li>
+    </ul>
+  </li>
+  <li><strong>Full annotation panel</strong> — when <a href="#config-panel-bulk-ai-extraction" class="internal">bulk extraction is enabled</a>, the panel-header extract button runs AI extraction across every visible instance row in the panel, in Instance View or Table View. See <a href="#editor-ai-bulk-panel-extraction" class="internal">Bulk annotation panel extraction</a>.</li>
+  <li><strong>Edit prompt modal</strong> — opened from any Edit prompt entry point above; shows editable per-property prompts before running.</li>
+</ul>
+
+<h4>Prompts and routing</h4>
+<p>The tool sends one chat request per proxy/model batch containing:</p>
+<ul>
+  <li>A built-in <strong>system prompt</strong> assembled from the per-property prompt(s) defined in configuration.</li>
+  <li>A <strong>user payload</strong> with text describing the annotation, built using one of two paths:
+    <ul>
+      <li><strong>Linked-segment path</strong> — when the annotation is a Segment linked to a transcript segment with non-empty text, the linked transcript text is sent. This is the common case after auto-transcription.</li>
+      <li><strong>Audio-segment path</strong> — when there is no linked transcript text, the editor extracts a WAV snippet, sends it through Whisper / Gemini transcription first, then feeds the resulting text into the chat call.</li>
+    </ul>
+  </li>
+  <li>For <strong>Box</strong> and <strong>Entity</strong> annotations, the payload is built from the annotation's surrounding text (entity span text and any linked transcript context for entities).</li>
+  <li><strong>Per-property proxy / model</strong> — properties with a <a href="#config-ai-property-proxy-override" class="internal">configuration override</a> route independently. A single row or popover extract may issue multiple API batches when its empty AI properties resolve to different proxy/model pairs.</li>
+  <li>For AI Select, the model returns one (or more, if multi-select is enabled) option labels from the property's predefined list; unrecognised values are silently dropped.</li>
+  <li>Requires a configured route for each property being extracted — either the project <a href="#config-ai-proxy" class="internal">AI Property Proxy</a> or a per-property override.</li>
+  <li>The same models also power the <em>Ask AI</em> assistant in this in-app documentation popup — that path always uses the project proxy, not per-property overrides.</li>
+  <li>When <a href="#config-properties" class="internal">Enable Editing</a> is on, annotators can tweak a property's prompt before pressing Extract; when off, the configured prompt is used as-is. Errors (rate limits, provider failures, missing proxy) surface as toasts.</li>
+</ul>
+
+<h4 id="editor-ai-bulk-panel-extraction">Bulk annotation panel extraction</h4>
+<p>When an admin enables <a href="#config-panel-bulk-ai-extraction" class="internal">Allow Bulk Extraction of all AI Properties</a>, a compact extract button appears in the annotation panel header (alongside the view / group-by controls). Click it to run AI extraction across <strong>every visible instance row</strong> in the panel — whether you are in Instance View or Table View.</p>
+<ul>
+  <li><strong>Scope</strong> — respects the current panel filters, table search (when in Table View), column filters, media/class filters, and collapsed group sections. Collapsed sections are skipped; only expanded groups contribute rows.</li>
+  <li><strong>What runs</strong> — for each qualifying row, the bulk job extracts the same set of properties the row-level Extract button would — empty AI Text / AI Select fields that pass visibility and accessibility checks. Already-filled values and view-only AI properties are skipped.</li>
+  <li><strong>Confirmation &amp; progress</strong> — a confirm dialog shows the row count. During the run a non-dismissible progress banner counts completed rows; row-level and per-property extract icons show a spinner while that row is queued. Outcome toasts stack beneath the banner.</li>
+  <li><strong>Summary</strong> — when finished, a dismissible banner reports how many rows were fully filled, partially filled, failed, or skipped.</li>
+  <li><strong>Concurrency</strong> — rows are processed in parallel (up to 15 at a time); each row still batches its own properties by proxy/model route.</li>
+  <li>The button is hidden entirely when the configuration toggle is off, and disabled when no visible rows have anything left to extract.</li>
+</ul>
+
+<h3 id="editor-rich-text-modal">Text Display Modals (Modal &amp; Rich Text)</h3>
+<p>Free Text and AI Text properties whose <a href="#config-properties" class="internal">Text Display</a> mode is set to <strong>Modal</strong> or <strong>Rich Text</strong> render as a compact pill in the popover / table cell; clicking it opens a full-page editor instead of editing inline. The same modals are reused for tag-level properties.</p>
+<ul>
+  <li><strong>Modal (plain text)</strong> — opens the same kind of full-page popup as the Rich Text modal, but with a plain editing area and no formatting toolbar. What you type is stored <strong>exactly as-is</strong> — whitespace, line breaks, and literal markup (raw HTML, JSON, code) are preserved verbatim, with no formatting or conversion applied. Use it for comfortable reading and editing of long or structured plain text.</li>
+  <li><strong>Rich Text</strong> — a formatting editor supporting bold, italics, headings, bulleted and numbered lists, blockquotes, inline code, code blocks, links, and tables. Sized for multi-paragraph content like detailed descriptions or transcriptions of long passages. Content round-trips through a formatted representation, so it is not intended for preserving arbitrary literal markup — use <em>Modal</em> for that.</li>
+</ul>
+<p>Both modals offer a <strong>View only</strong> state for read-only roles and close on <em>Save &amp; Close</em>, <em>Cancel</em>, or <kbd>Esc</kbd>.</p>
+
+<h3 id="editor-rule-hierarchy">Property &amp; Option Visibility Rules</h3>
+<p>Configurations defined as <a href="#config-property-rules" class="internal">property visibility rules</a> and <a href="#config-option-rules" class="internal">option visibility rules</a> are evaluated and enforced live as the annotator works — there's no separate "validate" step, and the same logic applies in both the floating property popover and the table view.</p>
+
+<h4>Property Visibility Rules — apply to any property type</h4>
+<p>A property visibility rule can be set on <strong>any</strong> property type (Free Text, AI Text, Select, AI Select, Numeric, Approval — all of them). When the rule is unsatisfied for the current row, the whole field is treated as inaccessible:</p>
+<ul>
+  <li>The field still renders in the popover and as a table column so annotators can see the field exists, but it's <strong>dimmed and read-only</strong>, with a <em>not-allowed</em> cursor and a hover tooltip explaining what controls it (e.g. "Controlled by: Sound Category = Music").</li>
+  <li>Any stored value on that property is <strong>automatically cleared</strong> the moment the rule flips to unsatisfied — and the clear cascades, so if A controls B and B controls C, changing A can clear both B and C in a single step.</li>
+  <li><strong>Required validation is suppressed</strong> while the property is inaccessible — the red required indicator on the annotation / tag row only reactivates when the rule becomes satisfied again.</li>
+  <li><strong>AI extraction is skipped</strong> on AI Text / AI Select properties whose rule is unsatisfied. The row-level Extract / Edit prompt controls, the per-property icons in the property popover, and the per-cell extract icons in the table all hide or grey out for these fields, and re-appear the instant the controller flips back — no popover reopen needed.</li>
+  <li>Modal / Rich Text properties gated by an unsatisfied rule render as a plain "—" placeholder; the <a href="#editor-rich-text-modal" class="internal">plain-text or rich-text modal</a> cannot be opened. <strong>Approval columns</strong> behave the same way in the table — the cell collapses to "—" rather than rendering a dimmed picker, matching the convention used by every other column type. The property popover keeps the dimmed-disabled picker so users still see what the field <em>would</em> look like.</li>
+</ul>
+
+<h4>Option Visibility Rules — apply only to Select / AI Select</h4>
+<p>Select and AI Select properties additionally support per-<em>option</em> visibility rules. These don't hide the whole field — they filter the contents of the dropdown:</p>
+<ul>
+  <li>Each option appears in the dropdown only when its own rule is satisfied by the current controller values on that same annotation / tag row. Options with no rule are always shown.</li>
+  <li>If the annotator changes a controller value and a previously-selected option is no longer valid, the dropdown's stored value is <strong>cascade-cleared</strong> the same way property-level rules cascade — so the row never holds an option that can't be re-picked from the visible list.</li>
+  <li>For AI Select, the model's pre-selection respects the same filtering — values the model returns that fail the active rules are silently dropped before being written to the row.</li>
+</ul>
+
+<h4>How the two layers combine on a Select / AI Select property</h4>
+<p>A Select / AI Select property can carry <strong>both</strong> kinds of rules at once: a property visibility rule on the field itself, and option visibility rules on one or more of its individual options. The editor evaluates them in a fixed order — <strong>property first, then options</strong> — so they can't contradict each other:</p>
+<ol>
+  <li>The <strong>property rule</strong> runs first. If it is unsatisfied, the whole field is dimmed and read-only as described above; option rules on that field are never evaluated, because there is nothing to pick from while the field is inaccessible.</li>
+  <li>If the property rule passes (or no property rule exists), the <strong>option rules</strong> filter what appears in the dropdown.</li>
+</ol>
+<p>In short: <strong>the property rule decides <em>whether the field is in play</em>; the option rules then decide <em>which choices are valid inside it</em></strong>. Cascade clearing covers both layers in one pass — a stored value can be cleared because the option it points to is no longer valid (option-rule failure) <em>or</em> because the whole property hosting it is no longer visible (property-rule failure). The chain icon on a property's editor label, and the small chain badge in the table column header, both surface the active rule's controller(s) on hover so annotators can quickly see why a field is dimmed or why their list of options is narrower than expected.</p>
+
+<hr>
+
+<h2 id="editor-transcript">Transcript Panel</h2>
+<p>When <a href="#config-audio-subsettings" class="internal">Transcript</a> is on, the <strong>Transcript</strong> button in the playback controls opens a docked panel below the player. The panel lists timed transcript segments — one row per segment, each with start / end times and the transcribed text.</p>
+<ul>
+  <li>Click a row to seek the playhead to that segment.</li>
+  <li>The currently-playing segment is highlighted as playback advances.</li>
+  <li>Each row carries small action icons — re-extract via AI, link to a Segment annotation, jump.</li>
+</ul>
+
+<h3 id="editor-transcript-autotr">Auto-Transcription</h3>
+<p>The first time a user opens the transcript panel on an item with no transcript yet, the editor:</p>
+<ol>
+  <li>Sends the active media's audio (or the audio track of a video) to the configured <a href="#config-ai-proxy" class="internal">AI proxy</a>.</li>
+  <li>Asks for <em>segmented</em> output — one entry per natural speech segment, each with <code>start</code>, <code>end</code>, and <code>text</code>.</li>
+  <li>Populates the transcript panel from the response.</li>
+  <li>Optionally creates one Segment annotation per transcript segment, depending on the project configuration.</li>
+</ol>
+<p>For OpenAI proxies, transcription uses Whisper (<code>whisper-1</code>) with verbose JSON segment timestamps. For Gemini proxies, the admin-selected model handles transcription via an inline-data path that's bounded at <strong>~12 MB</strong> per call — long media will fail on Gemini and need a shorter clip or an OpenAI proxy.</p>
+
+<h3 id="editor-transcript-edit">Editing Transcript Segments</h3>
+<p>When <a href="#config-audio-subsettings" class="internal">Editable Transcript</a> is on, segment text is editable inline both in the transcript panel and in the table view's <em>Transcript</em> column. Off, transcripts are read-only.</p>
+
+<h3 id="editor-transcript-link">Linked Annotations</h3>
+<p>Transcript segments and Segment annotations align naturally — both have <code>start</code> / <code>end</code> times. When a transcript segment is linked to an annotation (<code>linkedAnnotationId</code>), <a href="#editor-ai-autofill" class="internal">AI autofill</a> (AI Text and AI Select) on that annotation reads the transcript text directly instead of re-transcribing the audio. This is the fast path most projects use.</p>
+
+<hr>
+
+<h2 id="editor-comments">Comments</h2>
+<p>Comments let reviewers and annotators leave scoped notes <em>on a specific annotation</em> without cluttering the source media. Typical uses:</p>
+<ul>
+  <li>Flagging ambiguous segments for a second opinion.</li>
+  <li>Recording rationale for borderline class decisions.</li>
+  <li>QA feedback that doesn't belong in property values.</li>
+</ul>
+<p>Each comment has an author, a timestamp, the message text, and a <strong>resolved</strong> flag. Comments are a flat list per annotation — there is no nested reply threading. Resolving a comment is gated by the <strong>Resolve Comments (Roles)</strong> allow-list, and deleting by <strong>Delete Comments (Roles)</strong>. Comments are exported alongside the rest of the structure.</p>
+
+<hr>
+
+<h2 id="editor-relationships">Relationships</h2>
+<p>Relationships capture the <em>links between annotations</em> — which segment refers to which, how two things are related. They turn a flat list of annotations into a graph suitable for relation extraction, event modelling, or speaker-diarisation cross-references.</p>
+<ul>
+  <li>Enabled when <a href="#config-feature-control" class="internal">Instance Relationships</a> is on in configuration.</li>
+  <li>The relationship-type taxonomy is admin-curated under <a href="#config-feature-control" class="internal">Feature Control → Relationship Types</a>; annotators pick from that list (no freeform types).</li>
+  <li>From an annotation row, click the relationship icon, pick a relationship type, then pick the target annotation.</li>
+  <li>Each annotation can hold one target per relationship type (a same-type, same-source link replaces the previous target).</li>
+  <li>Relationships are directional (source → target). Symmetry isn't a per-edge flag — model it by adding a second relationship type, or by adding the inverse link manually.</li>
+</ul>
+
+<hr>
+
+<h2 id="editor-class-changes">Class Changes</h2>
+<p>Reclassifying an annotation is cheap. In the <a href="#editor-panel-instance" class="internal">annotation panel</a>, click the class chip on the row to open the class menu and pick a new class. The geometry (segment timing, box rectangle, entity span) stays put and the class swaps.</p>
+<ul>
+  <li><strong>Cross-type changes are blocked.</strong> The class menu only lists classes whose <em>tool type</em> matches the annotation's geometry — you can't reclassify a Segment as a Box (or vice versa) because the data shapes are different.</li>
+  <li><strong>Property values are not carried over.</strong> Each class has its own property schema with its own property IDs, so previous values are dropped (orphaned) and the new class's default values are seeded. A class change is destructive for property data — use Undo if it was a mistake.</li>
+</ul>
+
+<hr>
+
+<h2 id="editor-isolation">Annotation Isolation</h2>
+<p>Annotation Isolation is a <strong>configuration-level</strong> privacy mechanism, not a per-annotation dim toggle. When isolation is set to <em>By User</em>, by default each user only sees the annotations they themselves created. Roles on the <a href="#config-access-control" class="internal">Bypass Isolation</a> list see everyone's annotations — typical for reviewers and admins.</p>
+<ul>
+  <li>Use isolation to prevent annotator bias by hiding peer annotations during the labelling pass.</li>
+  <li>Reviewers in the bypass list can see all annotators' work side by side for QA.</li>
+  <li><strong>Creator filter chips</strong> — when isolation is on <em>and</em> the user is a bypasser, a row of chips appears at the top of the <a href="#editor-panel" class="internal">annotation panel</a> labelled by creator. Toggle a chip off to hide that creator's annotations on the canvas / video / transcript and in the panel; toggle back on to bring them back.</li>
+  <li>The eye icons in the <a href="#editor-panel-instance" class="internal">panel</a> let users hide individual annotations from their own view independently of isolation.</li>
+</ul>
+
+<h3 id="editor-isolation-tags">Tags under isolation</h3>
+<p>System-generated <a href="#config-tags" class="internal">tags</a> (item-scope and media-scope) participate in isolation alongside instances, but with a few rules of their own:</p>
+<ul>
+  <li><strong>Lazy creator stamping (ON and OFF)</strong> — tag rows are rendered in the panel as soon as an item is opened, but no <code>createdBy</code> / <code>createdAt</code> is written to the JSON until the user makes their first JSON change anywhere in the item. That first change synchronously stamps every visible placeholder with the current viewer's email, role, and timestamp. An item that's only been viewed produces zero tag rows in the saved JSON and downloads.</li>
+  <li><strong>Isolation ON — one row per user, per scope</strong> — the system auto-generates one tag row per user per visible tag class, on each scope (item-scope or media-scope), excluding admins (role id <code>3</code>). Two annotators opening the same item end up with two independent rows for each tag class — each can edit their own row's properties and comments without seeing the other's, and a bypass reviewer sees all rows side by side. Re-opening an item where the user already has a row never creates a duplicate.</li>
+  <li><strong>Mid-project rollback</strong> — if isolation is turned off after items have already accumulated multi-user copies, all existing copies stay intact. New users opening those items don't get a fresh copy; they edit whichever row already exists for the class. Brand-new items opened after the rollback follow the OFF rule (one row per class).</li>
+  <li><strong>Admins leave no footprint on passive view</strong> — admins never trigger tag materialization or stamping on open. An admin only becomes a tag's <code>createdBy</code> if they actively create a row that didn't exist yet (no row for their email under iso ON, or no row at all under iso OFF). Admin edits to a tag created by someone else preserve the original creator and only land the property / comment change.</li>
+  <li><strong>Creator chips and table columns extend to tags</strong> — the bypass-mode creator-chip filter buckets tag rows by their stamped creator just like it buckets instances. The <em>Created By</em>, <em>Creator Role</em>, and <em>Created At</em> columns in the panel's table view populate for tag rows once stamped, and they're searchable / filterable.</li>
+  <li><strong>Deletion stays locked</strong> — tags are system artefacts and cannot be deleted by any role, including bypass viewers. Bypass viewers can read and edit other users' tag properties and comments; non-bypass viewers only ever see their own rows.</li>
+</ul>
+
+<hr>
+
+<h2 id="editor-undo-redo">Undo / Redo</h2>
+<p>The tool maintains a single history stack of annotations and transcript segments. <kbd>Ctrl(⌘)+Z</kbd> reverts to the previous snapshot; <kbd>Ctrl(⌘)+Shift+Z</kbd> (or <kbd>Ctrl(⌘)+Y</kbd>) re-applies it. Both annotation actions and transcript edits undo together — there's no separate sub-stack to fall through.</p>
+
+</div>
+
+<!-- ==================== TAB: IMPORT / EXPORT ==================== -->
+<div class="tab-content" data-tab="import-export">
+
+<h1>Import / Export</h1>
+<p>Items arrive into a project through JSONL bulk upload at the SuperAnnotate platform level. The editor reads each item's <code>data.audio_annotation_tool.value</code> payload when it's opened. Items leave through the editor's Download button as a ZIP — round-trip-safe, so an exported <code>annotations.jsonl</code> can be re-imported into another project. Media bytes can either be <em>uploaded</em> to SuperAnnotate storage or <em>URL-linked</em> from elsewhere; the editor handles both via the same payload shape.</p>
+
+<h2 id="ie-jsonl-import">JSONL Import</h2>
+<p>JSONL (one JSON object per line) is the platform ingest format. Each line is one item. The editor doesn't have a direct JSONL upload button — items appear in the editor after the platform creates them from the JSONL.</p>
+
+<h3 id="ie-jsonl-shape">Payload Shape</h3>
+<p>Each item must have:</p>
+<ul>
+  <li><code>metadata.name</code> — display name (required).</li>
+  <li><code>data.audio_annotation_tool.value</code> — the tool-specific payload. Inside <code>value</code>, items use a <code>mediaFiles</code> array (multi-file) or a top-level <code>media</code> object (single-file legacy shape — both are accepted on import; export always uses <code>mediaFiles</code> for new items).</li>
+</ul>
+<p>Each entry in <code>mediaFiles</code> is a <code>StoredMediaFile</code> with <strong>exactly one</strong> of <code>uploadedFile</code> or <code>url</code>:</p>
+<ul>
+  <li><code>uploadedFile</code> — <code>{ uniqueName, fileName, fileType, fileSize }</code>. Bytes live in SuperAnnotate storage; the platform resolves the bytes via <code>uniqueName</code>.</li>
+  <li><code>url</code> — a string URL with a sibling <code>urlKind</code> (see <a href="#ie-jsonl-url" class="internal">URL-linked media</a>) and optional <code>fileType</code> / <code>fileSize</code> hints.</li>
+</ul>
+<p>Each entry can also carry <code>peaksFile</code>, <code>instances</code>, <code>transcript</code>, and <code>tags</code> arrays.</p>
+<p><strong>Minimum required keys:</strong> <code>metadata.name</code> and <code>data.audio_annotation_tool.value.mediaFiles</code> (at least one entry). Each <code>mediaFiles</code> entry needs a <code>fileName</code> (or, for URL-linked entries, the editor falls back to the trailing path segment of <code>url</code>) and exactly one of <code>uploadedFile</code> or <code>url</code>. Everything else — <code>urlKind</code>, <code>peaksFile</code>, <code>instances</code>, <code>transcript</code>, <code>tags</code>, <code>itemTags</code> — is optional and can be added incrementally.</p>
+
+<h3 id="ie-jsonl-uploaded">Uploaded Media — Two Files</h3>
+<pre>{
+  "metadata": { "name": "interview-001" },
+  "data": {
+    "audio_annotation_tool": {
+      "value": {
+        "mediaFiles": [
+          {
+            "id": "media-1",
+            "name": "Part 1",
+            "uploadedFile": {
+              "uniqueName": "abc123.mp3",
+              "fileName": "interview-part1.mp3",
+              "fileType": "audio/mpeg",
+              "fileSize": 4823104
+            },
+            "peaksFile": {
+              "uniqueName": "abc123.mp3.peaks.json",
+              "fileName": "interview-part1.peaks.json",
+              "fileType": "application/json",
+              "fileSize": 21048
+            },
+            "instances": [
+              {
+                "id": "ann-1",
+                "instanceNumber": 1,
+                "classId": "class-speaker",
+                "type": "segment",
+                "start": 12.34,
+                "end": 18.7,
+                "propertyValues": { "prop-speaker-name": "Alice" }
+              }
+            ],
+            "transcript": [
+              { "id": "tr-1", "start": 12.34, "end": 18.7, "text": "Hello and welcome.", "linkedAnnotationId": "ann-1" }
+            ],
+            "tags": [
+              { "tagClassId": "tc-quality", "propertyValues": { "prop-score": "0.95" } }
+            ]
+          },
+          {
+            "id": "media-2",
+            "name": "Part 2",
+            "uploadedFile": {
+              "uniqueName": "def456.mp3",
+              "fileName": "interview-part2.mp3",
+              "fileType": "audio/mpeg",
+              "fileSize": 5102321
+            },
+            "instances": [],
+            "transcript": [],
+            "tags": []
+          }
+        ],
+        "itemTags": [
+          { "tagClassId": "tag-en", "propertyValues": {} }
+        ]
+      }
+    }
+  }
+}</pre>
+<div class="callout"><strong>Name uniqueness:</strong> Each media file's <code>name</code> is required. Duplicate names are auto-deduplicated with <code> (1)</code>, <code> (2)</code> suffixes on import.</div>
+
+<h3 id="ie-jsonl-url">URL-Linked Media</h3>
+<p>To point at media that lives outside SuperAnnotate, replace <code>uploadedFile</code> with a <code>url</code> + <code>urlKind</code> pair:</p>
+<pre>{
+  "metadata": { "name": "field-recording" },
+  "data": {
+    "audio_annotation_tool": {
+      "value": {
+        "mediaFiles": [
+          {
+            "id": "media-1",
+            "name": "Recording",
+            "url": "https://storage.example.com/audio/recording.wav",
+            "urlKind": "presigned",
+            "fileType": "audio/wav",
+            "fileSize": 8123456
+          }
+        ]
+      }
+    }
+  }
+}</pre>
+<p><code>urlKind</code> tells the editor how to access the URL:</p>
+<table>
+  <tr><th>Value</th><th>Meaning</th></tr>
+  <tr><td><code>"uploaded"</code></td><td>Bytes live in SuperAnnotate (rare in JSONL — usually carried by <code>uploadedFile</code> instead).</td></tr>
+  <tr><td><code>"public"</code></td><td>Publicly accessible URL — fetched directly.</td></tr>
+  <tr><td><code>"presigned"</code></td><td>Pre-signed URL (e.g. AWS S3) — fetched directly but may expire.</td></tr>
+  <tr><td><code>"integration"</code></td><td>Requires platform integration credentials — the platform signs the URL before fetching.</td></tr>
+  <tr><td><code>"asset"</code></td><td>Reserved for SA-internal asset URLs that need re-signing on each load.</td></tr>
+</table>
+<div class="callout"><strong>Default behaviour:</strong> When <code>urlKind</code> is omitted, the URL is treated as an integration / asset URL and routed through the platform's signing path. If you are providing public or pre-signed URLs, you <strong>must</strong> set <code>urlKind</code> to <code>"public"</code> or <code>"presigned"</code> explicitly, otherwise the signing step will fail and the media will not load.</div>
+
+<h3 id="ie-peaks">Peaks Files</h3>
+<p>To skip re-decoding a long audio file every time it's opened, the editor stores a small JSON <em>peaks file</em> alongside each media file:</p>
+<ul>
+  <li><strong>How it's produced.</strong> The first time a user opens a media file, WaveSurfer decodes the audio and the editor exports a downsampled peaks array (<code>{ peaks, duration }</code>). The JSON is uploaded to SuperAnnotate storage and recorded on the <code>StoredMediaFile.peaksFile</code> field.</li>
+  <li><strong>Cache key.</strong> For SuperAnnotate-uploaded media, the peaks file's <code>uniqueName</code> is <code>${mediaUniqueName}.peaks.json</code>. For URL-linked media, it's <code>ext-${hash}.peaks.json</code> where the hash is stable on origin + pathname (so the peaks survive presigned-URL refreshes).</li>
+  <li><strong>Re-use across users.</strong> Once any user has uploaded peaks for a media file, every subsequent open reads from the cached JSON instead of re-decoding the bytes.</li>
+  <li><strong>JSONL imports</strong> can pre-supply <code>peaksFile</code> if you've generated peaks externally — the editor will use them and skip the decode step.</li>
+</ul>
+
+<h3 id="ie-jsonl-keys">Structure Keys</h3>
+<table>
+  <tr><th>Key</th><th>Where</th><th>Description</th></tr>
+  <tr><td><code>metadata.name</code></td><td>top level</td><td>Item display name (required).</td></tr>
+  <tr><td><code>data.audio_annotation_tool.value</code></td><td>top level</td><td>The tool-specific payload. Other tools may add their own keys under <code>data</code>.</td></tr>
+  <tr><td><code>mediaFiles</code></td><td>value</td><td>Array of <code>StoredMediaFile</code> — one per audio / video file in the item (max 10).</td></tr>
+  <tr><td><code>mediaFiles[].id</code></td><td>file</td><td>Stable ID for the media file. Auto-generated on first save.</td></tr>
+  <tr><td><code>mediaFiles[].name</code></td><td>file</td><td>Display name for the file tab (required, auto-deduped if not unique).</td></tr>
+  <tr><td><code>mediaFiles[].uploadedFile</code></td><td>file</td><td><code>{ uniqueName, fileName, fileType, fileSize }</code> for SA-stored bytes. Mutually exclusive with <code>url</code>.</td></tr>
+  <tr><td><code>mediaFiles[].url</code> + <code>urlKind</code></td><td>file</td><td>External URL with access kind. See <a href="#ie-jsonl-url" class="internal">URL-Linked Media</a>.</td></tr>
+  <tr><td><code>mediaFiles[].peaksFile</code></td><td>file</td><td>Optional cached waveform peaks file (<code>UploadedFileMeta</code>).</td></tr>
+  <tr><td><code>mediaFiles[].instances</code></td><td>file</td><td>Array of <code>StoredAnnotation</code> for this media file.</td></tr>
+  <tr><td><code>mediaFiles[].transcript</code></td><td>file</td><td>Array of <code>StoredTranscriptSegment</code>: <code>{ id, start, end, text, linkedAnnotationId? }</code>.</td></tr>
+  <tr><td><code>mediaFiles[].tags</code></td><td>file</td><td>Array of media-scoped tags: <code>{ tagClassId, propertyValues }</code>.</td></tr>
+  <tr><td><code>itemTags</code></td><td>value</td><td>Array of item-scoped tags: <code>{ tagClassId, propertyValues }</code>. Apply to the whole item regardless of file count.</td></tr>
+  <tr><td><code>itemContext</code></td><td>value</td><td>Optional plain-text values for the <a href="#config-item-context" class="internal">Item Context</a> slots — see <a href="#ie-export-item-context" class="internal">Item Context</a> for the shape and the orphan-key rules.</td></tr>
+  <tr><td><code>instances[].type</code></td><td>annotation</td><td>One of <code>"segment"</code>, <code>"bbox"</code>, <code>"entity"</code>. (Legacy <code>"box"</code> is migrated to <code>"bbox"</code> on load; legacy <code>"cuboid"</code> instances are dropped.)</td></tr>
+  <tr><td><code>instances[].classId</code></td><td>annotation</td><td>References a class ID from the project's <a href="#config-classes" class="internal">class list</a>.</td></tr>
+  <tr><td><code>instances[].instanceNumber</code></td><td>annotation</td><td>Optional user-facing sequential number (<code>#1</code>, <code>#2</code>, …) shown next to the class name in the instance panel and table (and, for boxes, on canvas labels). Applies to segments, boxes and entities; entities get the number in the panel/table but are never drawn on the canvas. Unique across the whole item (all media files). Auto-assigned on load when absent (next free number, max+1) and persisted on the next save, so it can be omitted from preannotations.</td></tr>
+  <tr><td><code>instances[].start</code> / <code>end</code></td><td>annotation</td><td>Time interval in <strong>seconds</strong> from the start of the media. Present on every type.</td></tr>
+  <tr><td><code>instances[].bbox</code></td><td>bbox</td><td><code>{ x, y, width, height }</code> — the axis-aligned rectangle on the video frame, in normalised coordinates.</td></tr>
+  <tr><td><code>instances[].bboxKeyframes</code></td><td>bbox</td><td>Optional array of <code>{ time, x, y, width, height }</code> keyframes for tracking box movement across time. Between keyframes, position and size are interpolated linearly.</td></tr>
+  <tr><td><code>instances[].entity</code></td><td>entity</td><td>Reference to the transcript span: <code>{ transcriptSegmentId, startOffset, endOffset, text }</code>.</td></tr>
+  <tr><td><code>instances[].propertyValues</code></td><td>annotation</td><td>Object keyed by <a href="#config-properties" class="internal">property ID</a>. Values are strings; multi-select values are option labels joined with <code>", "</code>.</td></tr>
+  <tr><td><code>instances[].comments</code></td><td>annotation</td><td>Optional flat array — see <a href="#ie-export-comments" class="internal">Comments</a>.</td></tr>
+  <tr><td><code>instances[].relationships</code></td><td>annotation</td><td>Optional <code>Record&lt;relationshipTypeId, targetInstanceId&gt;</code>.</td></tr>
+  <tr><td><code>instances[].createdAt</code> / <code>createdBy</code></td><td>annotation</td><td>Audit metadata. <code>createdBy</code> is <code>{ email, role }</code>.</td></tr>
+</table>
+
+<hr>
+
+<h2 id="ie-export">Download / Export</h2>
+<p>The Download button (when allowed by <a href="#config-access-control" class="internal">Access Control → Download Annotations</a>) produces <code>annotations.zip</code> containing the current item.</p>
+
+<h3 id="ie-export-structure">Export Structure</h3>
+<p>The ZIP always contains:</p>
+<table>
+  <tr><th>File</th><th>Purpose</th></tr>
+  <tr><td><strong>annotations.json</strong></td><td>The full payload — the <code>mediaFiles</code> array (with per-file media references, instances, transcript, tags) plus item-level tags.</td></tr>
+  <tr><td><strong>name2id.json</strong></td><td>Reference mapping: class names → IDs (with their tool type), property names → IDs, tag class names → IDs, relationship type names → IDs, and (when configured) <a href="#config-item-context" class="internal">Item Context</a> slot names → IDs under the <code>itemContext</code> key.</td></tr>
+  <tr><td><strong>annotations.jsonl</strong></td><td>One-line JSONL in the same shape accepted by <a href="#ie-jsonl-import" class="internal">JSONL Import</a>.</td></tr>
+</table>
+<p>For multi-file items, when the user manually uploaded a media file (rather than it arriving by URL) and the bytes are still fetchable, the ZIP additionally includes:</p>
+<ul>
+  <li>A <code>files/</code> directory with the original media bytes under their display name.</li>
+</ul>
+<p>URL-linked media is skipped in the <code>files/</code> directory — the source lives outside the tool, so re-exporting it would defeat the linkage.</p>
+<div class="screenshot-placeholder">File download dialog showing annotations.zip with annotations.json, name2id.json, annotations.jsonl, and a files/ folder for multi-file items.</div>
+
+<h3 id="ie-export-tags">Tags</h3>
+<p>Tags are split into two scopes in the export:</p>
+<ul>
+  <li><strong>Item-level tags</strong> — stored in the top-level <code>itemTags</code> array. Apply to the whole item.</li>
+  <li><strong>Media-level tags</strong> — stored per-file in <code>mediaFiles[i].tags</code>. Apply to that specific file only.</li>
+</ul>
+<p>Each tag entry references a tag class by ID and carries its own <code>propertyValues</code> object. The <code>name2id.json</code> file maps tag class IDs back to names.</p>
+<pre>// Item-level
+"itemTags": [
+  { "tagClassId": "tag-en", "propertyValues": {} }
+]
+// Per-file (media-level)
+"mediaFiles": [{ ..., "tags": [
+  { "tagClassId": "tc-quality", "propertyValues": { "prop-score": "0.95" } }
+]}]</pre>
+
+<h3 id="ie-export-properties">Properties</h3>
+<p>Each annotation carries a <code>propertyValues</code> object keyed by property ID. Values are stored as strings:</p>
+<ul>
+  <li><strong>Free Text / AI Text</strong> — the raw string value.</li>
+  <li><strong>Numeric</strong> — the number serialised as a string.</li>
+  <li><strong>Select / AI Select (single)</strong> — the option label.</li>
+  <li><strong>Select / AI Select (multi)</strong> — option labels joined with <code>", "</code>.</li>
+  <li><strong>Approval</strong> — the literal string <code>"true"</code> when approved or <code>"false"</code> when disapproved. The key is <em>omitted</em> from <code>propertyValues</code> when no verdict has been given (rather than being written as an empty string), matching how other property types treat blank values.</li>
+</ul>
+<pre>"propertyValues": {
+  "prop-speaker-name": "Alice",
+  "prop-emotion": "Excited",
+  "prop-tags": "Lecture, English",
+  "prop-confidence": "0.92",
+  "prop-verdict":     "true"
+}</pre>
+
+<h3 id="ie-export-relationships">Relationships</h3>
+<p>Relationships are stored on the <em>source</em> annotation as a single <code>Record&lt;relationshipTypeId, targetInstanceId&gt;</code> map. Each relationship type can hold one target per source annotation — adding a new target on the same type replaces the previous one. Relationships are directional; model bidirectional links by adding the inverse relationship from the target side.</p>
+<pre>"relationships": {
+  "rel-replies-to":  "ann-2",
+  "rel-references": "ann-7"
+}</pre>
+
+<h3 id="ie-export-transcript">Transcript</h3>
+<p>Each media file's transcript is exported as a flat array of <code>StoredTranscriptSegment</code>:</p>
+<pre>"transcript": [
+  {
+    "id": "tr-1",
+    "start": 12.34,
+    "end": 18.7,
+    "text": "Hello and welcome to the show.",
+    "linkedAnnotationId": "ann-1"
+  }
+]</pre>
+<p><code>linkedAnnotationId</code> is the bridge between transcript rows and Segment annotations — it lets <a href="#editor-ai-autofill" class="internal">AI autofill</a> (AI Text and AI Select) read the transcript text directly without re-transcribing audio.</p>
+
+<h3 id="ie-export-comments">Comments</h3>
+<p>Comments are exported as a <strong>flat array</strong> per annotation. Each comment captures author identity, message text, resolved state, and a creation timestamp. There is no nested replies structure.</p>
+<pre>"comments": [
+  {
+    "id": "cmt-1",
+    "authorEmail": "reviewer@example.com",
+    "authorName": "Pat Reviewer",
+    "text": "Confirmed — start time aligned with the door slam.",
+    "resolved": false,
+    "createdAt": "2026-04-20T14:02:11Z"
+  }
+]</pre>
+
+<h3 id="ie-export-item-context">Item Context</h3>
+<p><a href="#config-item-context" class="internal">Item Context</a> values are serialised as a top-level <code>itemContext</code> map of <code>{ slotId: string }</code>. Keys are the stable slot ids from the project's Item Context configuration (the same ids surfaced under <code>itemContext</code> in <code>name2id.json</code>). Values use the same markdown-like plain-text format as rich-text properties — the editor renders them with full formatting but the on-disk representation stays plain text for backward compatibility.</p>
+<pre>"itemContext": {
+  "ctx-abc123": "You are reviewing a financial report.\n\n**Key rules:**\n- Flag any unverified claims\n- Mark numerical inconsistencies with `[ERROR]`\n\n> Focus on the executive summary first.",
+  "ctx-def456": "## Entity guidelines\n\nAnnotate all named entities mentioned in the document.\n\n1. People — full name only\n2. Organizations — use official name"
+}</pre>
+<ul>
+  <li><strong>Role-hidden slots are still exported.</strong> Per-role visibility is a UI concern; downloads always carry the full set of stored values so QA / export pipelines see everything.</li>
+  <li><strong>Orphan keys are preserved.</strong> If a slot was deleted in config (or arrived via JSONL with an id no longer in config), its value is kept on disk and carried through every save and export. This mirrors the comments-style "non-destructive" precedent — admins can re-enable a feature later without rebuilding past data.</li>
+  <li><strong>Empty strings are valid values</strong> — they represent "user explicitly cleared the field". The <code>itemContext</code> key is omitted from the output entirely only when the merged map is empty.</li>
+  <li><strong>JSONL upload</strong> — the same <code>itemContext</code> shape is accepted on the inbound side. Use the <code>itemContext</code> mapping in <code>name2id.json</code> to translate human-readable slot names to ids when authoring upload payloads.</li>
+</ul>
+
+<hr>
+
+<h2 id="ie-autosave">Auto-Save</h2>
+<p>Users should never lose work. The auto-save system runs on two tiers:</p>
+<ul>
+  <li><strong>Debounced local save</strong> — annotation actions (draw, resize, property change, comment, relationship, tag, transcript edit) coalesce and persist to the in-tool data layer ~1 s after the last change. Rapid edits collapse into a single save.</li>
+  <li><strong>Server auto-save (60 s interval)</strong> — while the item has unsaved changes, the editor pushes to the SuperAnnotate server every 60 seconds in the background.</li>
+</ul>
+<p>There is no manual Save button on the main editor toolbar — auto-save handles persistence. (A "Save &amp; Close" button exists inside the <a href="#editor-rich-text-modal" class="internal">Rich Text Modal</a> for property values.) See <a href="#tips-autosave" class="internal">Auto-Save Timing</a> for browser-close guidance.</p>
+
+</div>
+<!-- ==================== TAB: SOLUTIONS ==================== -->
+<div class="tab-content" data-tab="solutions">
+
+<h1>Solutions</h1>
+<p>The tool's value isn't a feature list — it's how features combine to solve real audio / video annotation challenges end-to-end. Each solution below walks through a common workflow: the <strong>goal</strong>, the <strong>configuration</strong>, and the <strong>step-by-step flow</strong>, with links to every relevant part of the tool. Adapt the class names, tags, and prompts to your domain and you have a production-ready pipeline.</p>
+
+<hr>
+
+<h2 id="sol-audio-events">Audio-Event Annotation Workflow</h2>
+<p><strong>Goal:</strong> Produce a labelled audio-event dataset — every speech, music, SFX, and silence segment timed and classified, with reviewer sign-off and exportable for training a sound-event classifier.</p>
+
+<h3>Configuration</h3>
+<ul>
+  <li><a href="#config-access-control" class="internal">Access control</a>: admins, annotators, reviewers; isolation set to <em>By User</em> with admins / reviewers in the bypass list.</li>
+  <li><a href="#config-feature-control" class="internal">Feature Control</a>: <em>Audio Waveform</em> on; <em>Video Player</em> off (audio-only); <em>Transcript</em> off if speech content isn't relevant; <em>Overlapping Segments</em> on so concurrent events (speech + music bed) can be labelled.</li>
+  <li><a href="#config-classes" class="internal">Classes</a>: Speech, Music, SFX, Ambient, Silence — all of type <em>Segment</em>. Arrange the five most-used first to lock in <kbd>1</kbd>–<kbd>5</kbd> shortcuts.</li>
+  <li><a href="#config-properties" class="internal">Properties</a>: a Single Select <em>Confidence</em> (Low / Medium / High), a Numeric <em>Loudness (dB)</em>, optional Free Text <em>Notes</em>.</li>
+</ul>
+
+<h3>Workflow</h3>
+<ol>
+  <li>Admin uploads the dataset to the project at the SuperAnnotate platform level as <a href="#ie-jsonl-import" class="internal">JSONL</a> (with <code>uploadedFile</code> entries or URL-linked clips).</li>
+  <li>Annotators open items, scrub through the waveform with <kbd>,</kbd> / <kbd>.</kbd> for fine seeking and <kbd>Space</kbd> to play in context.</li>
+  <li>For each event, press <kbd>1</kbd>–<kbd>9</kbd> to pick the class — the Segment tool auto-selects — then drag across the waveform to mark <em>start</em> and <em>end</em>. Resize edges to nudge the boundaries.</li>
+  <li>Use <a href="#config-audio-subsettings" class="internal">Segment Loops</a> to tighten in / out points: select the segment, hit play, and the segment auto-loops until you nudge the edges into place.</li>
+  <li>Reviewers open items, use the <a href="#editor-panel-table" class="internal">Table View</a> grouped by class to scan all properties across the item, and leave <a href="#editor-comments" class="internal">comments</a> where they see issues.</li>
+  <li>Annotators resolve comments; admin <a href="#ie-export" class="internal">exports the ZIP</a> and feeds it into the training pipeline.</li>
+</ol>
+
+<hr>
+
+<h2 id="sol-transcription">Speech Transcription &amp; Diarisation Workflow</h2>
+<p><strong>Goal:</strong> Turn raw recorded speech into a clean, segmented transcript with per-segment metadata — speaker, intent, sentiment — using AI for the heavy lifting and humans for review.</p>
+
+<h3>Configuration</h3>
+<ul>
+  <li><a href="#config-feature-control" class="internal">Feature Control</a>: <em>Audio Waveform</em> on; <em>Transcript</em> on; <em>Editable Transcript</em> on.</li>
+  <li><a href="#config-classes" class="internal">Classes</a>: <em>Speaker</em> (Segment) for diarisation; <em>Intent</em> (Entity) for fine-grained spans across transcript text.</li>
+  <li><a href="#config-properties" class="internal">Properties</a> on the Speaker class: Free Text <em>Speaker Name</em>; Single Select <em>Role</em> (Host / Guest / Caller); AI Text <em>Summary</em> with prompt <em>"Summarise this speaker turn in one sentence."</em>; optional AI Select <em>Sentiment</em> (Positive / Neutral / Negative).</li>
+  <li><a href="#config-ai-proxy" class="internal">AI proxy</a> configured (OpenAI for files larger than ~12 MB; Gemini works for shorter clips).</li>
+</ul>
+
+<h3>Workflow</h3>
+<ol>
+  <li>Annotator opens an item with raw audio. The waveform decodes and the peaks file uploads in the background.</li>
+  <li>They open the <a href="#editor-transcript" class="internal">transcript panel</a> — auto-transcription kicks off and populates timed segments. Each transcript segment can optionally seed a Speaker annotation.</li>
+  <li>The annotator scrubs the timeline, listens to each segment, and assigns the correct Speaker class to each segment annotation.</li>
+  <li>For each speaker turn, they press <strong>Extract</strong> on the AI Text <em>Summary</em> property — the linked-segment fast path reads the transcript text directly and returns a one-line summary.</li>
+  <li>For finer-grained labels (e.g. "user expresses frustration"), they switch to the <em>Intent</em> class (an Entity) and drag-select transcript text to mark exact spans.</li>
+  <li>Reviewer scans the <a href="#editor-panel-table" class="internal">Table View</a> sorted by speaker, edits any miss-transcribed text inline, then resolves comments.</li>
+  <li>Export ZIP — <code>annotations.json</code> contains the transcript array per file, plus segment + entity annotations. Downstream pipelines can re-derive a clean RTTM or VTT file from this structure.</li>
+</ol>
+
+<hr>
+
+<h2 id="sol-video-boxes">Video Bounding-Box Tracking Workflow</h2>
+<p><strong>Goal:</strong> Track an object across a video clip with a moving bounding box and a class label, suitable for object-tracking model training.</p>
+
+<h3>Configuration</h3>
+<ul>
+  <li><a href="#config-feature-control" class="internal">Feature Control</a>: <em>Video Player</em> on; <em>Audio Waveform</em> optional (most tracking projects keep audio off to free vertical space).</li>
+  <li><a href="#config-classes" class="internal">Classes</a>: per-object classes of type <em>Box</em> — e.g. Person, Vehicle, Animal.</li>
+  <li><a href="#config-properties" class="internal">Properties</a>: a Single Select <em>Visibility</em> (Full / Partial / Occluded), Numeric <em>Confidence</em>, and a Free Text <em>Track ID</em> if multiple instances of the same class need to be distinguished.</li>
+</ul>
+
+<h3>Workflow</h3>
+<ol>
+  <li>Annotator opens the item; the video appears with the optional waveform alongside.</li>
+  <li>They scrub to the first frame where the object is visible, pick the class (the Box tool auto-selects), and drag a rectangle on the video frame.</li>
+  <li>They scrub forward to a frame where the object has moved, select the same box, and add a new <a href="#editor-keyframes" class="internal">keyframe</a> — the box's position interpolates between keyframes.</li>
+  <li>Repeat at each "kink" in the trajectory; the box smoothly tracks the object across the clip.</li>
+  <li>Use <a href="#editor-video-adjust" class="internal">Video Adjustments</a> to dial Brightness / Contrast for hard-to-see footage and turn down Shape Opacity when overlapping annotations obscure the frame.</li>
+  <li>Switch to <a href="#editor-panel-table" class="internal">Table View</a> to sort by start time and verify each box has a complete track and visibility property.</li>
+  <li>Export — each Box annotation carries its <code>bbox</code> rect at start time plus a <code>bboxKeyframes</code> array of (time, rect) pairs.</li>
+</ol>
+
+<hr>
+
+<h2 id="sol-recording">In-Browser Recording Workflow</h2>
+<p><strong>Goal:</strong> Capture fresh audio (e.g. user-voice prompts, evaluator narration, controlled samples) directly in the tool, label it, and export as labelled training data.</p>
+
+<h3>Configuration</h3>
+<ul>
+  <li><a href="#config-access-control" class="internal">Upload Files</a>: include the recording role.</li>
+  <li><a href="#config-audio-subsettings" class="internal">Recording</a>: on.</li>
+  <li><a href="#config-classes" class="internal">Classes</a>: project-specific — e.g. <em>Prompt</em>, <em>Response</em>, <em>Disfluency</em> (all Segment).</li>
+</ul>
+
+<h3>Workflow</h3>
+<ol>
+  <li>Annotator opens an item with no media. The drop zone is visible.</li>
+  <li>They press <strong>Record Audio</strong> in the playback controls, capture the take, then press Finish. The recording is uploaded as a new media file in the item.</li>
+  <li>The waveform appears for the new file. They retake (or add additional takes as new media files) up to the 10-file cap.</li>
+  <li>They draw segments on the waveform, fill properties, and add item-level tags for whole-clip metadata (speaker, environment, language).</li>
+  <li>Optional: open the transcript panel to auto-transcribe each take.</li>
+  <li>Export ZIP. The <code>files/</code> folder contains the original recordings; <code>annotations.json</code> wires them up to labels.</li>
+</ol>
+
+</div>
+
+<!-- ==================== TAB: TIPS & LIMITATIONS ==================== -->
+<div class="tab-content" data-tab="tips">
+
+<h1>Tips &amp; Limitations</h1>
+<p>Small tricks that compound across thousands of annotations, plus the edges of the tool you should know before rolling out a large project.</p>
+
+<h2>Efficiency Tips</h2>
+
+<h3 id="tips-class-shortcuts">Class Shortcuts (1–9)</h3>
+<p>The first nine classes in your project bind to <kbd>1</kbd>–<kbd>9</kbd>. With hundreds of regions to draw per session, keyboard shortcuts save real minutes — and because picking a class auto-selects its matching tool (Segment / Box / Entity), pressing the digit before each draw is the fastest possible flow. Put the nine most-used classes first in <a href="#config-classes" class="internal">configuration</a> and train the muscle memory.</p>
+
+<h3 id="tips-tool-shortcuts">Tool Shortcuts (S / G / B / D / E)</h3>
+<p>Even though picking a class auto-selects a tool, you can switch tools manually with <kbd>S</kbd> (Select), <kbd>G</kbd> (Segment), <kbd>B</kbd> (Box), <kbd>E</kbd> (Entity). <kbd>S</kbd> in particular is worth memorising — drop into Select mode to inspect / move existing annotations without accidentally drawing new ones.</p>
+
+<h3 id="tips-seek">Fast Seeking on the Waveform</h3>
+<p>Sub-second precision matters for tight in/out points. The seek shortcuts skip dropdown-hunting:</p>
+<ul>
+  <li><kbd>Space</kbd> — play / pause.</li>
+  <li><kbd>,</kbd> / <kbd>.</kbd> — seek 3 s back / forward.</li>
+  <li><kbd>&lt;</kbd> / <kbd>&gt;</kbd> — seek 10 s back / forward.</li>
+  <li><kbd>M</kbd> — mute / unmute.</li>
+  <li><kbd>Tab</kbd> / <kbd>Shift+Tab</kbd> — jump to the next / previous annotation.</li>
+</ul>
+<p>Every shortcut on this list works in <a href="#editor-split-view" class="internal">Split View</a> as well — they target the card you most recently played, paused, seeked, muted, or selected from the panel.</p>
+<p>Combine with <a href="#config-audio-subsettings" class="internal">Segment Loops</a> to nail boundaries: select a segment, hit play, the segment loops automatically while you nudge edges with the mouse.</p>
+
+<h3 id="tips-filtering">Filtering &amp; Grouping</h3>
+<p>Reviewing 500 annotations in an unsorted list is impractical. The <a href="#editor-panel" class="internal">annotation panel</a> filtering, grouping, and ordering controls turn QA from random browsing into structured inspection.</p>
+<ul>
+  <li><strong>Group By</strong> — Media Name (multi-file default), Class Name, or Tool Type.</li>
+  <li><strong>Order By</strong> — JSON Export, Class Name, Tool Type, Start Time, Created By, Creator Role, or Created At.</li>
+  <li><strong>Class filter</strong> — narrow to one class at a time.</li>
+  <li><strong>Property filter</strong> — filter by configured property values.</li>
+  <li><strong>Table View</strong> + column sort / filters — fastest way to catch outliers.</li>
+</ul>
+
+<h3 id="tips-overlap">Overlapping Segments</h3>
+<p>Segments on the same waveform can overlap when <a href="#config-audio-subsettings" class="internal">Overlapping Segments</a> is on — useful when concurrent events need separate annotations (e.g. a music bed under speech). The editor renders overlapping regions as layered fills so each stays visible; click panel rows to disambiguate which annotation to select. When the toggle is off, draws and resizes that would create an overlap are blocked at draw time.</p>
+
+<h3 id="tips-tags-vs-props">Tags vs Properties</h3>
+<p>Both store structured metadata — the question is <em>scope</em>:</p>
+<ul>
+  <li><strong><a href="#config-tags" class="internal">Item-level tags</a></strong> describe the <em>whole item</em>. Use for dataset partition, language, source.</li>
+  <li><strong>Media-level tags</strong> describe a <em>single media file</em>. Use for per-file quality, speaker count, environment.</li>
+  <li><strong><a href="#config-properties" class="internal">Properties</a></strong> describe <em>a single annotation</em>. Use for region-level attributes (speaker name, confidence, visibility).</li>
+</ul>
+<p>If you find yourself wanting a property on every annotation in a media file, it probably belongs as a media-level tag instead.</p>
+
+<h3 id="tips-transcript-link">Use Linked Transcript Segments for AI Autofill</h3>
+<p>When a Segment annotation has a linked transcript segment with non-empty text, <a href="#editor-ai-autofill" class="internal">AI Text autofill</a> takes the fast path and reads the transcript text directly — no extra Whisper call per extraction. This is roughly 5–10× faster than the audio-segment path, and free of the Gemini ~12 MB ceiling. The simplest way to set this up: turn <em>Transcript</em> on in Feature Control and let auto-transcription seed both transcript segments and Segment annotations on first open.</p>
+
+<h3 id="tips-autosave">Auto-Save Timing</h3>
+<p><a href="#ie-autosave" class="internal">Auto-save</a> debounces to the local data layer ~1 second after annotation actions; the server push runs on a 60-second interval whenever unsaved changes exist. There's no manual Save button on the main toolbar, so <strong>wait a couple of seconds</strong> after your last edit before closing the tab to ensure the local layer has captured your work — and ideally wait for the next 60-second server push cycle for full server-side persistence.</p>
+
+<hr>
+
+<h2>Limitations</h2>
+
+<h3 id="limits-browser">Browser Compatibility</h3>
+<p>Best in Chrome and Edge (Chromium), where the WebAudio decode path and the Media Recorder API are most reliable. Safari and Firefox are supported with minor rendering differences (especially around waveform anti-aliasing and video overlay positioning); in-browser recording quality may also vary.</p>
+
+<h3 id="limits-multifile">Multi-File Cap</h3>
+<p>An item holds up to <strong>10 audio / video files</strong> (<code>MAX_MEDIA_FILES = 10</code>). Beyond that, additional uploads are rejected with a banner. If your workflow regularly hits this cap, split sessions into separate items rather than packing everything in one.</p>
+
+<h3 id="limits-gemini-size">Gemini Inline-Data Limit</h3>
+<p>Gemini's <code>inline_data</code> path used for transcription has a request-size ceiling around 20 MB; the editor enforces a safer <strong>~12 MB</strong> per call to leave room for base64 bloat and JSON wrapping. Calls over this cap fail upfront with a clear error message. Mitigations:</p>
+<ul>
+  <li>Use shorter clips for Gemini-routed projects.</li>
+  <li>Switch to an OpenAI proxy — Whisper accepts larger uploads.</li>
+  <li>Pre-segment long media into multiple files in one item (still subject to the <a href="#limits-multifile" class="internal">10-file cap</a>).</li>
+</ul>
+
+<h3 id="limits-api">API Rate Limits</h3>
+<p><a href="#editor-ai-autofill" class="internal">AI autofill</a> and <a href="#editor-transcript-autotr" class="internal">auto-transcription</a> calls are routed through your <a href="#config-ai-proxy" class="internal">AI proxy</a>, and the underlying provider (OpenAI or Gemini) enforces its own rate limits. Running autofill on hundreds of annotations back-to-back will eventually hit those limits — the tool surfaces the upstream error inline. Mitigations:</p>
+<ul>
+  <li>Fill properties in batches and pause briefly between batches.</li>
+  <li>Prefer the <a href="#tips-transcript-link" class="internal">linked-transcript fast path</a> over per-segment audio extraction — it uses chat-tier quota only, not transcription quota.</li>
+  <li>Check quota in <strong>SuperAnnotate → Team Settings → Security → Proxies</strong>.</li>
+  <li>Switch to a higher-tier key if you routinely hit limits.</li>
+</ul>
+
+<h3 id="limits-class-types">Cross-Type Class Changes</h3>
+<p>Reclassifying an annotation only allows the new class to share the same <em>tool type</em> as the old one — a Segment can become another Segment but not a Box (or vice versa), since the underlying data shape is different. To convert across types, delete the original annotation and redraw it under the new class.</p>
+
+</div>
+
+</main>
+
+</div>
+
+<script>
+// ---- Navigation Data ----
+const navData = {
+  overview: [
+    { id: 'overview-capabilities', label: 'Key Capabilities' },
+    { id: 'overview-how-it-works', label: 'How It Works' },
+    { id: 'overview-first-annotation', label: 'First Annotation' },
+  ],
+  configuration: [
+    { id: 'config-access-control', label: 'Access Control' },
+    { id: 'config-feature-control', label: 'Feature Control', children: [
+      { id: 'config-audio-subsettings', label: 'Audio Sub-Settings' },
+      { id: 'config-panel-settings', label: 'Annotation Panel Settings' },
+      { id: 'config-table-cols', label: 'Table Column Settings' },
+    ]},
+    { id: 'config-classes-tags', label: 'Classes & Tags', children: [
+      { id: 'config-classes', label: 'Classes' },
+      { id: 'config-tags', label: 'Tags' },
+      { id: 'config-properties', label: 'Properties' },
+      { id: 'config-ai-property-proxy-override', label: 'Per-property proxy override' },
+      { id: 'config-property-rules', label: 'Property Visibility Rules' },
+      { id: 'config-properties-copy', label: 'Copying properties between classes' },
+    ]},
+    { id: 'config-option-rules', label: 'Option Visibility Rules' },
+    { id: 'config-ai-proxy', label: 'AI Proxy', children: [
+      { id: 'config-panel-bulk-ai-extraction', label: 'Bulk panel extraction toggle' },
+    ]},
+    { id: 'config-tool-mode-filtering', label: 'Tool Availability by Media Type' },
+    { id: 'config-instructions', label: 'Project Instructions' },
+    { id: 'config-item-context', label: 'Item Context' },
+    { id: 'config-import-export', label: 'Import / Export' },
+  ],
+  editor: [
+    { id: 'editor-layout', label: 'Editor Layout', children: [
+      { id: 'editor-layout-modes', label: 'Layout Conveniences' },
+    ]},
+    { id: 'editor-media', label: 'Media Sources', children: [
+      { id: 'editor-upload', label: 'In-Editor Upload' },
+      { id: 'editor-recording', label: 'Recording' },
+    ]},
+    { id: 'editor-multifile', label: 'Multi-File Items', children: [
+      { id: 'editor-multifile-tabs', label: 'Tab Navigation' },
+      { id: 'editor-multifile-panel', label: 'Panel & Annotations' },
+    ]},
+    { id: 'editor-item-context', label: 'Item Context' },
+    { id: 'editor-split-view', label: 'Split View', children: [
+      { id: 'editor-split-card-anatomy', label: 'Card Anatomy' },
+      { id: 'editor-split-interaction', label: 'Click Targets & Exit' },
+      { id: 'editor-split-parallel-playback', label: 'Parallel Playback & Focus' },
+      { id: 'editor-split-persistence', label: 'Position Persistence' },
+      { id: 'editor-split-panel', label: 'Panel Interaction' },
+    ]},
+    { id: 'editor-top-toolbar', label: 'Top Toolbar', children: [
+      { id: 'editor-tool-selector', label: 'Tool Selector' },
+      { id: 'editor-class-selector', label: 'Class Selector' },
+    ]},
+    { id: 'editor-waveform', label: 'Waveform & Video', children: [
+      { id: 'editor-waveform-player', label: 'Audio Waveform' },
+      { id: 'editor-video', label: 'Video Player' },
+      { id: 'editor-keyframes', label: 'Bounding-Box Keyframes' },
+      { id: 'editor-video-adjust', label: 'Video Adjustments' },
+    ]},
+    { id: 'editor-controls', label: 'Playback Controls' },
+    { id: 'editor-drawing', label: 'Creating Annotations', children: [
+      { id: 'editor-drawing-segment', label: 'Segment' },
+      { id: 'editor-drawing-box', label: 'Box' },
+      { id: 'editor-drawing-entity', label: 'Entity' },
+    ]},
+    { id: 'editor-panel', label: 'Annotation Panel', children: [
+      { id: 'editor-panel-instance', label: 'Instance View' },
+      { id: 'editor-panel-table', label: 'Table View', children: [
+        { id: 'editor-column-group-chips', label: 'Column Group Chips' },
+      ]},
+      { id: 'editor-panel-grouping', label: 'Grouping & Bulk Edit' },
+    ]},
+    { id: 'editor-property-editing', label: 'Property Editing', children: [
+      { id: 'editor-ai-autofill', label: 'AI Property Autofill' },
+      { id: 'editor-ai-bulk-panel-extraction', label: 'Bulk Panel Extraction' },
+      { id: 'editor-rich-text-modal', label: 'Text Display Modals' },
+      { id: 'editor-rule-hierarchy', label: 'Property & Option Visibility Rules' },
+    ]},
+    { id: 'editor-transcript', label: 'Transcript Panel', children: [
+      { id: 'editor-transcript-autotr', label: 'Auto-Transcription' },
+      { id: 'editor-transcript-edit', label: 'Editing Transcript Segments' },
+      { id: 'editor-transcript-link', label: 'Linked Annotations' },
+    ]},
+    { id: 'editor-comments', label: 'Comments' },
+    { id: 'editor-relationships', label: 'Relationships' },
+    { id: 'editor-class-changes', label: 'Class Changes' },
+    { id: 'editor-isolation', label: 'Annotation Isolation' },
+    { id: 'editor-undo-redo', label: 'Undo / Redo' },
+  ],
+  'import-export': [
+    { id: 'ie-jsonl-import', label: 'JSONL Import', children: [
+      { id: 'ie-jsonl-shape', label: 'Payload Shape' },
+      { id: 'ie-jsonl-uploaded', label: 'Uploaded Media' },
+      { id: 'ie-jsonl-url', label: 'URL-Linked Media' },
+      { id: 'ie-peaks', label: 'Peaks Files' },
+      { id: 'ie-jsonl-keys', label: 'Structure Keys' },
+    ]},
+    { id: 'ie-export', label: 'Download / Export', children: [
+      { id: 'ie-export-structure', label: 'Export Structure' },
+      { id: 'ie-export-tags', label: 'Tags' },
+      { id: 'ie-export-properties', label: 'Properties' },
+      { id: 'ie-export-relationships', label: 'Relationships' },
+      { id: 'ie-export-transcript', label: 'Transcript' },
+      { id: 'ie-export-comments', label: 'Comments' },
+      { id: 'ie-export-item-context', label: 'Item Context' },
+    ]},
+    { id: 'ie-autosave', label: 'Auto-Save' },
+  ],
+  solutions: [
+    { id: 'sol-audio-events', label: 'Audio-Event Annotation' },
+    { id: 'sol-transcription', label: 'Speech Transcription & Diarisation' },
+    { id: 'sol-video-boxes', label: 'Video Bounding-Box Tracking' },
+    { id: 'sol-recording', label: 'In-Browser Recording' },
+  ],
+  tips: [
+    { id: 'tips-class-shortcuts', label: 'Class Shortcuts' },
+    { id: 'tips-tool-shortcuts', label: 'Tool Shortcuts' },
+    { id: 'tips-seek', label: 'Fast Seeking' },
+    { id: 'tips-filtering', label: 'Filtering & Grouping' },
+    { id: 'tips-overlap', label: 'Overlapping Segments' },
+    { id: 'tips-tags-vs-props', label: 'Tags vs Properties' },
+    { id: 'tips-transcript-link', label: 'Linked Transcript Fast Path' },
+    { id: 'tips-autosave', label: 'Auto-Save Timing' },
+    { id: 'limits-browser', label: 'Browser Compatibility' },
+    { id: 'limits-multifile', label: 'Multi-File Cap' },
+    { id: 'limits-gemini-size', label: 'Gemini Inline-Data Limit' },
+    { id: 'limits-api', label: 'API Rate Limits' },
+    { id: 'limits-class-types', label: 'Cross-Type Class Changes' },
+  ],
+};
+
+// ---- Build anchor-to-tab map ----
+const anchorToTab = {};
+for (const [tab, items] of Object.entries(navData)) {
+  for (const item of items) {
+    anchorToTab[item.id] = tab;
+    if (item.children) item.children.forEach(c => anchorToTab[c.id] = tab);
+  }
+}
+
+// ---- Tab label map (for search results) ----
+const tabLabels = { overview:'Overview', configuration:'Configuration', editor:'Editor', 'import-export':'Import / Export', solutions:'Solutions', tips:'Tips & Limitations' };
+
+// ---- Tab Switching ----
+let activeTab = 'overview';
+const tabBtns = document.querySelectorAll('.tab-btn');
+const tabContents = document.querySelectorAll('.tab-content');
+
+function switchTab(tab, scrollToId, updateHash) {
+  activeTab = tab;
+  tabBtns.forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  tabContents.forEach(c => c.classList.toggle('active', c.dataset.tab === tab));
+  buildLeftNav(tab);
+  if (scrollToId) {
+    if (updateHash !== false) try { history.replaceState(null, '', '#' + scrollToId); } catch(_) {}
+    requestAnimationFrame(() => {
+      const el = document.getElementById(scrollToId);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  } else {
+    if (updateHash !== false) try { history.replaceState(null, '', window.location.pathname); } catch(_) {}
+    document.querySelector('.main').scrollTop = 0;
+    window.scrollTo(0, 0);
+  }
+}
+
+tabBtns.forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
+
+// ---- Left Nav ----
+function buildLeftNav(tab) {
+  const nav = document.getElementById('leftNav');
+  const items = navData[tab] || [];
+  let html = '<div class="nav-section">';
+  for (const item of items) {
+    html += `<a class="nav-link" href="#${item.id}" data-id="${item.id}">${item.label}</a>`;
+    if (item.children) {
+      html += '<div class="nav-sub">';
+      item.children.forEach(c => {
+        html += `<a class="nav-link" href="#${c.id}" data-id="${c.id}">${c.label}</a>`;
+      });
+      html += '</div>';
+    }
+  }
+  html += '</div>';
+  nav.innerHTML = html;
+  nav.querySelectorAll('.nav-link').forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      const id = a.dataset.id;
+      try { history.replaceState(null, '', '#' + id); } catch(_) {}
+      const el = document.getElementById(id);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+}
+
+// ---- Cross-tab internal links ----
+document.addEventListener('click', e => {
+  const a = e.target.closest('a.internal');
+  if (!a) return;
+  e.preventDefault();
+  const hash = a.getAttribute('href').replace('#', '');
+  try { history.replaceState(null, '', '#' + hash); } catch(_) {}
+  const targetTab = anchorToTab[hash];
+  if (targetTab && targetTab !== activeTab) {
+    switchTab(targetTab, hash, false);
+  } else {
+    const el = document.getElementById(hash);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+});
+
+// ---- Scroll Spy + Hash Update ----
+let scrollSpyTimer = null;
+function updateScrollSpy() {
+  const items = navData[activeTab] || [];
+  const allIds = [];
+  items.forEach(i => { allIds.push(i.id); if (i.children) i.children.forEach(c => allIds.push(c.id)); });
+  let activeId = allIds[0];
+  for (const id of allIds) {
+    const el = document.getElementById(id);
+    if (el) {
+      const rect = el.getBoundingClientRect();
+      if (rect.top <= 100) activeId = id;
+    }
+  }
+  document.querySelectorAll('.nav-link').forEach(a => a.classList.toggle('active', a.dataset.id === activeId));
+  if (activeId) {
+    clearTimeout(scrollSpyTimer);
+    scrollSpyTimer = setTimeout(() => { try { history.replaceState(null, '', '#' + activeId); } catch(_) {} }, 300);
+  }
+}
+window.addEventListener('scroll', updateScrollSpy, { passive: true });
+
+// ---- Hash-based deep-link on load & popstate ----
+function navigateToHash() {
+  const hash = window.location.hash.replace('#', '');
+  if (!hash) return;
+  const tab = anchorToTab[hash];
+  if (tab) {
+    switchTab(tab, hash, false);
+  } else {
+    const el = document.getElementById(hash);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+window.addEventListener('popstate', navigateToHash);
+
+// ---- Search ----
+function buildSearchIndex() {
+  const index = [];
+  for (const [tab, items] of Object.entries(navData)) {
+    const tabContent = document.querySelector(`.tab-content[data-tab="${tab}"]`);
+    if (!tabContent) continue;
+    for (const item of items) {
+      const el = document.getElementById(item.id);
+      let text = '';
+      if (el) {
+        let sibling = el.nextElementSibling;
+        const stopTags = new Set(['H1','H2','H3','H4']);
+        while (sibling && !(stopTags.has(sibling.tagName) && sibling.id)) {
+          text += ' ' + sibling.textContent;
+          sibling = sibling.nextElementSibling;
+        }
+      }
+      index.push({ id: item.id, label: item.label, tab, tabLabel: tabLabels[tab] || tab, parentLabel: null, text: (item.label + ' ' + text).toLowerCase(), rawLabel: item.label });
+      if (item.children) {
+        for (const child of item.children) {
+          const childEl = document.getElementById(child.id);
+          let childText = '';
+          if (childEl) {
+            let sibling = childEl.nextElementSibling;
+            const stopTags = new Set(['H1','H2','H3','H4']);
+            while (sibling && !(stopTags.has(sibling.tagName) && sibling.id)) {
+              childText += ' ' + sibling.textContent;
+              sibling = sibling.nextElementSibling;
+            }
+          }
+          index.push({ id: child.id, label: child.label, tab, tabLabel: tabLabels[tab] || tab, parentLabel: item.label, text: (child.label + ' ' + childText).toLowerCase(), rawLabel: child.label });
+        }
+      }
+    }
+  }
+  return index;
+}
+
+let searchIndex = null;
+const searchInput = document.getElementById('docSearchInput');
+const searchDropdown = document.getElementById('docSearchDropdown');
+let searchActiveIdx = -1;
+
+const synonyms = {
+  bbox: 'bounding box', box: 'bounding box', rect: 'bounding box',
+  seg: 'segment', segments: 'segment', region: 'segment', regions: 'segment',
+  vid: 'video', videos: 'video',
+  aud: 'audio', audios: 'audio',
+  wave: 'waveform', waveforms: 'waveform',
+  asr: 'transcription', transcribe: 'transcription', transcript: 'transcription',
+  ai: 'artificial intelligence', ml: 'machine learning',
+  doc: 'documentation', docs: 'documentation',
+  ner: 'entity', entities: 'entity',
+};
+
+function expandToken(t) {
+  const result = [t];
+  if (synonyms[t]) result.push(synonyms[t]);
+  return result;
+}
+
+function escapeRegex(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+function highlightMatch(text, query) {
+  const tokens = query.trim().split(/\s+/).filter(t => t.length > 0);
+  let result = text;
+  for (const token of tokens) {
+    const regex = new RegExp('(' + escapeRegex(token) + ')', 'gi');
+    result = result.replace(regex, '<mark>$1</mark>');
+  }
+  return result;
+}
+
+function getSnippet(fullText, tokens, maxLen) {
+  let bestPos = fullText.length;
+  for (const t of tokens) {
+    const idx = fullText.indexOf(t);
+    if (idx >= 0 && idx < bestPos) bestPos = idx;
+  }
+  const start = Math.max(0, bestPos - 30);
+  const end = Math.min(fullText.length, start + maxLen);
+  let snippet = fullText.substring(start, end).replace(/\s+/g, ' ').trim();
+  if (start > 0) snippet = '…' + snippet;
+  if (end < fullText.length) snippet += '…';
+  for (const t of tokens) {
+    const regex = new RegExp('(' + escapeRegex(t) + ')', 'gi');
+    snippet = snippet.replace(regex, '<mark>$1</mark>');
+  }
+  return snippet;
+}
+
+function renderSearchResults(query) {
+  if (!searchIndex) searchIndex = buildSearchIndex();
+  const q = query.trim().toLowerCase();
+  if (!q) { searchDropdown.classList.remove('open'); searchDropdown.innerHTML = ''; searchActiveIdx = -1; return; }
+
+  const tokens = q.split(/\s+/).filter(t => t.length > 0);
+
+  const scored = [];
+  for (const entry of searchIndex) {
+    const expandedChecks = tokens.map(t => {
+      const variants = expandToken(t);
+      return variants.some(v => entry.text.includes(v));
+    });
+    if (!expandedChecks.every(Boolean)) continue;
+
+    let score = 0;
+    const labelLower = entry.label.toLowerCase();
+
+    if (entry.text.includes(q)) score += 20;
+
+    for (const t of tokens) {
+      if (labelLower.includes(t)) score += 10;
+      let idx = 0, count = 0;
+      while ((idx = entry.text.indexOf(t, idx)) !== -1) { count++; idx += t.length; }
+      score += Math.min(count, 5);
+      const firstPos = entry.text.indexOf(t);
+      if (firstPos >= 0) score += Math.max(0, 5 - Math.floor(firstPos / 200));
+    }
+    scored.push({ entry, score });
+  }
+
+  scored.sort((a, b) => b.score - a.score);
+  const matches = scored.slice(0, 15);
+
+  if (matches.length === 0) {
+    searchDropdown.innerHTML = '<div class="search-no-results">No results found</div>';
+    searchDropdown.classList.add('open');
+    searchActiveIdx = -1;
+    return;
+  }
+  searchDropdown.innerHTML = matches.map((s, i) => {
+    const m = s.entry;
+    const snippet = getSnippet(m.text, tokens, 100);
+    return `<div class="search-result-item" data-idx="${i}" data-id="${m.id}" data-tab="${m.tab}">
+      <span class="search-result-title">${highlightMatch(m.rawLabel, query.trim())}</span>
+      <span class="search-result-snippet">${snippet}</span>
+      <span class="search-result-path"><span class="search-tab-badge">${m.tabLabel}</span>${m.parentLabel ? m.parentLabel + ' › ' : ''}${m.label}</span>
+    </div>`;
+  }).join('');
+  searchDropdown.classList.add('open');
+  searchActiveIdx = -1;
+}
+
+function selectSearchResult(id, tab) {
+  searchDropdown.classList.remove('open');
+  searchInput.value = '';
+  searchActiveIdx = -1;
+  switchTab(tab, id);
+}
+
+searchInput.addEventListener('input', () => renderSearchResults(searchInput.value));
+searchInput.addEventListener('focus', () => { if (searchInput.value.trim()) renderSearchResults(searchInput.value); });
+
+searchDropdown.addEventListener('click', e => {
+  const item = e.target.closest('.search-result-item');
+  if (!item) return;
+  selectSearchResult(item.dataset.id, item.dataset.tab);
+});
+
+searchInput.addEventListener('keydown', e => {
+  const items = searchDropdown.querySelectorAll('.search-result-item');
+  if (!items.length) return;
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    searchActiveIdx = Math.min(searchActiveIdx + 1, items.length - 1);
+    items.forEach((it, i) => it.classList.toggle('active', i === searchActiveIdx));
+    items[searchActiveIdx]?.scrollIntoView({ block: 'nearest' });
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    searchActiveIdx = Math.max(searchActiveIdx - 1, 0);
+    items.forEach((it, i) => it.classList.toggle('active', i === searchActiveIdx));
+    items[searchActiveIdx]?.scrollIntoView({ block: 'nearest' });
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    const sel = searchActiveIdx >= 0 ? items[searchActiveIdx] : items[0];
+    if (sel) selectSearchResult(sel.dataset.id, sel.dataset.tab);
+  } else if (e.key === 'Escape') {
+    searchDropdown.classList.remove('open');
+    searchInput.blur();
+  }
+});
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.header-search-wrap')) { searchDropdown.classList.remove('open'); searchActiveIdx = -1; }
+});
+
+// ---- Init ----
+const initHash = window.location.hash.replace('#', '');
+const initTab = initHash && anchorToTab[initHash] ? anchorToTab[initHash] : 'overview';
+buildLeftNav(initTab);
+if (initTab !== 'overview') {
+  activeTab = initTab;
+  tabBtns.forEach(b => b.classList.toggle('active', b.dataset.tab === initTab));
+  tabContents.forEach(c => c.classList.toggle('active', c.dataset.tab === initTab));
+}
+if (initHash) {
+  requestAnimationFrame(() => {
+    const el = document.getElementById(initHash);
+    if (el) el.scrollIntoView({ behavior: 'auto', block: 'start' });
+  });
+}
+updateScrollSpy();
+
+// ---- Ask AI Chat ----
+(function() {
+  const panel = document.getElementById('aiChatPanel');
+  const overlay = document.getElementById('aiChatOverlay');
+  const openBtn = document.getElementById('askAiBtn');
+  const closeBtn = document.getElementById('aiChatClose');
+  const messagesEl = document.getElementById('aiChatMessages');
+  const inputEl = document.getElementById('aiChatInput');
+  const sendBtn = document.getElementById('aiChatSend');
+
+  let chatHistory = [];
+  let docsPlainText = null;
+  let isStreaming = false;
+
+  function stripHtml(html) {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    tmp.querySelectorAll('script, style, svg, img').forEach(el => el.remove());
+    return tmp.textContent || tmp.innerText || '';
+  }
+
+  function getDocsContext() {
+    if (docsPlainText) return docsPlainText;
+    const allContent = document.querySelectorAll('.tab-content');
+    let text = '';
+    allContent.forEach(tc => { text += tc.textContent + '\n\n'; });
+    docsPlainText = text.replace(/\s{3,}/g, '\n\n').trim();
+    return docsPlainText;
+  }
+
+  function openPanel() {
+    panel.classList.add('open');
+    overlay.classList.add('open');
+    inputEl.focus();
+  }
+
+  function closePanel() {
+    panel.classList.remove('open');
+    overlay.classList.remove('open');
+  }
+
+  openBtn.addEventListener('click', openPanel);
+  closeBtn.addEventListener('click', closePanel);
+  overlay.addEventListener('click', closePanel);
+
+  inputEl.addEventListener('input', () => {
+    inputEl.style.height = 'auto';
+    inputEl.style.height = Math.min(inputEl.scrollHeight, 120) + 'px';
+    sendBtn.disabled = !inputEl.value.trim() || isStreaming;
+  });
+
+  inputEl.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      if (!sendBtn.disabled) sendMessage();
+    }
+  });
+
+  sendBtn.addEventListener('click', sendMessage);
+
+  function escapeHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function renderMarkdown(text) {
+    let html = escapeHtml(text);
+    html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+    html = html.replace(/^[\-\*]\s+(.+)$/gm, '<li>$1</li>');
+    html = html.replace(/(<li>.*<\/li>\n?)+/g, (m) => '<ul>' + m + '</ul>');
+    html = html.replace(/^\d+\.\s+(.+)$/gm, '<li>$1</li>');
+    html = html.replace(/\n{2,}/g, '</p><p>');
+    html = '<p>' + html + '</p>';
+    html = html.replace(/<p><\/p>/g, '');
+    return html;
+  }
+
+  function addMessage(role, content) {
+    const welcome = messagesEl.querySelector('.ai-chat-welcome');
+    if (welcome) welcome.remove();
+
+    const div = document.createElement('div');
+    div.className = role === 'user' ? 'ai-chat-msg ai-chat-msg-user' : 'ai-chat-msg ai-chat-msg-ai';
+    if (role === 'user') {
+      div.textContent = content;
+    } else {
+      div.innerHTML = renderMarkdown(content);
+    }
+    messagesEl.appendChild(div);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+    return div;
+  }
+
+  function addError(msg) {
+    const div = document.createElement('div');
+    div.className = 'ai-chat-msg ai-chat-msg-error';
+    div.textContent = msg;
+    messagesEl.appendChild(div);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  function showTyping() {
+    const div = document.createElement('div');
+    div.className = 'ai-chat-typing';
+    div.id = 'aiTypingIndicator';
+    div.innerHTML = '<div class="ai-chat-typing-dots"><span></span><span></span><span></span></div>';
+    messagesEl.appendChild(div);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  function removeTyping() {
+    const el = document.getElementById('aiTypingIndicator');
+    if (el) el.remove();
+  }
+
+  let _proxyReqId = 0;
+  const _proxyCallbacks = {};
+
+  // Parent tool owns the theme — docs carries it rather than toggling separately.
+  // Initial value is injected by the parent as `window.__DOCS_THEME__`; subsequent
+  // changes arrive via `{ type: 'docs-theme', theme: 'dark' | 'light' }`.
+  function applyDocsTheme(theme) {
+    if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+    else document.documentElement.removeAttribute('data-theme');
+  }
+  applyDocsTheme(window.__DOCS_THEME__);
+
+  window.addEventListener('message', function(e) {
+    if (!e.data) return;
+    if (e.data.type === 'docs-ai-response' && _proxyCallbacks[e.data.requestId]) {
+      _proxyCallbacks[e.data.requestId](e.data);
+      delete _proxyCallbacks[e.data.requestId];
+    } else if (e.data.type === 'docs-theme') {
+      applyDocsTheme(e.data.theme);
+    }
+  });
+
+  function proxyOpenAI(body) {
+    return new Promise(function(resolve, reject) {
+      const requestId = 'docs-ai-' + (++_proxyReqId);
+      _proxyCallbacks[requestId] = function(msg) {
+        if (msg.error) reject(new Error(msg.error));
+        else resolve(msg.data);
+      };
+      window.parent.postMessage({ type: 'docs-ai-request', requestId: requestId, body: body }, '*');
+    });
+  }
+
+  async function sendMessage() {
+    const question = inputEl.value.trim();
+    if (!question || isStreaming) return;
+
+    addMessage('user', question);
+    chatHistory.push({ role: 'user', content: question });
+
+    inputEl.value = '';
+    inputEl.style.height = 'auto';
+    sendBtn.disabled = true;
+    isStreaming = true;
+
+    showTyping();
+
+    const docsContext = getDocsContext();
+    const systemPrompt = `You are a helpful documentation assistant for the Audio Annotation Tool. Answer questions accurately and concisely based on the documentation provided below. If the answer is not in the documentation, say so. Use markdown formatting (bold, code, lists) where helpful. Keep answers focused and practical.
+
+--- DOCUMENTATION ---
+${docsContext}
+--- END DOCUMENTATION ---`;
+
+    const messages = [
+      { role: 'system', content: systemPrompt },
+      ...chatHistory.slice(-10)
+    ];
+
+    try {
+      const data = await proxyOpenAI({ messages: messages, temperature: 0.3, max_completion_tokens: 1024 });
+
+      removeTyping();
+
+      const reply = data.choices?.[0]?.message?.content || 'No response received.';
+      addMessage('ai', reply);
+      chatHistory.push({ role: 'assistant', content: reply });
+    } catch (err) {
+      removeTyping();
+      addError('Failed: ' + (err.message || String(err)));
+    } finally {
+      isStreaming = false;
+      sendBtn.disabled = !inputEl.value.trim();
+    }
+  }
+})();
+</script>
+
+</body>
+</html>
