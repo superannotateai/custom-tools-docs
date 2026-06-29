@@ -616,8 +616,8 @@ th { font-weight:600; background:var(--bg-alt); }
 <p>Advanced Settings contains project-wide behaviour choices, primarily for video-heavy workflows:</p>
 <ul>
   <li><strong>Video loading behavior</strong> — choose between <em>Streaming</em> (starts playback immediately from the source URL) and <em>Full download</em> (downloads the entire file before playing). Streaming is faster for large videos. If the video source does not support streaming, the editor automatically falls back to a full download. This setting applies to both timeline and frame panel modes.</li>
-  <li><strong>Split frame seek fallback FPS</strong> — used when a video lacks exact frame metadata or a per-video FPS value. This value drives frame-step calculations in Split View and the Frame Panel.</li>
-  <li><strong>Show Frame Panel FPS control</strong> — controls whether annotators can see and edit the per-video FPS input in the Frame Panel. When off, the FPS value is admin-only.</li>
+  <li><strong>Split frame seek fallback FPS</strong> — used only when a video has no imported frame metadata and no per-video FPS value; exact frame timestamps and per-video FPS metadata take priority.</li>
+  <li><strong>FPS Control</strong> — controls whether annotators can edit the FPS field in the Frame Panel. When off, the field is still visible but disabled: it shows the stored per-video FPS when present, otherwise the project fallback FPS.</li>
 </ul>
 
 <h2 id="config-instructions">Project Instructions</h2>
@@ -673,7 +673,8 @@ th { font-weight:600; background:var(--bg-alt); }
 <h3 id="editor-layout-modes">Layout Conveniences</h3>
 <p>The <a href="#editor-top-toolbar" class="internal">top toolbar</a> exposes three layout helpers:</p>
 <ul>
-  <li><strong>Fullscreen</strong> — maximises the tool area within its host page to reduce visual clutter.</li>
+  <li><strong>Fullscreen</strong> (<kbd>F</kbd>) — maximises the tool area within its host page to reduce visual clutter.</li>
+  <li><strong>Fit video to view</strong> (<kbd>Shift+F</kbd>) — when the video viewport is zoomed, reset it back to the fitted view.</li>
   <li><strong>Dark mode toggle</strong> — flips the UI to a dark palette. The same preference is applied to this documentation popup.</li>
 </ul>
 
@@ -733,7 +734,7 @@ th { font-weight:600; background:var(--bg-alt); }
   <li><strong>Split 0</strong> (default) — standard single-file editable view with tabs.</li>
   <li><strong>Split 1 / 2 / 3</strong> — renders all of the item's files as a grid that wide. Each cell is an independent mini-player with its own video frame and controls.</li>
 </ul>
-<p>The toggle only appears when the item has more than one video file. The single-pane tab strip, playback controls, and wide-view toggle are hidden while Split View is active — each card owns its own loading state and chrome.</p>
+<p>The toggle only appears when the item has more than one video file. The single-pane tab strip, playback controls, and wide-view toggle are hidden while Split View is active — each card owns its own loading state and chrome. In full-download mode, cards show download progress before mounting; in streaming mode, they show metadata loading until ready. The editor reuses cached / resolved video state when moving between Split View and single view, so tabs and cards can continue loading in the background without losing their playhead or overlays when they become ready.</p>
 
 <h3 id="editor-split-card-anatomy">Card Anatomy</h3>
 <p>Every card in the grid contains:</p>
@@ -764,6 +765,7 @@ th { font-weight:600; background:var(--bg-alt); }
 <p>Available shortcuts in both modes:</p>
 <ul>
   <li><kbd>Space</kbd> — play / pause.</li>
+  <li><kbd>Shift+Space</kbd> — play / pause even while typing in property fields.</li>
   <li><kbd>,</kbd> / <kbd>.</kbd> — seek 3 s back / forward.</li>
   <li><kbd>&lt;</kbd> / <kbd>&gt;</kbd> — seek 10 s back / forward.</li>
   <li><kbd>M</kbd> — mute / unmute.</li>
@@ -796,7 +798,7 @@ th { font-weight:600; background:var(--bg-alt); }
   <li><strong>Documentation</strong> — opens this popup.</li>
   <li><strong>Dark mode</strong> — toggles the UI palette (preference is saved per browser).</li>
   <li><strong>Video adjustments</strong> — slider dropdown for Brightness, Contrast, Saturation, Shape Opacity, and Keypoint Size. See <a href="#editor-video-adjust" class="internal">Video Adjustments</a>.</li>
-  <li><strong>Fullscreen</strong> — expands the tool within its host.</li>
+  <li><strong>Fullscreen</strong> (<kbd>F</kbd>) — expands the tool within its host.</li>
   <li><strong>Undo / Redo</strong> — see <a href="#editor-undo-redo" class="internal">Undo / Redo</a>.</li>
 </ul>
 <div class="screenshot-placeholder">Top toolbar: tool / class selectors on the left; Upload, Download, Instructions, Split, shortcuts, docs, theme, adjust, fullscreen, undo, redo on the right.</div>
@@ -828,7 +830,7 @@ th { font-weight:600; background:var(--bg-alt); }
 <p>The center area renders the video frame with all annotation overlays drawn on top of it.</p>
 
 <h3 id="editor-video">Video Player</h3>
-<p>The video plays in the center area, with the <a href="#editor-frame-panel" class="internal">Frame Panel</a> timeline below it for frame-level navigation and editing.</p>
+<p>The video plays in the center area, with the <a href="#editor-frame-panel" class="internal">Frame Panel</a> timeline below it for frame-level navigation and editing. While a video is resolving, downloading, or loading metadata, the player shows a loading state or progress instead of a blank canvas.</p>
 <ul>
   <li><strong>Box overlay</strong> — when the active tool is <em>Box</em>, drag on the video frame to draw a rectangle. Existing boxes are rendered on top of the frame at their current time and respect the <a href="#editor-video-adjust" class="internal">Shape Opacity</a> setting.</li>
   <li><strong>Rotated Box overlay</strong> — when the active tool is <em>Rotated Box</em>, use the <a href="#editor-drawing-obbox" class="internal">three-click workflow</a> to draw an oriented rectangle. Existing rotated boxes render at their current angle and respect the <a href="#editor-video-adjust" class="internal">Shape Opacity</a> setting.</li>
@@ -836,6 +838,7 @@ th { font-weight:600; background:var(--bg-alt); }
   <li><strong>Keypoint overlay</strong> — when the active tool is <em>Keypoint</em>, click to place a single point or each <a href="#config-keypoint-skeleton" class="internal">skeleton</a> joint in turn. Existing keypoints render on top of the frame at their current time; skeletons also draw their connecting bones. See <a href="#editor-drawing-keypoint" class="internal">Keypoint &amp; Skeleton</a>.</li>
   <li><strong>Zoom and pan</strong> — mouse wheel zooms around the cursor; drag pans while zoomed. Overlay geometry stays aligned with the video under the transform.</li>
   <li><strong>Overlay labels</strong> — toggled with <kbd>O</kbd> or the labels button: when on, hovering an annotation shows a small label chip with its class and primary text/value.</li>
+  <li><strong>Shape class names</strong> — toggled with <kbd>Shift+O</kbd> from the canvas label button: shape labels switch between number-only labels and class-name-plus-number labels.</li>
 </ul>
 
 <h3 id="editor-keyframes">Keyframes</h3>
@@ -909,20 +912,21 @@ th { font-weight:600; background:var(--bg-alt); }
 <p>An <strong>X</strong> button in the upper frame timeline exits Instance View and returns to the full multi-row Frame Panel.</p>
 
 <h3 id="editor-frame-panel-fps">FPS</h3>
-<p>If the current video has per-video FPS metadata, frame stepping uses it. Otherwise the editor falls back to the project-level FPS value from <a href="#config-advanced" class="internal">Advanced Settings</a>. When <em>Show Frame Panel FPS control</em> is enabled, annotators can view and adjust the per-video FPS value directly in the panel.</p>
+<p>If the current video has per-video FPS metadata, frame stepping uses it. Otherwise the editor falls back to the project-level FPS value from <a href="#config-advanced" class="internal">Advanced Settings</a>. The FPS field remains visible either way: when FPS Control is enabled, annotators can edit per-video FPS (or clear it to use the fallback); when disabled, the field is read-only and still shows the stored value or fallback.</p>
 
 <hr>
 
 <h2 id="editor-controls">Playback Controls</h2>
 <p>A row of controls under the player exposes everything needed to drive playback and switch view modes:</p>
 <ul>
-  <li><strong>Play / Pause</strong> (<kbd>Space</kbd>), <strong>Mute</strong> (<kbd>M</kbd>).</li>
+  <li><strong>Play / Pause</strong> (<kbd>Space</kbd>, or <kbd>Shift+Space</kbd> while typing), <strong>Mute</strong> (<kbd>M</kbd>).</li>
   <li><strong>Time display</strong> — current / total in seconds.</li>
   <li><strong>Overlay labels</strong> (<kbd>O</kbd>).</li>
-  <li><strong>Playback speed</strong> — dropdown with values from <code>0.5x</code> to <code>3x</code>.</li>
+  <li><strong>Shape class names</strong> (<kbd>Shift+O</kbd>, video canvas only).</li>
+  <li><strong>Playback speed</strong> — dropdown with values from <code>0.25x</code> to <code>3x</code>.</li>
   <li><strong>Toggle wide view</strong> — switches to a wider layout that gives the player more horizontal space.</li>
 </ul>
-<p>Use <kbd>,</kbd> / <kbd>.</kbd> to seek 3 s back / forward and <kbd>&lt;</kbd> / <kbd>&gt;</kbd> for 10 s jumps. Press <kbd>M</kbd> to toggle mute. <kbd>Alt+,</kbd> / <kbd>Alt+.</kbd> step one frame backward / forward in the <a href="#editor-frame-panel" class="internal">Frame Panel</a>. All shortcuts also work in <a href="#editor-split-view" class="internal">Split View</a>, where they target the focused card (or all cards in broadcast mode).</p>
+<p>Use <kbd>,</kbd> / <kbd>.</kbd> to seek 3 s back / forward and <kbd>&lt;</kbd> / <kbd>&gt;</kbd> for 10 s jumps. Press <kbd>M</kbd> to toggle mute. Press <kbd>O</kbd> to toggle overlay labels on hover, and press <kbd>Shift+O</kbd> to toggle class names on shape labels. Press <kbd>F</kbd> to toggle fullscreen, and press <kbd>Shift+F</kbd> to fit the zoomed video back to view. Press <kbd>Shift+Space</kbd> to play / pause even while typing in property fields. <kbd>Alt+,</kbd> / <kbd>Alt+.</kbd> step one frame backward / forward in the <a href="#editor-frame-panel" class="internal">Frame Panel</a>. All shortcuts also work in <a href="#editor-split-view" class="internal">Split View</a>, where they target the focused card (or all cards in broadcast mode).</p>
 <div class="callout"><strong>Keypoint drawing shortcuts.</strong> While the Keypoint tool is active with a skeleton class (or while editing a skeleton), <kbd>,</kbd> and <kbd>.</kbd> become point navigation (previous / next joint) instead of seeking, so you can walk through joints without moving the video. They revert to seeking once you leave the drawing / editing state.</div>
 
 <hr>
