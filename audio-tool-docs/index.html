@@ -309,7 +309,6 @@ th { font-weight:600; background:var(--bg-alt); }
   <li><strong>Annotation Panel</strong> — controls which views of the <a href="#editor-panel" class="internal">annotation panel</a> are available: Instance + Table, Instance only, Table only, or None. The adjacent <a href="#config-panel-settings" class="internal">Configure Annotation Panel</a> button becomes active whenever the panel is enabled (any mode other than None); the <a href="#config-table-cols" class="internal">Table Column Settings</a> button further activates when the table view is specifically reachable (Instance + Table or Table only).</li>
   <li><strong>Default Split View</strong> (Off / Split View 2 / 3) — for items with more than one media file, opens the editor directly in <a href="#editor-split-view" class="internal">catalog split view</a> instead of the single viewport. If the item has fewer media files than the configured column count, the largest fitting split is used. Single-file items always open normally. Best suited to comparison workflows where every item has the same small media-file count.</li>
   <li><strong>Fullscreen on First Interaction</strong> (Off / On) — the first pointer interaction inside the editor requests fullscreen (browsers cannot enter fullscreen without a user gesture). Applies once per editor mount; annotators can exit with Esc or the toolbar button and are not forced again until the next item load. A brief informational notice confirms when fullscreen was triggered by this setting.</li>
-  <li><strong>Video loading behavior</strong> — choose between <em>Download entire video before showing</em> and <em>Stream video immediately</em>. Streaming starts playback faster for large videos; if the source does not support streaming the editor automatically falls back to a full download. Applies to video items.</li>
 </ul>
 
 <h3 id="config-audio-subsettings">Annotation Sub-Settings</h3>
@@ -322,7 +321,7 @@ th { font-weight:600; background:var(--bg-alt); }
   <li><strong>Transcript</strong> — when on, the <a href="#editor-transcript" class="internal">transcript panel</a> can be opened. The first time a user opens it on an item with no transcript yet, <a href="#editor-transcript-autotr" class="internal">auto-transcription</a> runs (when an AI proxy is configured).</li>
   <li><strong>Editable Transcript</strong> — when on, segment text can be edited inline in the transcript panel and the table view; off makes the transcript read-only.</li>
 </ul>
-<div class="screenshot-placeholder">Feature Control card with toggles for Object Comments, Instance Relationships, Annotation Panel selector, Configure Annotation Panel button, Table Column Settings button, Video loading behavior, plus Recording, Overlapping Segments, Segment Loops, Restrict Segment Length min/max, Transcript, Editable Transcript.</div>
+<div class="screenshot-placeholder">Feature Control card with toggles for Object Comments, Instance Relationships, Annotation Panel selector, Configure Annotation Panel button, Table Column Settings button, plus Recording, Overlapping Segments, Segment Loops, Restrict Segment Length min/max, Transcript, Editable Transcript.</div>
 
 <h3 id="config-panel-settings">Annotation Panel Settings</h3>
 <p>Click <strong>Configure Annotation Panel…</strong> to set the project-wide defaults that apply when an editor is first opened. Each control commits live — <strong>Done</strong> simply closes the modal and <strong>Restore to Default</strong> clears every setting in this modal back to the built-in baseline. Editors can still resize, regroup, or reorder per-session from the panel header; this modal only controls what they start with.</p>
@@ -419,10 +418,10 @@ th { font-weight:600; background:var(--bg-alt); }
 <h4 id="config-ai-property-proxy-override">Per-property proxy &amp; model routing</h4>
 <p>Every AI Text and AI Select property can optionally override the project defaults set under <a href="#config-ai-proxy" class="internal">AI Proxy</a>. In the property modal, below the <em>Default System Prompt</em>, the <strong>Proxy/Model override</strong> row exposes two dropdowns:</p>
 <ul>
-  <li><strong>Proxy</strong> — starts at <em>Default (project AI proxy / model)</em>. Pick any team proxy whose domain routes to OpenAI or Gemini to override the project selection for this property only.</li>
+  <li><strong>Proxy</strong> — starts at <em>Default (project AI proxy / model)</em>. Pick any team proxy whose domain routes to OpenAI, Gemini, or Anthropic to override the project selection for this property only.</li>
   <li><strong>Model</strong> — enabled once a non-default proxy is chosen. Lists the same three tiers as the project-level model picker for that provider (cheapest → most capable). Changing the override proxy resets the model to that provider's default middle tier.</li>
 </ul>
-<p>At extraction time the editor routes each property through its resolved proxy + model. Properties sharing the same route are batched into one API call; properties with different overrides (or a mix of overrides and project defaults) run as separate batches in sequence. A property with an override can still extract when the project default is unset — but any property <em>without</em> an override still requires the project <strong>AI Property Proxy</strong> to be configured. The Ask AI documentation assistant always uses the project proxy/model; it does not read per-property overrides.</p>
+<p>At extraction time the editor routes each property through its resolved proxy + model. Properties sharing the same route are batched into one API call; properties with different overrides (or a mix of overrides and project defaults) run as separate batches in sequence. A property with an override can still extract when the project default is unset — but any property <em>without</em> an override still requires the project <strong>AI Property Proxy</strong> to be configured. The Ask AI documentation assistant always uses the project AI Property Proxy / model; it does not read per-property overrides.</p>
 
 <h3 id="config-property-rules">Property Visibility Rules</h3>
 <p>A property visibility rule controls whether an <strong>entire property</strong> is visible and editable on a given annotation or tag, based on the value of one or more sibling Select / AI Select properties. Use this when a whole field only makes sense in a specific context — e.g. only show "Background Noise Type" when "Has Background Noise" is "Yes", or only show "Music Genre" when "Sound Category" is "Music". This is the property-scope equivalent of <a href="#config-option-rules" class="internal">option visibility rules</a>: option rules hide individual <em>options</em> inside a Select; property rules hide the <em>whole property</em>.</p>
@@ -537,7 +536,11 @@ th { font-weight:600; background:var(--bg-alt); }
 <p>If a controller property is deleted or its type is changed away from Select while a dependent still references it, the condition is shown with a <strong>red border and alert icon</strong> in the configuration screen. The broken condition is preserved during the config session so admins can see what happened. On publish, broken conditions are automatically stripped.</p>
 
 <h2 id="config-ai-proxy">AI Proxy</h2>
-<p>All AI features in this tool — <a href="#editor-transcript-autotr" class="internal">auto-transcription</a>, <a href="#editor-ai-autofill" class="internal">AI Text and AI Select autofill</a>, and the documentation <em>Ask AI</em> assistant — communicate with external providers (OpenAI or Gemini) through a single <strong>SuperAnnotate Proxy</strong>. Proxies act as secure intermediaries: your team's API keys live in SuperAnnotate, never in the browser.</p>
+<p>AI features communicate with external providers through <strong>SuperAnnotate Proxies</strong>. Proxies act as secure intermediaries: your team's API keys live in SuperAnnotate, never in the browser. The tool separates proxy configuration into two routes:</p>
+<ul>
+  <li><strong>Transcription Proxy</strong> — powers automatic segment transcription and full-media transcription for media-level tag AI extraction. Supports OpenAI and Gemini proxies.</li>
+  <li><strong>AI Property Proxy</strong> — powers AI Text / AI Select extraction on annotations and media-level tags, plus the documentation <em>Ask AI</em> assistant. Supports OpenAI, Gemini, and Anthropic proxies.</li>
+</ul>
 
 <h3>Why proxies?</h3>
 <ul>
@@ -547,27 +550,28 @@ th { font-weight:600; background:var(--bg-alt); }
 </ul>
 
 <h3>Provider &amp; model</h3>
-<p>The provider is auto-detected from the proxy's allowed domain. The model is fixed per provider:</p>
+<p>The provider is auto-detected from each proxy's allowed domain. Each route has its own model dropdown and saved selection:</p>
 <table>
-  <tr><th>Provider</th><th>Detected via</th><th>Transcription model</th><th>Chat model</th></tr>
-  <tr><td><strong>OpenAI</strong></td><td><code>api.openai.com</code></td><td><code>whisper-1</code> (fixed)</td><td>Admin-selected (see <a href="#config-ai-proxy" class="internal">AI Proxy</a>)</td></tr>
-  <tr><td><strong>Gemini</strong></td><td><code>generativelanguage.googleapis.com</code></td><td colspan="2">Admin-selected model handles both (see <a href="#config-ai-proxy" class="internal">AI Proxy</a>)</td></tr>
+  <tr><th>Route</th><th>Supported providers</th><th>Model behavior</th></tr>
+  <tr><td><strong>Transcription Proxy</strong></td><td>OpenAI, Gemini</td><td>OpenAI uses <code>whisper-1</code>. Gemini offers the transcription model list, defaulting to the middle tier.</td></tr>
+  <tr><td><strong>AI Property Proxy</strong></td><td>OpenAI, Gemini, Anthropic</td><td>Each provider offers three tiers, sorted cheapest / fastest to most capable. The middle tier is the default.</td></tr>
 </table>
-<p>A single proxy powers <em>both</em> transcription and chat — there is no separate "transcription proxy" / "chat proxy" split. Anthropic is not supported here because Claude has no first-party speech-to-text endpoint.</p>
+<p>Changing a proxy to a different provider resets that route's model to the provider's default middle tier. Anthropic is available for AI property extraction and Ask AI, but not for transcription because Claude has no first-party speech-to-text endpoint.</p>
 
 <h3>Step 1 — Create a proxy in SuperAnnotate</h3>
 <ol>
   <li>Open <strong>SuperAnnotate → Team Settings → Security → Proxies</strong>.</li>
-  <li>Click <strong>Create Proxy</strong>. Give it a descriptive name (e.g. "OpenAI Audio Proxy").</li>
-  <li>Set <strong>Allowed domain</strong> to either <code>https://api.openai.com</code> or <code>https://generativelanguage.googleapis.com</code> — this is what determines the provider in this tool.</li>
+  <li>Click <strong>Create Proxy</strong>. Give it a descriptive name (e.g. "OpenAI Transcription Proxy" or "Anthropic AI Property Proxy").</li>
+  <li>Set <strong>Allowed domain</strong> to a supported provider domain — this is what determines where the proxy can be used in this tool.</li>
   <li>Under <strong>Secrets</strong>, add a header:
     <table>
-      <tr><th>Provider</th><th>Header key</th><th>Header value</th></tr>
-      <tr><td>OpenAI</td><td><code>authorization</code></td><td><code>Bearer sk-proj-…</code></td></tr>
-      <tr><td>Gemini</td><td><code>x-goog-api-key</code></td><td><code>AIza…</code></td></tr>
+      <tr><th>Provider</th><th>Allowed domain</th><th>Header key</th><th>Header value</th></tr>
+      <tr><td>OpenAI</td><td><code>https://api.openai.com</code></td><td><code>authorization</code></td><td><code>Bearer sk-proj-…</code></td></tr>
+      <tr><td>Gemini</td><td><code>https://generativelanguage.googleapis.com</code></td><td><code>x-goog-api-key</code></td><td><code>AIza…</code></td></tr>
+      <tr><td>Anthropic</td><td><code>https://api.anthropic.com</code></td><td><code>x-api-key</code></td><td><code>sk-ant-…</code></td></tr>
     </table>
   </li>
-  <li>Save the proxy and note its name — you'll select it in the next step.</li>
+  <li>Save each proxy and note its name — you'll select the transcription and AI-property routes separately in the next step.</li>
 </ol>
 <div class="doc-shortcuts-row">
   <img src="images/team-proxies.png" alt="Team Settings → Security → Proxies page with example proxies">
@@ -575,18 +579,25 @@ th { font-weight:600; background:var(--bg-alt); }
 </div>
 
 <h3>Step 2 — Select the proxy in configuration</h3>
-<p>In the configuration screen's <strong>AI Proxy Settings</strong> card, open the <strong>Select Proxy</strong> dropdown and pick the proxy you created. The dropdown is populated from your team's available proxies. A <strong>provider badge</strong> (OpenAI / Gemini) appears once a proxy is selected.</p>
-<p>Once a proxy is selected, a <strong>Model</strong> dropdown appears next to it. Three models are offered for each provider, sorted from cheapest/fastest to most capable — the middle option is selected by default. The currently available models are:</p>
+<p>In the configuration screen's <strong>AI Proxy Settings</strong> card, configure the two proxy rows independently:</p>
+<ul>
+  <li><strong>Transcription Proxy</strong> — choose an OpenAI or Gemini proxy, then select the transcription model. OpenAI exposes <code>whisper-1</code>; Gemini offers the Gemini transcription tiers.</li>
+  <li><strong>AI Property Proxy</strong> — choose an OpenAI, Gemini, or Anthropic proxy, then select the chat model used for AI properties and Ask AI.</li>
+</ul>
+<p>Each dropdown is populated from compatible team proxies only, based on the allowed domain. A provider badge appears once a proxy is selected. The currently available models are:</p>
 <table>
-  <tr><th>Provider</th><th>Models (cheapest → most capable)</th></tr>
-  <tr><td>OpenAI</td><td><code>gpt-5.4-nano</code>, <code>gpt-5.4-mini</code>, <code>gpt-5.5</code></td></tr>
-  <tr><td>Gemini</td><td><code>gemini-3.1-flash-lite</code>, <code>gemini-3.5-flash</code>, <code>gemini-3.1-pro-preview</code></td></tr>
+  <tr><th>Route</th><th>Provider</th><th>Models (cheapest → most capable)</th></tr>
+  <tr><td>Transcription</td><td>OpenAI</td><td><code>whisper-1</code></td></tr>
+  <tr><td>Transcription</td><td>Gemini</td><td><code>gemini-3.1-flash-lite</code>, <code>gemini-3.5-flash</code>, <code>gemini-3.1-pro-preview</code></td></tr>
+  <tr><td>AI Property</td><td>OpenAI</td><td><code>gpt-5.4-nano</code>, <code>gpt-5.4-mini</code>, <code>gpt-5.5</code></td></tr>
+  <tr><td>AI Property</td><td>Gemini</td><td><code>gemini-3.1-flash-lite</code>, <code>gemini-3.5-flash</code>, <code>gemini-3.1-pro-preview</code></td></tr>
+  <tr><td>AI Property</td><td>Anthropic</td><td><code>claude-haiku-4-5</code>, <code>claude-sonnet-4-6</code>, <code>claude-opus-4-7</code></td></tr>
 </table>
-<p>The selected model is used for property extraction chat calls and the Ask AI assistant. For OpenAI proxies, transcription always uses Whisper (<code>whisper-1</code>) regardless of the model selection. For Gemini proxies, the selected model handles both transcription and extraction. Changing the proxy to a different provider resets the model to that provider's default (middle tier). Annotators in the editor are not affected and do not see which model is active, except when a property has its own <a href="#config-ai-property-proxy-override" class="internal">proxy/model override</a>.</p>
+<p>The two routes can use different providers and models. For example, a project can transcribe with OpenAI Whisper and extract AI properties with Anthropic or Gemini. Annotators in the editor are not affected by the route split and do not see which model is active, except when a property has its own <a href="#config-ai-property-proxy-override" class="internal">proxy/model override</a>.</p>
 
 <h4 id="config-panel-bulk-ai-extraction">Bulk annotation panel extraction toggle</h4>
 <p>Below the AI Property Proxy card, the checkbox <strong>Allow Bulk Extraction of all AI Properties</strong> controls whether annotators see the panel-header bulk extract control in the editor (see <a href="#editor-ai-bulk-panel-extraction" class="internal">Bulk annotation panel extraction</a>). It is <strong>off by default</strong> — enable it when you want annotators to run AI extraction across every visible row in the annotation panel in one action. The toggle does not change single-property, row-level, or table-cell extract controls; it only exposes the all-rows shortcut. Works in both Instance View and Table View. Requires an AI Property Proxy to be configured (or at least one AI property with a per-property override and runnable empty values).</p>
-<div class="screenshot-placeholder">AI Proxy Settings card with a Select Proxy dropdown, Model dropdown, and a provider badge.</div>
+<div class="screenshot-placeholder">AI Proxy Settings card with separate Transcription Proxy and AI Property Proxy rows, each with Select Proxy, Model, and provider badge controls.</div>
 
 <h3>Troubleshooting</h3>
 <ul>
@@ -594,7 +605,7 @@ th { font-weight:600; background:var(--bg-alt); }
   <li><strong>"Failed to load proxies"</strong> — network error fetching the proxy list. Refresh and retry.</li>
   <li><strong>"No AI proxy configured"</strong> at runtime — return to configuration and pick a proxy.</li>
   <li><strong>"Media is too large for Gemini transcription"</strong> — Gemini's inline-data path has a ~12 MB ceiling per request. Use shorter clips or switch to an OpenAI proxy.</li>
-  <li><strong>Errors from the model itself</strong> — verify the API key on your provider's side (OpenAI or Gemini dashboard) — valid, not revoked, with remaining quota / billing in good standing.</li>
+  <li><strong>Errors from the model itself</strong> — verify the API key on your provider's side (OpenAI, Gemini, or Anthropic dashboard) — valid, not revoked, with remaining quota / billing in good standing.</li>
 </ul>
 <p>See <a href="#limits-api" class="internal">API &amp; Media Limits</a> for guidance when running auto-transcription or autofill across large datasets.</p>
 
@@ -660,7 +671,8 @@ th { font-weight:600; background:var(--bg-alt); }
 <h3 id="editor-layout-modes">Layout Conveniences</h3>
 <p>The <a href="#editor-top-toolbar" class="internal">top toolbar</a> exposes three layout helpers:</p>
 <ul>
-  <li><strong>Fullscreen</strong> — maximises the tool area within its host page to reduce visual clutter.</li>
+  <li><strong>Fullscreen</strong> (<kbd>F</kbd>) — maximises the tool area within its host page to reduce visual clutter.</li>
+  <li><strong>Fit video to view</strong> (<kbd>Shift+F</kbd>) — when the video viewport is zoomed, reset it back to the fitted view.</li>
   <li><strong>Dark mode toggle</strong> — flips the UI to a dark palette. The same preference is applied to this documentation popup.</li>
 </ul>
 
@@ -673,6 +685,7 @@ th { font-weight:600; background:var(--bg-alt); }
   <li><strong>URL-linked</strong> — the JSONL payload contains a <code>url</code> with a <code>urlKind</code> (<code>public</code>, <code>presigned</code>, or <code>integration</code>). The editor signs / fetches the URL on load. See <a href="#ie-jsonl-url" class="internal">URL-linked media</a>.</li>
 </ul>
 <p>Both kinds are equally annotatable. The difference is only <em>where the bytes come from</em> — the editor doesn't gate any feature on the source.</p>
+<p>Large media loads show progress in the player: first for the media download, then for waveform extraction when peaks are not already cached. The editor reuses in-flight loads and session-cached media / URLs / peaks, so switching tabs or entering Split View does not restart the same download.</p>
 
 <h3 id="editor-upload">In-Editor Upload</h3>
 <p>When the user's role is on the <a href="#config-access-control" class="internal">Upload Files</a> allow-list, the <strong>Upload</strong> button on the top toolbar opens the upload modal. The modal lets you drag or browse for files and shows an <em>"X of 10 files used"</em> indicator (the per-item cap is <strong>10 media files</strong>).</p>
@@ -702,6 +715,7 @@ th { font-weight:600; background:var(--bg-alt); }
 <ul>
   <li><strong>Adding files</strong> — use the <a href="#editor-upload" class="internal">Upload</a> button or drop new files into the item.</li>
   <li><strong>Per-file state</strong> — annotations, transcript, and media-scoped tags are stored per file. Item-scoped tags apply to the whole item regardless of which tab is active.</li>
+  <li><strong>Background loading</strong> — other file tabs can continue resolving URLs, downloading media, and preparing waveform peaks in the background. Once cached, returning to that tab is much faster.</li>
 </ul>
 
 <h3 id="editor-multifile-panel">Panel &amp; Annotations</h3>
@@ -731,7 +745,7 @@ th { font-weight:600; background:var(--bg-alt); }
   <li><strong>Split 0</strong> (default) — standard single-file editable view with tabs.</li>
   <li><strong>Split 1 / 2 / 3</strong> — renders all of the item's files as a grid that wide. Each cell is an independent mini-player with its own waveform, video frame, and controls.</li>
 </ul>
-<p>The toggle only appears when the item has more than one media file. The single-pane tab strip, playback controls, and transcript panel are hidden while Split View is active — each card owns its own loading state and chrome.</p>
+<p>The toggle only appears when the item has more than one media file. The single-pane tab strip, playback controls, and transcript panel are hidden while Split View is active — each card owns its own loading state and chrome, so slow files show progress on their own cards while ready files remain usable.</p>
 
 <h3 id="editor-split-card-anatomy">Card Anatomy</h3>
 <p>Every card in the grid contains:</p>
@@ -800,7 +814,7 @@ th { font-weight:600; background:var(--bg-alt); }
   <li><strong>Documentation</strong> — opens this popup.</li>
   <li><strong>Dark mode</strong> — toggles the UI palette (preference is saved per browser).</li>
   <li><strong>Video adjustments</strong> (when video is visible) — slider dropdown for Brightness, Contrast, Saturation, and Shape Opacity. See <a href="#editor-video-adjust" class="internal">Video Adjustments</a>.</li>
-  <li><strong>Fullscreen</strong> — expands the tool within its host.</li>
+  <li><strong>Fullscreen</strong> (<kbd>F</kbd>) — expands the tool within its host.</li>
   <li><strong>Undo / Redo</strong> — see <a href="#editor-undo-redo" class="internal">Undo / Redo</a>.</li>
 </ul>
 <div class="screenshot-placeholder">Top toolbar: tool / class selectors on the left; Upload, Download, Instructions, Split, shortcuts, docs, theme, adjust, fullscreen, undo, redo on the right.</div>
@@ -836,7 +850,7 @@ th { font-weight:600; background:var(--bg-alt); }
   <li><strong>Minimap</strong> — a compressed overview rendered below the waveform. Drag to scrub at large scale; useful for navigating long files at high zoom.</li>
   <li><strong>Multi-channel toggle</strong> — for stereo / multi-channel sources, the <strong>Toggle Multi-channel</strong> button stacks one waveform per channel. Off, channels are mixed into a single track.</li>
   <li><strong>Zoom in / out</strong> — buttons in the playback controls; useful for tightening in/out points on short events.</li>
-  <li><strong>Peaks file</strong> — on first decode, the editor uploads a small JSON peaks file alongside the media. Subsequent loads use it to render the waveform without re-decoding the full audio. See <a href="#ie-peaks" class="internal">Peaks Files</a>.</li>
+  <li><strong>Peaks file</strong> — on first decode, the editor uploads a small JSON peaks file alongside the media, including video files with a decodable audio track. Subsequent loads use it to render the waveform without re-decoding the full audio. See <a href="#ie-peaks" class="internal">Peaks Files</a>.</li>
 </ul>
 
 <h3 id="editor-video">Video Player</h3>
@@ -846,6 +860,7 @@ th { font-weight:600; background:var(--bg-alt); }
   <li><strong>Zoom and pan</strong> — mouse wheel zooms around the cursor; drag pans while zoomed. Overlay geometry stays aligned with the video under the transform.</li>
   <li><strong>Hide / Show Video</strong> — the <strong>Toggle Video</strong> button in the playback controls hides the video frame to reclaim vertical space when you're focused on waveform-only work; the audio keeps playing.</li>
   <li><strong>Overlay labels</strong> — toggled with <kbd>O</kbd> or the labels button: when on, hovering an annotation shows a small label chip with its class and primary text/value.</li>
+  <li><strong>Shape class names</strong> — toggled with <kbd>Shift+O</kbd> from the canvas label button: video boxes switch between number-only labels and class-name-plus-number labels.</li>
 </ul>
 <p>This tool is audio-first: it offers a single video canvas with axis-aligned box tracking. For frame-level video work — a frame panel, cuboids, rotated boxes, or per-instance visible ranges — use the dedicated <strong>Video Annotation Tool</strong>.</p>
 
@@ -871,11 +886,12 @@ th { font-weight:600; background:var(--bg-alt); }
   <li><strong>Toggle Multi-channel</strong> — stack channels or mix to mono.</li>
   <li><strong>Show / Hide Video</strong>.</li>
   <li><strong>Overlay labels</strong> (<kbd>O</kbd>).</li>
+  <li><strong>Shape class names</strong> (<kbd>Shift+O</kbd>, video canvas only).</li>
   <li><strong>Transcript</strong> — opens / closes the <a href="#editor-transcript" class="internal">transcript panel</a>.</li>
   <li><strong>Playback speed</strong> — dropdown with values from <code>0.25x</code> to <code>3x</code>.</li>
   <li><strong>Record Audio</strong> — when <a href="#config-audio-subsettings" class="internal">Recording</a> is enabled.</li>
 </ul>
-<p>Use <kbd>,</kbd> / <kbd>.</kbd> to seek 3 s back / forward and <kbd>&lt;</kbd> / <kbd>&gt;</kbd> for 10 s jumps. Press <kbd>M</kbd> to toggle mute. Press <kbd>Shift+Space</kbd> to play / pause even while typing in transcript or property fields. All shortcuts also work in <a href="#editor-split-view" class="internal">Split View</a>, where they target the focused card (or all cards in broadcast mode).</p>
+<p>Use <kbd>,</kbd> / <kbd>.</kbd> to seek 3 s back / forward and <kbd>&lt;</kbd> / <kbd>&gt;</kbd> for 10 s jumps. Press <kbd>M</kbd> to toggle mute. Press <kbd>O</kbd> to toggle overlay labels on hover, and press <kbd>Shift+O</kbd> on video items to toggle class names on shape labels. Press <kbd>F</kbd> to toggle fullscreen, and on video items press <kbd>Shift+F</kbd> to fit the zoomed video back to view. Press <kbd>Shift+Space</kbd> to play / pause even while typing in transcript or property fields. All shortcuts also work in <a href="#editor-split-view" class="internal">Split View</a>, where they target the focused card (or all cards in broadcast mode).</p>
 
 <hr>
 
@@ -1582,7 +1598,7 @@ th { font-weight:600; background:var(--bg-alt); }
 </ul>
 
 <h3 id="limits-api">API Rate Limits</h3>
-<p><a href="#editor-ai-autofill" class="internal">AI autofill</a> and <a href="#editor-transcript-autotr" class="internal">auto-transcription</a> calls are routed through your <a href="#config-ai-proxy" class="internal">AI proxy</a>, and the underlying provider (OpenAI or Gemini) enforces its own rate limits. Running autofill on hundreds of annotations back-to-back will eventually hit those limits — the tool surfaces the upstream error inline. Mitigations:</p>
+<p><a href="#editor-ai-autofill" class="internal">AI autofill</a> and <a href="#editor-transcript-autotr" class="internal">auto-transcription</a> calls are routed through your configured <a href="#config-ai-proxy" class="internal">AI proxies</a>, and the underlying provider enforces its own rate limits (OpenAI / Gemini for transcription; OpenAI / Gemini / Anthropic for AI property extraction). Running autofill on hundreds of annotations back-to-back will eventually hit those limits — the tool surfaces the upstream error inline. Mitigations:</p>
 <ul>
   <li>Fill properties in batches and pause briefly between batches.</li>
   <li>Prefer the <a href="#tips-transcript-link" class="internal">linked-transcript fast path</a> over per-segment audio extraction — it uses chat-tier quota only, not transcription quota.</li>
