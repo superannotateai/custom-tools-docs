@@ -404,7 +404,7 @@ th { font-weight:600; background:var(--bg-alt); }
 <img src="images/config-tag-list.png" alt="Tag list with tags like English, French, Needs-Review, Legal, Finance each with a color chip" style="width:100%; border-radius:8px; border:1px solid var(--border); margin:16px 0;">
 
 <h3 id="config-properties">Properties</h3>
-<p>Raw spans only tell a model <em>where</em> the entity is. Properties attach structured metadata — text, options, numbers, AI-generated content — to each span, turning bare spans into rich training samples. Property names must be unique within their class or tag (case-insensitive); duplicate or empty names are silently reverted on blur. There are six property types:</p>
+<p>Raw spans only tell a model <em>where</em> the entity is. Properties attach structured metadata — text, options, numbers, AI-generated content — to each span, turning bare spans into rich training samples. Property names must be unique within their class or tag (case-insensitive); duplicate or empty names are silently reverted on blur. There are seven property types:</p>
 <table>
   <tr><th>Type</th><th>What it captures</th><th>Example</th></tr>
   <tr><td><strong>Free Text</strong></td><td>Open-ended string input.</td><td>Notes, normalised forms, IDs, canonical spellings.</td></tr>
@@ -412,6 +412,7 @@ th { font-weight:600; background:var(--bg-alt); }
   <tr><td><strong>Select</strong></td><td>Predefined option list. Toggle <em>Allow multi-select</em> to switch between dropdown (single) and checkbox (multi) behaviour.</td><td>Sentiment, polarity, multi-label classification, attribute tagging.</td></tr>
   <tr><td><strong>AI Select</strong></td><td>Select field whose options are auto-chosen by the configured <a href="#config-ai-proxy" class="internal">AI proxy</a> (or an optional <a href="#config-ai-property-proxy-override" class="internal">per-property override</a>) from the span and document context. Combines a predefined option list with AI-driven pre-selection. A per-property <strong>default prompt</strong> guides the extraction. See <a href="#editor-ai-autofill" class="internal">AI Autofill</a>.</td><td>Auto-classification, sentiment, topic categorisation, attribute tagging.</td></tr>
   <tr><td><strong>Numeric</strong></td><td>Number input with optional <code>min</code>, <code>max</code>, <code>step</code>, and <code>unit</code>.</td><td>Confidence score, severity rating, count.</td></tr>
+  <tr><td><strong>Rating</strong></td><td>Star picker backed by a numeric string value. Admins choose the maximum star count (3–10, default 5); <code>1</code> is the lowest selectable rating and empty / absent means unset. No AI hookup.</td><td>Review quality, subjective confidence, usefulness or severity stars.</td></tr>
   <tr><td><strong>Approval</strong></td><td>Three-state verdict captured via a compact thumbs-up / thumbs-down picker. Stores <code>"true"</code> when approved, <code>"false"</code> when disapproved, and is omitted (or set to blank) when no verdict has been given. Carries no options, no AI configuration, and no numeric or text-display options.</td><td>Reviewer sign-off, span-level QA verdict, accept/reject for an extracted entity.</td></tr>
 </table>
 <p>Common property options:</p>
@@ -443,7 +444,7 @@ th { font-weight:600; background:var(--bg-alt); }
 
 <h3 id="config-property-rules">Property Visibility Rules</h3>
 <p>A property visibility rule controls whether an <strong>entire property</strong> is visible and editable on a given NER instance or tag, based on the value of one or more sibling Select / AI Select properties. Use this when a whole field only makes sense in a specific context — e.g. only show "Treatment Dose" when "Has Treatment" is "Yes", or only show "Sub-category" when "Category" is "Clinical". This is the property-scope equivalent of <a href="#config-option-rules" class="internal">option visibility rules</a>: option rules hide individual <em>options</em> inside a Select; property rules hide the <em>whole property</em>.</p>
-<p>Property visibility rules can be set on <strong>any</strong> property type (not just Select / AI Select). A Free Text, Numeric, AI Text, AI Select, Select, or Approval property can all be gated by a rule. The controller must still be a sibling Select-like property in the same class or tag class.</p>
+<p>Property visibility rules can be set on <strong>any</strong> property type (not just Select / AI Select). A Free Text, Numeric, Rating, AI Text, AI Select, Select, or Approval property can all be gated by a rule. The controller must still be a sibling Select-like property in the same class or tag class.</p>
 
 <h4>Setting Up a Rule</h4>
 <ol>
@@ -975,7 +976,7 @@ th { font-weight:600; background:var(--bg-alt); }
 <p>Toggle to Table View for a spreadsheet-style grid: one row per instance, one column per property. This is the fastest way to scan and edit properties across many instances at once, and ideal for bulk <a href="#editor-ai-autofill" class="internal">AI autofill</a> review.</p>
 <ul>
   <li>Columns adapt to the class of each row — properties not defined on a class show as empty cells.</li>
-  <li>Sort by any column; filter via column headers. <strong>Approval</strong> columns offer a fixed three-state picker — <em>Approved</em>, <em>Disapproved</em>, <em>(Blank)</em> — regardless of which states currently appear in the data, so you can always pre-filter for "no verdict yet" before any rows have been approved.</li>
+  <li>Sort by any column; filter via column headers. <strong>Rating</strong> columns use the same numeric min/max filter as Numeric. <strong>Approval</strong> columns offer a fixed three-state picker — <em>Approved</em>, <em>Disapproved</em>, <em>(Blank)</em> — regardless of which states currently appear in the data, so you can always pre-filter for "no verdict yet" before any rows have been approved.</li>
   <li>Inline edit each cell; changes <a href="#ie-autosave" class="internal">auto-save</a> immediately.</li>
   <li><strong>AI extraction column</strong> (Table View) — when a class or text-scoped tag has AI Text / AI Select properties, the table adds a leading <strong>AI</strong> column with <strong>row-level</strong> actions: <strong>Extract</strong> (all empty, runnable AI properties on that row) and, when <a href="#config-properties" class="internal">Enable Editing</a> is on, <strong>Edit prompt</strong>. These mirror the action bar at the top of the property popover.</li>
   <li><strong>Per-property extract icons</strong> (Table View) — individual AI Text and AI Select cells also show compact extract (and optional edit-prompt) icons beside the field, matching the per-property icons beside each AI field label in the property popover.</li>
@@ -1007,6 +1008,7 @@ th { font-weight:600; background:var(--bg-alt); }
   <li><strong>Select</strong> — always a dropdown; the <em>Allow multi-select</em> property option controls whether one or multiple options can be picked at the same time.</li>
   <li><strong>AI Select</strong> — dropdown with predefined options, pre-selected by <a href="#editor-ai-autofill" class="internal">AI autofill</a> through the same single-property, row-level, or bulk panel entry points. The model picks from the configured option list based on the span and document context. Manual override is always possible; when <a href="#config-properties" class="internal">Enable Editing</a> is on, annotators can also tweak the prompt before extraction.</li>
   <li><strong>Numeric</strong> — number input with optional bounds and unit.</li>
+  <li><strong>Rating</strong> — orange/gold star picker rendered in the popover, Table View cell, and bulk edit dialog. Click a star to store that number; click the currently selected star again to clear the value. Hover previews fill from the first star through the hovered star. Required-and-empty editable ratings get the same thin red wrapper outline as Approval. View-only access keeps the palette but dims the stars and disables clicks. Table search matches the displayed number.</li>
   <li><strong>Approval</strong> — a compact two-button picker (thumbs-up / thumbs-down) for capturing a three-state verdict. Click the up icon to mark the row <em>approved</em> (stores <code>"true"</code>), the down icon to mark it <em>disapproved</em> (<code>"false"</code>); clicking the active icon again clears the verdict, and clicking the opposite icon swaps the verdict in place. Both surfaces — the property popover and the Table View cell — render the same picker, and changes flip on click without needing to dismiss the popover or refresh the panel. In view-only contexts (role lacks edit access, class is view-only) the icons keep their green / red palette but read as dimmed so the verdict is still legible at a glance; the buttons are not interactive. Approval columns are <strong>excluded from the table's free-text search</strong> — filter by verdict via the column dropdown's three-state picker instead.</li>
   <li><strong>Required indicator</strong> — required properties are visually flagged when empty so incomplete instances are easy to spot.</li>
 </ul>
@@ -1063,7 +1065,7 @@ th { font-weight:600; background:var(--bg-alt); }
 <p>Configurations defined as <a href="#config-property-rules" class="internal">property visibility rules</a> and <a href="#config-option-rules" class="internal">option visibility rules</a> are evaluated and enforced live as the annotator works — there's no separate "validate" step, and the same logic applies in both the floating property popover and the table view.</p>
 
 <h4>Property Visibility Rules — apply to any property type</h4>
-<p>A property visibility rule can be set on <strong>any</strong> property type (Free Text, AI Text, Select, AI Select, Numeric, Approval — all of them). When the rule is unsatisfied for the current row, the whole field is treated as inaccessible:</p>
+<p>A property visibility rule can be set on <strong>any</strong> property type (Free Text, AI Text, Select, AI Select, Numeric, Rating, Approval — all of them). When the rule is unsatisfied for the current row, the whole field is treated as inaccessible:</p>
 <ul>
   <li>The field still renders in the popover and as a table column so annotators can see the field exists, but it's <strong>dimmed and read-only</strong>, with a <em>not-allowed</em> cursor and a hover tooltip explaining what controls it (e.g. "Controlled by: Material = Wood").</li>
   <li>Any stored value on that property is <strong>automatically cleared</strong> the moment the rule flips to unsatisfied — and the clear cascades, so if A controls B and B controls C, changing A can clear both B and C in a single step.</li>
@@ -1436,6 +1438,7 @@ th { font-weight:600; background:var(--bg-alt); }
 <ul>
   <li><strong>Free Text / AI Text</strong> — the raw string value.</li>
   <li><strong>Numeric</strong> — the number serialised as a string.</li>
+  <li><strong>Rating</strong> — the selected star count serialised as a string (<code>"1"</code> through the configured max); the key is omitted when unset.</li>
   <li><strong>Select / AI Select (single)</strong> — the option label.</li>
   <li><strong>Select / AI Select (multi)</strong> — option labels joined with <code>", "</code>.</li>
   <li><strong>Approval</strong> — the literal string <code>"true"</code> when approved or <code>"false"</code> when disapproved. The key is <em>omitted</em> from <code>propertyValues</code> when no verdict has been given (rather than being written as an empty string), matching how other property types treat blank values.</li>
