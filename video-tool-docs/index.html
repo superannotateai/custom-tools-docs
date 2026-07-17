@@ -616,7 +616,7 @@ th { font-weight:600; background:var(--bg-alt); }
 <h2 id="config-advanced">Advanced Settings</h2>
 <p>Advanced Settings contains project-wide behaviour choices, primarily for video-heavy workflows:</p>
 <ul>
-  <li><strong>Video loading behavior</strong> — choose between <em>Streaming</em> (starts playback immediately from the source URL) and <em>Full download</em> (downloads the entire file before playing). Streaming is faster for large videos. If the video source does not support streaming, the editor automatically falls back to a full download. This setting applies to both timeline and frame panel modes.</li>
+  <li><strong>Video Loading</strong> — sets how each video starts. <strong>Download First</strong> (default) downloads the whole file (with a progress bar) before playback, giving the most reliable seeking and frame stepping; <strong>Stream First</strong> starts playback sooner by streaming from the source. Each file adapts to its host: a <em>Download First</em> file whose host blocks cross-origin downloads (CORS) <strong>falls back to streaming</strong>, and a <em>Stream First</em> file whose host doesn't support range requests <strong>falls back to a full download</strong> (needed for reliable seeking). On any fallback, a <strong>toast</strong> appears — stacking for multiple files, shown regardless of the active file or view — and a persistent <strong>yellow warning icon</strong> marks the file: left of the card title in <a href="#editor-split-view" class="internal">Split View</a>, left of the mute button in single view, with a hover tooltip explaining why. Cross-origin (CORS-blocked) videos still play and annotate normally; only frame extraction may be limited. Applies to both timeline and frame panel modes.</li>
   <li><strong>Split frame seek fallback FPS</strong> — used only when a video has no imported frame metadata and no per-video FPS value; exact frame timestamps and per-video FPS metadata take priority.</li>
   <li><strong>FPS Control</strong> — controls whether annotators can edit the FPS field in the Frame Panel. When off, the field is still visible but disabled: it shows the stored per-video FPS when present, otherwise the project fallback FPS.</li>
 </ul>
@@ -735,7 +735,7 @@ th { font-weight:600; background:var(--bg-alt); }
   <li><strong>Split 0</strong> (default) — standard single-file editable view with tabs.</li>
   <li><strong>Split 1 / 2 / 3</strong> — renders all of the item's files as a grid that wide. Each cell is an independent mini-player with its own video frame and controls.</li>
 </ul>
-<p>The toggle only appears when the item has more than one video file. The single-pane tab strip, playback controls, and wide-view toggle are hidden while Split View is active — each card owns its own loading state and chrome. In full-download mode, cards show download progress before mounting; in streaming mode, they show metadata loading until ready. The editor reuses cached / resolved video state when moving between Split View and single view, so tabs and cards can continue loading in the background without losing their playhead or overlays when they become ready.</p>
+<p>The toggle only appears when the item has more than one video file. The single-pane tab strip, playback controls, and wide-view toggle are hidden while Split View is active — each card owns its own loading state and chrome, following the project's <a href="#config-advanced" class="internal">Video Loading</a> mode. The editor reuses cached / resolved video state when moving between Split View and single view, so tabs and cards can continue loading in the background without losing their playhead or overlays when they become ready.</p>
 
 <h3 id="editor-split-card-anatomy">Card Anatomy</h3>
 <p>Every card in the grid contains:</p>
@@ -1420,12 +1420,8 @@ th { font-weight:600; background:var(--bg-alt); }
   <tr><td><strong>name2id.json</strong></td><td>Reference mapping: class names → IDs (with their tool type), property names → IDs, tag class names → IDs, relationship type names → IDs, and (when configured) <a href="#config-item-context" class="internal">Item Context</a> slot names → IDs under the <code>itemContext</code> key.</td></tr>
   <tr><td><strong>annotations.jsonl</strong></td><td>One-line JSONL in the same shape accepted by <a href="#ie-jsonl-import" class="internal">JSONL Import</a>.</td></tr>
 </table>
-<p>For multi-file items, when the user manually uploaded a video file (rather than it arriving by URL) and the bytes are still fetchable, the ZIP additionally includes:</p>
-<ul>
-  <li>A <code>files/</code> directory with the original video bytes under their display name.</li>
-</ul>
-<p>URL-linked video is skipped in the <code>files/</code> directory — the source lives outside the tool, so re-exporting it would defeat the linkage.</p>
-<div class="screenshot-placeholder">File download dialog showing annotations.zip with annotations.json, name2id.json, annotations.jsonl, and a files/ folder for multi-file items.</div>
+<p>The ZIP does not include original video bytes. Per-file URL references and uploaded-file metadata remain in <code>annotations.json</code> and <code>annotations.jsonl</code>, so imports retain the source information.</p>
+<div class="screenshot-placeholder">File download dialog showing annotations.zip with annotations.json, name2id.json, and annotations.jsonl.</div>
 
 <h3 id="ie-export-tags">Tags</h3>
 <p>Tags are split into two scopes in the export:</p>
@@ -1505,6 +1501,30 @@ th { font-weight:600; background:var(--bg-alt); }
   <li><strong>Empty strings are valid values</strong> — they represent "user explicitly cleared the field". The <code>itemContext</code> key is omitted from the output entirely only when the merged map is empty.</li>
   <li><strong>JSONL upload</strong> — the same <code>itemContext</code> shape is accepted on the inbound side. Use the <code>itemContext</code> mapping in <code>name2id.json</code> to translate human-readable slot names to ids when authoring upload payloads.</li>
 </ul>
+
+<hr>
+
+<h2 id="ie-explore-keys">Explore Keys</h2>
+<p>The tool automatically publishes four top-level summary values on every item — <code>instance_count</code>, <code>comment_state</code>, <code>class_list</code>, and <code>valid</code> — surfaced to the SuperAnnotate <strong>Explore</strong> view so you can search, filter, and sort items by their annotation state. They are computed for you and written alongside the item's annotation data; there is nothing to configure.</p>
+
+<table>
+  <tr><th>Key</th><th>Type</th><th>What it captures</th></tr>
+  <tr><td><code>instance_count</code></td><td>Number</td><td>Total number of annotation instances in the item. Tags are not counted. It is <code>0</code> for an item with no annotations.</td></tr>
+  <tr><td><code>comment_state</code></td><td>String</td><td>The combined comment status across every row (instances and tags): <code>"Unresolved"</code> if any comment thread is unresolved; otherwise <code>"Resolved"</code> if there is at least one comment and all are resolved; otherwise <code>"None"</code> when there are no comments at all.</td></tr>
+  <tr><td><code>class_list</code></td><td>String array</td><td>The sorted, de-duplicated list of class names that have at least one instance in the item (based on instances, not tags). A class appears once no matter how many instances it has, and drops off when its last instance is removed. Deleted / unknown classes are omitted.</td></tr>
+  <tr><td><code>valid</code></td><td>String</td><td>A completeness gate for the current user: <code>"True"</code> when every <strong>required</strong> property they can edit has been filled, or <code>""</code> (empty) when at least one is still missing. Covers required properties on both instances and tags.</td></tr>
+</table>
+
+<div class="callout"><strong>No setup required.</strong> These keys are registered and computed by the tool itself — you don't add them in the Explore key configuration, they appear automatically. They are calculated the moment an item opens and kept up to date as you work (creating or deleting instances, changing classes, editing comments, filling required properties, undo / redo, and so on), then written on the next save.</div>
+
+<p>A few details worth knowing:</p>
+<ul>
+  <li><strong><code>valid</code> gates submission.</strong> It is registered as a <em>required</em> Explore key, so the platform blocks an item's status change by non-Admin users until the value is truthy (<code>"True"</code>). An empty value (<code>""</code>) prevents submission.</li>
+  <li><strong><code>valid</code> is per-user / per-role.</strong> It reflects what the <em>current</em> user can see and edit — properties on hidden or view-only classes, or rows hidden by isolation rules, never count against them. Because required fields can differ by role, the same item can read <code>"True"</code> for an annotator and <code>""</code> for a reviewer who has additional required fields to fill.</li>
+  <li><strong>Opening an item is non-destructive.</strong> Simply viewing an item does not create an unsaved change. The one exception is a safety case: if an item was stored as <code>"True"</code> but is no longer complete for the user who just opened it, <code>valid</code> is corrected to <code>""</code> and saved immediately, so an incomplete item can't be submitted by mistake.</li>
+</ul>
+
+<div class="callout"><strong>Time-based properties &amp; <code>valid</code>.</strong> A required <strong>time-based</strong> property counts as complete only when it has a starting value <em>and</em> is never cleared at any keyframe within the instance's visible range — a blank gap anywhere in that range leaves the item incomplete. Emptiness <em>outside</em> the visible range never counts against <code>valid</code> (the property isn't editable there). This whole-range check is what drives <code>valid</code> and the annotation panel's required indicator; the per-frame red outline in the property modal and table still reflects the value at the current frame only.</div>
 
 <hr>
 
@@ -1626,7 +1646,7 @@ th { font-weight:600; background:var(--bg-alt); }
 <p>Best in Chrome and Edge (Chromium), where the video decode and frame-stepping paths are most reliable. Safari and Firefox are supported with minor rendering differences (especially around video overlay positioning and frame-accurate seeking).</p>
 
 <h3 id="limits-multifile">Multi-File Cap</h3>
-<p>An item holds up to <strong>10 video files</strong> (<code>MAX_VIDEO_FILES = 10</code>). Beyond that, additional uploads are rejected with a banner. If your workflow regularly hits this cap, split sessions into separate items rather than packing everything in one.</p>
+<p>An item supports up to <strong>10 video files</strong> (<code>MAX_VIDEO_FILES = 10</code>). Additional in-editor uploads beyond that limit are rejected. If imported item data contains more than 10 video files, the editor does not open a partial item: it shows an unsupported-item message and leaves the stored data unchanged. Reduce the source item to the supported limit before opening it here. If your workflow regularly hits this cap, split sessions into separate items rather than packing everything in one.</p>
 
 <h3 id="limits-gemini-size">Gemini Inline-Data Limit</h3>
 <p>Gemini's <code>inline_data</code> path used for AI calls has a request-size ceiling around 20 MB; the editor enforces a safer <strong>~12 MB</strong> per call to leave room for base64 bloat and JSON wrapping. Calls over this cap fail upfront with a clear error message. Mitigations:</p>
@@ -1765,6 +1785,7 @@ const navData = {
       { id: 'ie-export-comments', label: 'Comments' },
       { id: 'ie-export-item-context', label: 'Item Context' },
     ]},
+    { id: 'ie-explore-keys', label: 'Explore Keys' },
     { id: 'ie-autosave', label: 'Auto-Save' },
   ],
   solutions: [
