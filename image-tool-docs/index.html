@@ -875,6 +875,7 @@ th { font-weight:600; background:var(--bg-alt); }
   <tr><td>DICOM / NIfTI</td><td>Medical volumes — each slice becomes a frame</td></tr>
 </table>
 <p>You can also <strong>drag-and-drop</strong> images directly onto the canvas, or pre-load images via <a href="#import-jsonl" class="internal">JSONL import</a>.</p>
+<p><strong>Upload failures:</strong> each extracted or directly added frame is retried automatically up to three total upload attempts. When a batch still has failures, the persistent upload message reports the failed count and provides a <strong>Retry failed</strong> action. Failed frames remain visible and retryable while the current browser session still holds their source files, but they are not written into item data or exports because their temporary browser URLs cannot survive a reload. Reloading therefore discards incomplete frames while keeping every confirmed upload.</p>
 
 <h3>Frame Navigation</h3>
 <ul>
@@ -1398,7 +1399,7 @@ th { font-weight:600; background:var(--bg-alt); }
 <p>Teams with existing datasets need to load pre-organized images programmatically. JSONL (one JSON object per line) is the standard import format — each line becomes one item in the project, optionally pre-loaded with images and annotations. Data engineers prepare datasets; annotators open them ready to work.</p>
 
 <h3 id="import-payload-shape">Schema</h3>
-<p><strong>Minimum required keys:</strong> <code>metadata.name</code> and <code>data.image_annotation_tool.value.images</code> with at least one entry. Each image entry must have a <code>name</code> and a <code>url</code> (or, for editor-uploaded frames, an <code>uploadedFile</code> block — see <a href="#import-uploaded-files" class="internal">below</a>). Everything else — <code>urlKind</code>, <code>instances</code>, <code>tags</code>, <code>status</code>, <code>itemTags</code> — is optional and can be added incrementally.</p>
+<p><strong>Minimum required keys:</strong> <code>metadata.name</code> and either a non-empty <code>data.image_annotation_tool.value.images</code> array or a <code>sources</code> array for first-open extraction. Each image entry must have a <code>name</code> and <strong>exactly one source</strong>: a non-empty <code>url</code> for a linked image, or an <code>uploadedFile</code> block for a SuperAnnotate-uploaded image. Never provide both. Everything else — <code>urlKind</code>, <code>instances</code>, <code>tags</code>, <code>status</code>, <code>itemTags</code> — is optional and can be added incrementally.</p>
 <pre>{
   "metadata": { "name": "item_name" },
   "data": {
@@ -1440,40 +1441,38 @@ th { font-weight:600; background:var(--bg-alt); }
 }</pre>
 
 <h3 id="import-url-kinds">Image URL Kinds</h3>
-<p>Every image carries a <code>url</code>; how the editor resolves it depends on the optional <code>urlKind</code> field. Five kinds are supported, mirroring the SuperAnnotate platform's URL classifier:</p>
+<p>Every <strong>linked</strong> image carries a <code>url</code>; how the editor resolves it depends on the optional <code>urlKind</code> field. Uploaded images carry <code>uploadedFile</code> instead of <code>url</code>. Five kinds are supported:</p>
 <table>
   <tr><th>urlKind</th><th>Meaning</th><th>Resolution</th></tr>
   <tr><td><code>public</code></td><td>External public URL</td><td>Used as-is, never signed.</td></tr>
   <tr><td><code>presigned</code></td><td>Already-signed URL (AWS / GCS / Azure)</td><td>Used as-is. Set <code>expiresAt</code> (epoch ms) if known so the editor can warn about TTL.</td></tr>
   <tr><td><code>integration</code></td><td>Private path in an integration-linked bucket</td><td>Signed by SuperAnnotate using the current item's <code>integration_id</code>.</td></tr>
   <tr><td><code>asset</code></td><td>Path inside the current item's storage</td><td>Signed via SuperAnnotate's <code>signUrls</code> primitive.</td></tr>
-  <tr><td><code>uploaded</code></td><td>File uploaded via SuperAnnotate (paired with <code>uploadedFile</code> metadata)</td><td>Resolved through <code>SaSdk.getFileUrl</code>. <code>url</code> can be empty for these — only <code>uploadedFile.uniqueName</code> is required.</td></tr>
+  <tr><td><code>uploaded</code></td><td>File uploaded via SuperAnnotate (paired with <code>uploadedFile</code> metadata)</td><td>Descriptive metadata for users and exports. Processing identifies the source from <code>uploadedFile</code> and resolves it through <code>SaSdk.getFileUrl</code>; no <code>url</code> is stored.</td></tr>
 </table>
 <p>If you omit <code>urlKind</code>, the editor classifies the URL automatically: <code>blob:</code> / <code>data:</code> URLs become <code>public</code>; URLs with cloud-provider signature query params (AWS SigV4, GCS, Azure SAS) become <code>presigned</code>; everything else falls back to <code>asset</code>, which is routed through SuperAnnotate's signing path.</p>
 <div class="callout"><strong>Default behaviour:</strong> Plain HTTP(S) URLs without a recognisable presign signature are <strong>treated as <code>asset</code> and signed</strong> — this is the same code path as <code>integration</code> URLs. If you are providing genuinely public URLs (e.g. <code>https://upload.wikimedia.org/...</code>) you <strong>must</strong> set <code>"urlKind": "public"</code> explicitly, otherwise the signing step will fail and the image will not load. The same applies to <code>presigned</code> URLs whose signature parameters don't match the well-known patterns.</div>
 
 <h3 id="import-uploaded-files">Uploaded Files</h3>
-<p>For images the user has uploaded inside the editor (or via SuperAnnotate's upload pipeline), the frame carries an <code>uploadedFile</code> block alongside <code>urlKind: "uploaded"</code>:</p>
+<p>For images uploaded inside the editor (including frames extracted from PDF, video, DICOM, NIfTI, or <code>sources[]</code>), the frame carries an <code>uploadedFile</code> block alongside descriptive <code>urlKind: "uploaded"</code>. It does not carry a <code>url</code>:</p>
 <pre>{
   "name": "captured.jpg",
-  "url": "",
   "urlKind": "uploaded",
   "uploadedFile": {
     "uniqueName": "abc123-captured.jpg",
     "fileName": "captured.jpg",
     "fileType": "image/jpeg"
   },
-  "manualUpload": true,
   "instances": [ /* … */ ]
 }</pre>
 <ul>
   <li><code>uniqueName</code> is the platform-side identifier the editor uses to fetch the bytes.</li>
-  <li><code>manualUpload: true</code> marks frames that the annotator added in-editor (vs. JSONL-supplied), so QA tools can distinguish them.</li>
+  <li><code>urlKind: "uploaded"</code> is retained for readability, but <code>uploadedFile</code> alone determines that the frame is an uploaded source.</li>
 </ul>
 
 <h3 id="import-jsonl-keys">Key Details</h3>
 <ul>
-  <li>Each <strong>image frame</strong>: <code>name</code> (display label), <code>url</code> + optional <code>urlKind</code> (see above), optional <code>uploadedFile</code>, optional <code>instances</code>, optional per-frame <code>tags</code> (image-scope tag values), and optional <code>status</code> (one of the <a href="#editor-status-management" class="internal">frame statuses</a>).</li>
+  <li>Each <strong>image frame</strong>: <code>name</code> (display label), exactly one of <code>url</code> or <code>uploadedFile</code>, optional <code>urlKind</code> (see above), optional <code>instances</code>, optional per-frame <code>tags</code> (image-scope tag values), and optional <code>status</code> (one of the <a href="#editor-status-management" class="internal">frame statuses</a>).</li>
   <li><strong>itemTags</strong> at the value root carry <a href="#config-tags" class="internal">item-scope tag values</a> shared across the whole item.</li>
   <li><strong>itemContext</strong> at the value root carries <a href="#config-item-context" class="internal">Item Context</a> values as a map of <code>{ slotId: string }</code> — see <a href="#ie-export-item-context" class="internal">Item Context</a> for the shape and the orphan-key rules.</li>
   <li><strong>Instance fields</strong>: <code>id</code>, <code>classId</code> (references a <a href="#config-classes" class="internal">class ID</a>), <code>type</code>, shape data (<a href="#import-format-bbox" class="internal"><code>bbox</code></a>, <a href="#import-format-polygon" class="internal"><code>points</code></a>, <a href="#import-format-mask" class="internal"><code>mask</code></a>, <a href="#import-format-keypoint" class="internal"><code>keypoints</code></a>, <a href="#import-format-obbox" class="internal"><code>obbox</code></a>, <code>cuboid</code>), <code>propertyValues</code> (keys are <a href="#config-properties" class="internal">property IDs</a>), optional <code>comments</code>, <code>relationships</code>, <code>createdBy</code>, <code>createdAt</code>. See <a href="#import-format" class="internal">Annotation Format Reference</a> for exact shapes.</li>
@@ -1560,9 +1559,9 @@ th { font-weight:600; background:var(--bg-alt); }
 <ul>
   <li><strong>Sequential per item.</strong> Sources are processed one at a time in the order they appear in the JSONL. While processing is active, the editor shows a persistent banner — <em>"Processing source 1/3…"</em> when there's more than one, or simply <em>"Processing source…"</em> for a single source. This banner mirrors the existing in-editor video / PDF / DICOM upload toast so users see the same UX whether the file came from JSONL or from a manual upload.</li>
   <li><strong>Frame naming.</strong> Extracted frames are named <code>&lt;base&gt;_&lt;NNNNN&gt;.jpg</code> with a 5-digit zero-padded index (e.g. <code>clip_00001.jpg</code>, <code>clip_00002.jpg</code>, …). The same convention is used across PDF / video / DICOM / NIfTI — downstream tooling sees one consistent naming scheme.</li>
-  <li><strong>Frames are uploaded as the item's own assets</strong> through the same upload pool used by manual uploads, so per-frame retries / progress / error styling all carry over. Once uploaded, frames behave identically to <code>"urlKind": "uploaded"</code> entries from manual uploads.</li>
+  <li><strong>Frames are uploaded as the item's own assets</strong> through the same upload pool used by in-editor uploads, so per-frame retries / progress / error styling all carry over. Confirmed frames are persisted with <code>uploadedFile</code> and descriptive <code>"urlKind": "uploaded"</code>, without a redundant <code>url</code>.</li>
   <li><strong>Retries.</strong> Fetch and extraction failures are retried up to 2 times in the same session. After the third failure (or for unsupported formats) a persistent error toast appears — <em>"Source might be invalid or inaccessible — please contact your admin."</em> — and the source is left with <code>"processed": false</code>.</li>
-  <li><strong>One-shot processing.</strong> Once frames are extracted and appended, the source is marked <code>"processed": true</code> and persisted back to the item value. If individual frame uploads fail later, those failures are tracked per-frame (the source itself stays processed). This matches the in-editor upload behaviour where partial upload failures don't trigger re-extraction. To force re-processing, manually edit the JSONL to remove <code>"processed": true</code> (or remove the source entry and add it again).</li>
+  <li><strong>One-shot processing.</strong> Once frames are extracted and appended, the source is marked <code>"processed": true</code> and persisted back to the item value. If individual frame uploads fail, they remain available for retry during the current session but are omitted from storage and disappear on reload; the source itself stays processed, so partial failures do not trigger automatic re-extraction. To force re-processing, manually edit the JSONL to remove <code>"processed": true</code> (or remove the source entry and add it again).</li>
   <li><strong>Source URL is preserved.</strong> The full <code>sources</code> array — including <code>processed</code> flags — appears in both the live <a href="#editor-image-management" class="internal">download preview</a> and the <a href="#import-export" class="internal">downloaded</a> <code>annotations.json</code> / <code>annotations.jsonl</code>, so re-imports preserve the lineage.</li>
 </ul>
 <div class="callout"><strong>Tip:</strong> For very large videos, prefer reducing <code>fps</code> over increasing the cap. The 1000-frame ceiling exists because per-frame upload + per-frame editor state has measurable cost; downsampling a 10-minute clip to 1 fps gives you 600 frames covering the full duration, which is almost always more useful than the first 1000 frames at 5 fps.</div>
@@ -1833,10 +1832,18 @@ mask: { "counts": [4, 2, 1, 2, 3], "size": [3, 4] }</pre>
 <h3 id="ie-export-structure">annotations.zip Contents</h3>
 <table>
   <tr><th>File</th><th>Purpose</th></tr>
-  <tr><td><strong>annotations.json</strong></td><td>Complete annotation state — all <a href="#editor-image-management" class="internal">images</a> with their instances, per-frame <a href="#config-tags" class="internal">tags</a>, <a href="#editor-status-management" class="internal">frame status</a>, URL metadata (<code>url</code>, <code>urlKind</code>, <code>uploadedFile</code>), item-level <a href="#config-tags" class="internal">itemTags</a>, <a href="#config-item-context" class="internal">itemContext</a>, and any <a href="#import-sources" class="internal">sources</a> the item was built from (with their <code>processed</code> flags preserved). For custom processing pipelines.</td></tr>
+  <tr><td><strong>annotations.json</strong></td><td>Complete durable annotation state — all confirmed <a href="#editor-image-management" class="internal">images</a> with their instances, per-frame <a href="#config-tags" class="internal">tags</a>, <a href="#editor-status-management" class="internal">frame status</a>, canonical source metadata (exactly one of <code>url</code> or <code>uploadedFile</code>), item-level <a href="#config-tags" class="internal">itemTags</a>, <a href="#config-item-context" class="internal">itemContext</a>, and any <a href="#import-sources" class="internal">sources</a> the item was built from (with their <code>processed</code> flags preserved). For custom processing pipelines.</td></tr>
   <tr><td><strong>name2id.json</strong></td><td>Maps <a href="#config-classes" class="internal">class</a> names → IDs, <a href="#config-tags" class="internal">tag</a> names → IDs, <a href="#config-properties" class="internal">property</a> names → IDs, <a href="#config-skeleton" class="internal">keypoint</a> names → IDs, <a href="#config-feature-control" class="internal">relationship type</a> names → IDs, and (when configured) <a href="#config-item-context" class="internal">Item Context</a> slot names → IDs under the <code>itemContext</code> key. Use as a reference when building <a href="#import-jsonl" class="internal">JSONL imports</a>.</td></tr>
   <tr><td><strong>annotations.jsonl</strong></td><td>Single-line JSONL in the <a href="#import-jsonl" class="internal">import format</a>. Ready to re-import into another project — zero reformatting.</td></tr>
 </table>
+<p>The on-screen annotations preview, <code>annotations.json</code>, and <code>annotations.jsonl</code> all serialize image frames through the same canonical source rules. Session-only failed uploads are omitted consistently from all three surfaces.</p>
+
+<h3 id="ie-export-frame-sources">Frame Sources</h3>
+<ul>
+  <li><strong>Linked frame:</strong> exports <code>url</code> and optional linked <code>urlKind</code>; it never exports <code>uploadedFile</code>.</li>
+  <li><strong>Uploaded frame:</strong> exports <code>uploadedFile</code> and <code>urlKind: "uploaded"</code>; it never exports <code>url</code>.</li>
+  <li><strong>Legacy cleanup:</strong> when an old uploaded frame contains both source fields, <code>uploadedFile</code> wins and the redundant <code>url</code> is dropped.</li>
+</ul>
 
 <h3 id="ie-export-tags">Tags</h3>
 <p>Tag values are exported in two places mirroring the configured <a href="#config-tags" class="internal">scope</a>:</p>
@@ -1876,7 +1883,7 @@ mask: { "counts": [4, 2, 1, 2, 3], "size": [3, 4] }</pre>
 </ul>
 
 <h3 id="ie-export-status">Frame Status &amp; URL Kinds</h3>
-<p>Each image frame in the export carries the same <code>status</code> string the editor showed (e.g. <code>"completed"</code>, <code>"quality_checked"</code>, <code>"in_progress"</code>) and a <code>urlKind</code> field describing how the URL should be resolved on re-import. See <a href="#import-url-kinds" class="internal">Image URL Kinds</a> for the full enum.</p>
+<p>Each image frame in the export carries the same <code>status</code> string the editor showed (e.g. <code>"completed"</code>, <code>"quality_checked"</code>, <code>"in_progress"</code>). Uploaded frames carry descriptive <code>urlKind: "uploaded"</code>; linked frames retain their optional <code>urlKind</code> resolution hint. See <a href="#import-url-kinds" class="internal">Image URL Kinds</a> for the full enum.</p>
 
 <h3 id="ie-export-name2id">name2id.json Example</h3>
 <pre>{
@@ -1895,6 +1902,28 @@ mask: { "counts": [4, 2, 1, 2, 3], "size": [3, 4] }</pre>
   }
 }</pre>
 <img src="images/import-export-download.png" alt="Editor toolbar with Download icon highlighted next to Upload; annotations panel on the right shows bounding box list" style="width:100%; border-radius:8px; border:1px solid var(--border); margin:16px 0;">
+
+<h2 id="ie-explore-keys">Explore Keys</h2>
+<p>The tool automatically publishes four top-level summary values on every item — <code>instance_count</code>, <code>comment_state</code>, <code>class_list</code>, and <code>valid</code> — surfaced to the SuperAnnotate <strong>Explore</strong> view so you can search, filter, and sort items by their annotation state. They are computed for you and written alongside the item's annotation data; there is nothing to configure.</p>
+
+<table>
+  <tr><th>Key</th><th>Type</th><th>What it captures</th></tr>
+  <tr><td><code>instance_count</code></td><td>Number</td><td>Total number of annotation instances in the item. Tags are not counted. It is <code>0</code> for an item with no annotations.</td></tr>
+  <tr><td><code>comment_state</code></td><td>String</td><td>The combined comment status across every row (instances and tags): <code>"Unresolved"</code> if any comment thread is unresolved; otherwise <code>"Resolved"</code> if there is at least one comment and all are resolved; otherwise <code>"None"</code> when there are no comments at all.</td></tr>
+  <tr><td><code>class_list</code></td><td>String array</td><td>The sorted, de-duplicated list of class names that have at least one instance in the item (based on instances, not tags). A class appears once no matter how many instances it has, and drops off when its last instance is removed. Deleted / unknown classes are omitted.</td></tr>
+  <tr><td><code>valid</code></td><td>String</td><td>A completeness gate for the current user: <code>"True"</code> when every <strong>required</strong> property they can edit has been filled, or <code>""</code> (empty) when at least one is still missing. Covers required properties on both instances and tags.</td></tr>
+</table>
+
+<div class="callout"><strong>No setup required.</strong> These keys are registered and computed by the tool itself — you don't add them in the Explore key configuration, they appear automatically. They are calculated the moment an item opens and kept up to date as you work (creating or deleting instances, changing classes, editing comments, filling required properties, undo / redo, and so on), then written on the next save.</div>
+
+<p>A few details worth knowing:</p>
+<ul>
+  <li><strong><code>valid</code> gates submission.</strong> It is registered as a <em>required</em> Explore key, so the platform blocks an item's status change by non-Admin users until the value is truthy (<code>"True"</code>). An empty value (<code>""</code>) prevents submission.</li>
+  <li><strong><code>valid</code> is per-user / per-role.</strong> It reflects what the <em>current</em> user can see and edit — properties on hidden or view-only classes, or rows hidden by isolation rules, never count against them. Because required fields can differ by role, the same item can read <code>"True"</code> for an annotator and <code>""</code> for a reviewer who has additional required fields to fill.</li>
+  <li><strong>Opening an item is non-destructive.</strong> Simply viewing an item does not create an unsaved change. The one exception is a safety case: if an item was stored as <code>"True"</code> but is no longer complete for the user who just opened it, <code>valid</code> is corrected to <code>""</code> and saved immediately, so an incomplete item can't be submitted by mistake.</li>
+</ul>
+
+<hr>
 
 <h2 id="import-autosave">Auto-Save</h2>
 <p>Annotators should never lose work. The auto-save system operates on two levels:</p>
@@ -2371,6 +2400,7 @@ const navData = {
     ]},
     { id: 'import-export', label: 'Download / Export', children: [
       { id: 'ie-export-structure', label: 'Export Structure' },
+      { id: 'ie-export-frame-sources', label: 'Frame Sources' },
       { id: 'ie-export-tags', label: 'Tags' },
       { id: 'ie-export-properties', label: 'Properties' },
       { id: 'ie-export-relationships', label: 'Relationships' },
@@ -2378,6 +2408,7 @@ const navData = {
       { id: 'ie-export-item-context', label: 'Item Context' },
       { id: 'ie-export-status', label: 'Frame Status & URL Kinds' },
     ]},
+    { id: 'ie-explore-keys', label: 'Explore Keys' },
     { id: 'import-autosave', label: 'Auto-Save' },
   ],
   solutions: [
