@@ -761,7 +761,7 @@ th { font-weight:600; background:var(--bg-alt); }
 <hr>
 
 <h2 id="editor-multifile">Multi-File Items</h2>
-<p>A single item can contain <strong>multiple text files</strong> (up to 25 visible). Each file has its own content, NER instances, text-level tags, and statistics. This mirrors the image-annotation-tool's multi-image support.</p>
+<p>A single item can contain <strong>multiple text files</strong> (up to 25). Each file has its own content, NER instances, text-level tags, and statistics. This mirrors the image-annotation-tool's multi-image support.</p>
 
 <h3 id="editor-multifile-tabs">Tab Navigation</h3>
 <p>When an item has more than one text file, a <strong>tab strip</strong> appears above the canvas. Click any tab to switch the active file. The active file's content fills the editor canvas; its instances and text-level tags appear in the annotation panel.</p>
@@ -1411,8 +1411,7 @@ th { font-weight:600; background:var(--bg-alt); }
 </table>
 <p>For authored files, the ZIP additionally includes rendered content:</p>
 <ul>
-  <li>If the item has <strong>one text file</strong>: <strong>content.md</strong>, <strong>content.html</strong>, <strong>content.txt</strong> at the ZIP root.</li>
-  <li>If the item has <strong>more than one text file</strong>: a <code>files/</code> directory with <strong>&lt;name&gt;.md</strong>, <strong>&lt;name&gt;.html</strong>, <strong>&lt;name&gt;.txt</strong> per file.</li>
+  <li>A <code>files/</code> directory with <strong>&lt;name&gt;.md</strong>, <strong>&lt;name&gt;.html</strong>, and <strong>&lt;name&gt;.txt</strong> for each authored file that has that representation.</li>
 </ul>
 <p>Linked files are skipped in the content directory (the source lives outside the tool).</p>
 <img src="images/ie-export-zip.png" alt="File download dialog showing annotations.zip with annotations.json, name2id.json, annotations.jsonl, and content.* files inside" style="width:100%; border-radius:8px; border:1px solid var(--border); margin:16px 0;">
@@ -1482,6 +1481,28 @@ th { font-weight:600; background:var(--bg-alt); }
   <li><strong>Orphan keys are preserved.</strong> If a slot was deleted in config (or arrived via JSONL with an id no longer in config), its value is kept on disk and carried through every save and export. This mirrors the comments-style "non-destructive" precedent — admins can re-enable a feature later without rebuilding past data.</li>
   <li><strong>Empty strings are valid values</strong> — they represent "user explicitly cleared the field". The <code>itemContext</code> key is omitted from the output entirely only when the merged map is empty.</li>
   <li><strong>JSONL upload</strong> — the same <code>itemContext</code> shape is accepted on the inbound side. Use the <code>itemContext</code> mapping in <code>name2id.json</code> to translate human-readable slot names to ids when authoring upload payloads.</li>
+</ul>
+
+<hr>
+
+<h2 id="ie-explore-keys">Explore Keys</h2>
+<p>The tool automatically publishes four top-level summary values on every item — <code>instance_count</code>, <code>comment_state</code>, <code>class_list</code>, and <code>valid</code> — surfaced to the SuperAnnotate <strong>Explore</strong> view so you can search, filter, and sort items by their annotation state. They are computed for you and written alongside the item's annotation data; there is nothing to configure.</p>
+
+<table>
+  <tr><th>Key</th><th>Type</th><th>What it captures</th></tr>
+  <tr><td><code>instance_count</code></td><td>Number</td><td>Total number of annotation instances in the item. Tags are not counted. It is <code>0</code> for an item with no annotations.</td></tr>
+  <tr><td><code>comment_state</code></td><td>String</td><td>The combined comment status across every row (instances and tags): <code>"Unresolved"</code> if any comment thread is unresolved; otherwise <code>"Resolved"</code> if there is at least one comment and all are resolved; otherwise <code>"None"</code> when there are no comments at all.</td></tr>
+  <tr><td><code>class_list</code></td><td>String array</td><td>The sorted, de-duplicated list of class names that have at least one instance in the item (based on instances, not tags). A class appears once no matter how many instances it has, and drops off when its last instance is removed. Deleted / unknown classes are omitted.</td></tr>
+  <tr><td><code>valid</code></td><td>String</td><td>A completeness gate for the current user: <code>"True"</code> when every <strong>required</strong> property they can edit has been filled, or <code>""</code> (empty) when at least one is still missing. Covers required properties on both instances and tags.</td></tr>
+</table>
+
+<div class="callout"><strong>No setup required.</strong> These keys are registered and computed by the tool itself — you don't add them in the Explore key configuration, they appear automatically. They are calculated the moment an item opens and kept up to date as you work (creating or deleting instances, changing classes, editing comments, filling required properties, undo / redo, and so on), then written on the next save.</div>
+
+<p>A few details worth knowing:</p>
+<ul>
+  <li><strong><code>valid</code> gates submission.</strong> It is registered as a <em>required</em> Explore key, so the platform blocks an item's status change by non-Admin users until the value is truthy (<code>"True"</code>). An empty value (<code>""</code>) prevents submission.</li>
+  <li><strong><code>valid</code> is per-user / per-role.</strong> It reflects what the <em>current</em> user can see and edit — properties on hidden or view-only classes, or rows hidden by isolation rules, never count against them. Because required fields can differ by role, the same item can read <code>"True"</code> for an annotator and <code>""</code> for a reviewer who has additional required fields to fill.</li>
+  <li><strong>Opening an item is non-destructive.</strong> Simply viewing an item does not create an unsaved change. The one exception is a safety case: if an item was stored as <code>"True"</code> but is no longer complete for the user who just opened it, <code>valid</code> is corrected to <code>""</code> and saved immediately, so an incomplete item can't be submitted by mistake.</li>
 </ul>
 
 <hr>
@@ -1645,6 +1666,9 @@ th { font-weight:600; background:var(--bg-alt); }
 <h3 id="limits-browser">Browser Compatibility</h3>
 <p>Best in Chrome and Edge (Chromium). Safari and Firefox supported with minor rendering differences (especially around font metrics and scroll smoothing).</p>
 
+<h3 id="limits-multifile">Multi-File Cap</h3>
+<p>An item supports up to <strong>25 text files</strong> (<code>MAX_TEXT_FILES = 25</code>). Additional in-editor uploads or blank-file creation beyond that limit are rejected. If imported item data contains more than 25 text files, the editor does not open a partial item: it shows an unsupported-item message and leaves the stored data unchanged. Reduce the source item to the supported limit before opening it here.</p>
+
 <h3 id="limits-api">API Rate Limits</h3>
 <p><a href="#editor-ai-autofill" class="internal">AI autofill</a> calls are routed through your <a href="#config-ai-proxy" class="internal">AI proxy</a>, and the underlying provider (OpenAI, Gemini, Anthropic) enforces its own rate limits. Running autofill on hundreds of instances back-to-back will eventually hit those limits — the tool surfaces the upstream error inline. Mitigations:</p>
 <ul>
@@ -1768,6 +1792,7 @@ const navData = {
       { id: 'ie-export-comments', label: 'Comments' },
       { id: 'ie-export-item-context', label: 'Item Context' },
     ]},
+    { id: 'ie-explore-keys', label: 'Explore Keys' },
     { id: 'ie-autosave', label: 'Auto-Save' },
   ],
   solutions: [
