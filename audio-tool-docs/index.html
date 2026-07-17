@@ -323,6 +323,14 @@ th { font-weight:600; background:var(--bg-alt); }
 </ul>
 <div class="screenshot-placeholder">Feature Control card with toggles for Object Comments, Instance Relationships, Annotation Panel selector, Configure Annotation Panel button, Table Column Settings button, plus Recording, Overlapping Segments, Segment Loops, Restrict Segment Length min/max, Transcript, Editable Transcript.</div>
 
+<h3 id="config-media-loading">Media Loading</h3>
+<p>Sets how each media file starts when an item opens:</p>
+<ul>
+  <li><strong>Download First</strong> (default) — the whole file downloads (with a progress bar) before playback. Seeking is reliable and the waveform is ready up front.</li>
+  <li><strong>Stream First</strong> — playback starts as soon as the file streams from its source; the waveform renders once its peaks are ready.</li>
+</ul>
+<p>Each file adapts to its host automatically. A <em>Download First</em> file whose host blocks cross-origin downloads (CORS) <strong>falls back to streaming</strong>; a <em>Stream First</em> file whose host doesn't support range requests <strong>falls back to a full download</strong> (needed for reliable seeking). When a file's actual behavior differs from the configured mode, a <strong>toast</strong> appears — stacking if several files fall back, and shown no matter which file or view you're on — and a persistent <strong>yellow warning icon</strong> marks that file: to the left of its card title in <a href="#editor-split-view" class="internal">Split View</a>, and to the left of the mute button in single view. Hover the icon for a tooltip explaining why the file fell back.</p>
+
 <h3 id="config-panel-settings">Annotation Panel Settings</h3>
 <p>Click <strong>Configure Annotation Panel…</strong> to set the project-wide defaults that apply when an editor is first opened. Each control commits live — <strong>Done</strong> simply closes the modal and <strong>Restore to Default</strong> clears every setting in this modal back to the built-in baseline. Editors can still resize, regroup, or reorder per-session from the panel header; this modal only controls what they start with.</p>
 <ul>
@@ -686,7 +694,7 @@ th { font-weight:600; background:var(--bg-alt); }
   <li><strong>URL-linked</strong> — the JSONL payload contains a <code>url</code> with a <code>urlKind</code> (<code>public</code>, <code>presigned</code>, or <code>integration</code>). The editor signs / fetches the URL on load. See <a href="#ie-jsonl-url" class="internal">URL-linked media</a>.</li>
 </ul>
 <p>Both kinds are equally annotatable. The difference is only <em>where the bytes come from</em> — the editor doesn't gate any feature on the source.</p>
-<p>Large media loads show progress in the player: first for the media download, then for waveform extraction when peaks are not already cached. The editor reuses in-flight loads and session-cached media / URLs / peaks, so switching tabs or entering Split View does not restart the same download.</p>
+<p>The player shows a live progress indicator while a file loads, and reuses in-flight loads and session-cached media / URLs / peaks — so switching tabs or entering Split View never restarts the same download. Whether a file downloads fully before playing or streams first (and how it falls back per host) is governed by the <a href="#config-media-loading" class="internal">Media Loading</a> setting.</p>
 
 <h3 id="editor-upload">In-Editor Upload</h3>
 <p>When the user's role is on the <a href="#config-access-control" class="internal">Upload Files</a> allow-list, the <strong>Upload</strong> button on the top toolbar opens the upload modal. The modal lets you drag or browse for files and shows an <em>"X of 10 files used"</em> indicator (the per-item cap is <strong>10 media files</strong>).</p>
@@ -1330,12 +1338,8 @@ th { font-weight:600; background:var(--bg-alt); }
   <tr><td><strong>name2id.json</strong></td><td>Reference mapping: class names → IDs (with their tool type), property names → IDs, tag class names → IDs, relationship type names → IDs, and (when configured) <a href="#config-item-context" class="internal">Item Context</a> slot names → IDs under the <code>itemContext</code> key.</td></tr>
   <tr><td><strong>annotations.jsonl</strong></td><td>One-line JSONL in the same shape accepted by <a href="#ie-jsonl-import" class="internal">JSONL Import</a>.</td></tr>
 </table>
-<p>For multi-file items, when the user manually uploaded a media file (rather than it arriving by URL) and the bytes are still fetchable, the ZIP additionally includes:</p>
-<ul>
-  <li>A <code>files/</code> directory with the original media bytes under their display name.</li>
-</ul>
-<p>URL-linked media is skipped in the <code>files/</code> directory — the source lives outside the tool, so re-exporting it would defeat the linkage.</p>
-<div class="screenshot-placeholder">File download dialog showing annotations.zip with annotations.json, name2id.json, annotations.jsonl, and a files/ folder for multi-file items.</div>
+<p>The ZIP does not include original media bytes. Per-file URL references and uploaded-file metadata remain in <code>annotations.json</code> and <code>annotations.jsonl</code>, so imports retain the source information.</p>
+<div class="screenshot-placeholder">File download dialog showing annotations.zip with annotations.json, name2id.json, and annotations.jsonl.</div>
 
 <h3 id="ie-export-tags">Tags</h3>
 <p>Tags are split into two scopes in the export:</p>
@@ -1415,6 +1419,28 @@ th { font-weight:600; background:var(--bg-alt); }
   <li><strong>Orphan keys are preserved.</strong> If a slot was deleted in config (or arrived via JSONL with an id no longer in config), its value is kept on disk and carried through every save and export. This mirrors the comments-style "non-destructive" precedent — admins can re-enable a feature later without rebuilding past data.</li>
   <li><strong>Empty strings are valid values</strong> — they represent "user explicitly cleared the field". The <code>itemContext</code> key is omitted from the output entirely only when the merged map is empty.</li>
   <li><strong>JSONL upload</strong> — the same <code>itemContext</code> shape is accepted on the inbound side. Use the <code>itemContext</code> mapping in <code>name2id.json</code> to translate human-readable slot names to ids when authoring upload payloads.</li>
+</ul>
+
+<hr>
+
+<h2 id="ie-explore-keys">Explore Keys</h2>
+<p>The tool automatically publishes four top-level summary values on every item — <code>instance_count</code>, <code>comment_state</code>, <code>class_list</code>, and <code>valid</code> — surfaced to the SuperAnnotate <strong>Explore</strong> view so you can search, filter, and sort items by their annotation state. They are computed for you and written alongside the item's annotation data; there is nothing to configure.</p>
+
+<table>
+  <tr><th>Key</th><th>Type</th><th>What it captures</th></tr>
+  <tr><td><code>instance_count</code></td><td>Number</td><td>Total number of annotation instances in the item. Tags are not counted. It is <code>0</code> for an item with no annotations.</td></tr>
+  <tr><td><code>comment_state</code></td><td>String</td><td>The combined comment status across every row (instances and tags): <code>"Unresolved"</code> if any comment thread is unresolved; otherwise <code>"Resolved"</code> if there is at least one comment and all are resolved; otherwise <code>"None"</code> when there are no comments at all.</td></tr>
+  <tr><td><code>class_list</code></td><td>String array</td><td>The sorted, de-duplicated list of class names that have at least one instance in the item (based on instances, not tags). A class appears once no matter how many instances it has, and drops off when its last instance is removed. Deleted / unknown classes are omitted.</td></tr>
+  <tr><td><code>valid</code></td><td>String</td><td>A completeness gate for the current user: <code>"True"</code> when every <strong>required</strong> property they can edit has been filled, or <code>""</code> (empty) when at least one is still missing. Covers required properties on both instances and tags.</td></tr>
+</table>
+
+<div class="callout"><strong>No setup required.</strong> These keys are registered and computed by the tool itself — you don't add them in the Explore key configuration, they appear automatically. They are calculated the moment an item opens and kept up to date as you work (creating or deleting instances, changing classes, editing comments, filling required properties, undo / redo, and so on), then written on the next save.</div>
+
+<p>A few details worth knowing:</p>
+<ul>
+  <li><strong><code>valid</code> gates submission.</strong> It is registered as a <em>required</em> Explore key, so the platform blocks an item's status change by non-Admin users until the value is truthy (<code>"True"</code>). An empty value (<code>""</code>) prevents submission.</li>
+  <li><strong><code>valid</code> is per-user / per-role.</strong> It reflects what the <em>current</em> user can see and edit — properties on hidden or view-only classes, or rows hidden by isolation rules, never count against them. Because required fields can differ by role, the same item can read <code>"True"</code> for an annotator and <code>""</code> for a reviewer who has additional required fields to fill.</li>
+  <li><strong>Opening an item is non-destructive.</strong> Simply viewing an item does not create an unsaved change. The one exception is a safety case: if an item was stored as <code>"True"</code> but is no longer complete for the user who just opened it, <code>valid</code> is corrected to <code>""</code> and saved immediately, so an incomplete item can't be submitted by mistake.</li>
 </ul>
 
 <hr>
@@ -1523,7 +1549,7 @@ th { font-weight:600; background:var(--bg-alt); }
   <li>The waveform appears for the new file. They retake (or add additional takes as new media files) up to the 10-file cap.</li>
   <li>They draw segments on the waveform, fill properties, and add item-level tags for whole-clip metadata (speaker, environment, language).</li>
   <li>Optional: open the transcript panel to auto-transcribe each take.</li>
-  <li>Export ZIP. The <code>files/</code> folder contains the original recordings; <code>annotations.json</code> wires them up to labels.</li>
+  <li>Export ZIP. <code>annotations.json</code> contains the labels and the recordings' source references; the ZIP does not include the original recording bytes.</li>
 </ol>
 
 </div>
@@ -1590,7 +1616,7 @@ th { font-weight:600; background:var(--bg-alt); }
 <p>Best in Chrome and Edge (Chromium), where the WebAudio decode path and the Media Recorder API are most reliable. Safari and Firefox are supported with minor rendering differences (especially around waveform anti-aliasing and video overlay positioning); in-browser recording quality may also vary.</p>
 
 <h3 id="limits-multifile">Multi-File Cap</h3>
-<p>An item holds up to <strong>10 audio / video files</strong> (<code>MAX_MEDIA_FILES = 10</code>). Beyond that, additional uploads are rejected with a banner. If your workflow regularly hits this cap, split sessions into separate items rather than packing everything in one.</p>
+<p>An item supports up to <strong>10 audio / video files</strong> (<code>MAX_MEDIA_FILES = 10</code>). Additional in-editor uploads beyond that limit are rejected. If imported item data contains more than 10 media files, the editor does not open a partial item: it shows an unsupported-item message and leaves the stored data unchanged. Reduce the source item to the supported limit before opening it here. If your workflow regularly hits this cap, split sessions into separate items rather than packing everything in one.</p>
 
 <h3 id="limits-gemini-size">Gemini Inline-Data Limit</h3>
 <p>Gemini's <code>inline_data</code> path used for transcription has a request-size ceiling around 20 MB; the editor enforces a safer <strong>~12 MB</strong> per call to leave room for base64 bloat and JSON wrapping. Calls over this cap fail upfront with a clear error message. Mitigations:</p>
@@ -1630,6 +1656,7 @@ const navData = {
     { id: 'config-access-control', label: 'Access Control' },
     { id: 'config-feature-control', label: 'Feature Control', children: [
       { id: 'config-audio-subsettings', label: 'Audio Sub-Settings' },
+      { id: 'config-media-loading', label: 'Media Loading' },
       { id: 'config-panel-settings', label: 'Annotation Panel Settings' },
       { id: 'config-table-cols', label: 'Table Column Settings' },
     ]},
@@ -1727,6 +1754,7 @@ const navData = {
       { id: 'ie-export-comments', label: 'Comments' },
       { id: 'ie-export-item-context', label: 'Item Context' },
     ]},
+    { id: 'ie-explore-keys', label: 'Explore Keys' },
     { id: 'ie-autosave', label: 'Auto-Save' },
   ],
   solutions: [
