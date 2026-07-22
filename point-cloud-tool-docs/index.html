@@ -253,6 +253,7 @@ th { font-weight:600; background:var(--bg-alt); }
 <ul>
   <li><strong>Interactive 3D point cloud canvas</strong> — a Three.js/WebGL viewer that renders decimated LiDAR-style clouds with Height / Source Intensity / Source RGB / Solid coloring, adjustable point size, mouse-and-keyboard orbit / pan / zoom navigation, and a 3D view with a collapsible Top / Front / Side side-rail. <a href="#editor-viewer" class="internal">Point Cloud Viewer →</a></li>
   <li><strong>Five tools</strong> — <strong>Select</strong>, timeline-only <strong>Segment</strong>, <strong>3D Box</strong>, per-point <strong>Point Mask</strong>, and world-space <strong>Polyline</strong>. <a href="#config-classes" class="internal">Classes &amp; Tools →</a></li>
+  <li><strong>Adaptive drawing ground</strong> — draw on a supplied dataset elevation, a detected ground plane, world z=0, or a temporary custom elevation. This keeps boxes and Polylines usable when a sensor is mounted above the road. <a href="#editor-ground-reference" class="internal">Ground Reference →</a></li>
   <li><strong>3D cuboids with full 6-DOF pose</strong> — every box stores a <em>position</em>, <em>dimensions</em>, and 3-axis <em>rotation</em> (metres, +Z up). Draw by dragging a footprint or with a three-click rotated-box workflow, optionally deriving the box height from the tallest point inside its footprint. <a href="#editor-drawing-box3d" class="internal">Drawing 3D Boxes →</a></li>
   <li><strong>Per-point 3D segmentation</strong> — Point Masks tint the points that belong to an instance on each frame. Paint or erase through the active camera projection in the 3D, Top, Front, or Side pane, and optionally limit edits with a temporary 3D <a href="#editor-mask-constraint" class="internal">Constraint Box</a>. <a href="#editor-drawing-point-mask" class="internal">Point Masks →</a></li>
   <li><strong>Geometry-free ranges and 3D paths</strong> — Segments annotate a class and properties over a frame range without spatial geometry; Polylines store independent world-space vertex arrays on filled frames, with direct vertex editing and no interpolation.</li>
@@ -277,11 +278,11 @@ th { font-weight:600; background:var(--bg-alt); }
 
 <h2 id="overview-first-annotation">First Annotation</h2>
 <ol>
-  <li>Open an item in the editor and let the point cloud load (or use the <em>Load a synthetic demo scene</em> button on the empty state).</li>
+  <li>Open an item in the editor and let the point cloud load (or choose an example scene on the empty state).</li>
   <li>Pick a <a href="#config-classes" class="internal">class</a> from the dropdown (or press <kbd>1</kbd>–<kbd>9</kbd>). Its configured annotation tool is selected automatically.</li>
   <li>Create the annotation:
     <ul>
-      <li><strong>3D Box</strong> — use the default three-click method or drag a footprint on the ground. The box receives a fixed or point-derived height.</li>
+      <li><strong>3D Box</strong> — use the default three-click method or drag a footprint on the active drawing ground. The box receives a fixed or point-derived height.</li>
       <li><strong>Point Mask</strong> — paint over projected points with the default circular brush. The first completed stroke creates a one-frame mask instance and immediately enters editing mode; use its gear button for Paint / Erase, Brush / Lasso / Rectangle, brush size, and the optional Constraint Box.</li>
       <li><strong>Segment</strong> — choose a Segment class (or press <kbd>G</kbd> to arm its tool), then click <strong>+ Segment</strong> in the timeline. It is created from the current frame through the scene's last frame, with no viewer geometry.</li>
       <li><strong>Polyline</strong> — press <kbd>L</kbd>, click at least two vertices, then double-click or press <kbd>Enter</kbd>. New instances begin on the current frame only.</li>
@@ -355,7 +356,7 @@ th { font-weight:600; background:var(--bg-alt); }
 <table>
   <tr><th>Type</th><th>Where it draws</th><th>Captures</th></tr>
   <tr><td><strong>Segment</strong></td><td>Timeline only; no viewer geometry.</td><td>A class-colored frame range with properties, time-based property keyframes, comments, relationships, and visibility.</td></tr>
-  <tr><td><strong>3D Box</strong></td><td>The <a href="#editor-viewer" class="internal">point cloud viewer</a>. Draw on the ground plane by dragging a footprint or with a three-click rotated-box workflow; edit the pose by dragging or transforming the box directly or with numeric fields.</td><td>A <code>cuboid_3d</code> box: <code>position</code> (x, y, z), <code>dimensions</code> (length, width, height), and 3-axis <code>rotation</code> (radians, +Z up), plus a frame-based visible range and per-frame pose <a href="#editor-keyframes" class="internal">keyframes</a> with <a href="#editor-interpolation" class="internal">interpolation</a>.</td></tr>
+  <tr><td><strong>3D Box</strong></td><td>The <a href="#editor-viewer" class="internal">point cloud viewer</a>. Draw on the active <a href="#editor-ground-reference" class="internal">ground reference</a> by dragging a footprint or with a three-click rotated-box workflow; edit the pose by dragging or transforming the box directly or with numeric fields.</td><td>A <code>cuboid_3d</code> box: <code>position</code> (x, y, z), <code>dimensions</code> (length, width, height), and 3-axis <code>rotation</code> (radians, +Z up), plus a frame-based visible range and per-frame pose <a href="#editor-keyframes" class="internal">keyframes</a> with <a href="#editor-interpolation" class="internal">interpolation</a>.</td></tr>
   <tr><td><strong>Point Mask</strong></td><td>The projected points in the 3D, Top, Front, or Side viewer pane. Paint or erase with a circular brush, lasso, or rectangle; optionally clip the operation to a temporary 3D Constraint Box.</td><td>A <code>point_mask</code> instance with an ordinary visible range and explicit per-frame point membership. Membership is not interpolated: each frame is independently <a href="#editor-mask-frame-states" class="internal">filled or empty</a>.</td></tr>
   <tr><td><strong>Polyline</strong></td><td>World-space vertices in the point-cloud viewer.</td><td>A <code>polyline</code> range with independent <code>{ frame, points[] }</code> geometry. Filled frames contain at least two vertices; empty in-range frames have no entry. Geometry is never interpolated.</td></tr>
 </table>
@@ -702,7 +703,7 @@ DATA ascii
 <h3 id="editor-upload">In-Editor Upload</h3>
 <p>When the user's role is on the <a href="#config-access-control" class="internal">Upload Files</a> allow-list, the <strong>Upload</strong> button on the top toolbar opens the <strong>Add point cloud frames</strong> modal. Drag or browse for one or more <code>.pcd</code> files — <strong>each file becomes one frame</strong> in the scene's ordered <a href="#editor-frames" class="internal">frame sequence</a> (uploading multiple files at once builds the sequence in order). The first upload creates the item's one scene; later uploads append frames to that same scene and never create another scene.</p>
 <p>Accepted format: <strong>PCD</strong> (ASCII / uncompressed binary). Other file types are rejected with a banner.</p>
-<p>The empty drop zone shown when an item has no point cloud yet supports drag-and-drop directly onto the canvas in addition to the modal. It also offers a <strong>Load a synthetic demo scene</strong> button that generates a real, savable multi-frame LiDAR-style scene so you can try drawing, editing, keyframing, and playback without sensor data. Uploading marks the item as having unsaved changes, so you are warned before leaving with un-persisted work.</p>
+<p>The empty drop zone shown when an item has no point cloud yet supports drag-and-drop directly onto the canvas in addition to the modal. It also offers example scenes: single-frame and 20-frame synthetic scenes with camera images, a 100-frame synthetic scene, and a five-frame road scene with built-in Dataset Ground elevations. Each creates a real, savable item so you can try drawing, editing, keyframing, playback, and ground-reference behaviour without your own sensor data. Uploading marks the item as having unsaved changes, so you are warned before leaving with un-persisted work.</p>
 <img src="images/editor-upload-modal.png" alt="Upload modal with a dropzone, supported PCD format, an Add Files button, and a Load synthetic demo scene option" style="width:100%; border-radius:8px; border:1px solid var(--border); margin:16px 0;">
 
 <hr>
@@ -751,6 +752,7 @@ DATA ascii
   <li><strong><a href="#editor-class-selector" class="internal">Class selector</a></strong> — pick the active class for new annotations. Searchable; first nine classes carry <kbd>1</kbd>–<kbd>9</kbd> shortcuts.</li>
   <li><strong>Coloring controls</strong> (Height / Source Intensity / Source RGB / Solid) select the canvas point colouring. The source modes appear only when the active frame contains their required fields; see <a href="#editor-source-color-fields" class="internal">Source Colour Fields</a>.</li>
   <li><strong>Draw method</strong> — selector for the <a href="#editor-drawing-box3d" class="internal">3D-box drawing method</a> (3-click ↔ drag). The same method is reused when placing a Point Mask <a href="#editor-mask-constraint" class="internal">Constraint Box</a>.</li>
+  <li><strong>Ground reference</strong> — selector for the surface used to place new 3D Boxes, Constraint Boxes, and Polylines: Dataset Ground, Auto Ground, World z=0, or Custom Z. See <a href="#editor-ground-reference" class="internal">Ground Reference</a>.</li>
   <li><strong>Point Cloud Settings</strong> — dropdown holding <em>Point size</em> and the <em>Dynamic box height</em> toggle. See <a href="#editor-pc-settings" class="internal">Point Cloud Settings</a>.</li>
   <li><strong>Upload</strong> — opens the <a href="#editor-upload" class="internal">upload modal</a> (when allowed).</li>
   <li><strong>Download</strong> — exports the current item as a ZIP (when allowed). See <a href="#ie-export" class="internal">Download / Export</a>.</li>
@@ -769,7 +771,7 @@ DATA ascii
   <tr><th>Tool</th><th>Shortcut</th><th>Use</th></tr>
   <tr><td><strong>Select</strong></td><td><kbd>V</kbd></td><td>Free cursor — click a Box, painted Point Mask point, or Polyline to select and focus its annotation. Boxes expose pose editing through <a href="#editor-viewer-box-editing" class="internal">on-box handles</a>, the numeric panel, and shortcuts; Point Mask membership and Polyline vertices change only after entering their dedicated edit modes. No new annotations are created.</td></tr>
   <tr><td><strong>Segment</strong></td><td><kbd>G</kbd></td><td>Arm the geometry-free Segment tool. Creation is explicit: click <strong>+ Segment</strong> in the timeline to add an instance from the current frame through the final frame.</td></tr>
-  <tr><td><strong>3D Box</strong></td><td><kbd>B</kbd></td><td>Draw a <code>cuboid_3d</code> on the ground plane using the current <a href="#editor-drawing-box3d" class="internal">draw method</a> (3-click or drag). Auto-selects when picking a 3D-Box class.</td></tr>
+  <tr><td><strong>3D Box</strong></td><td><kbd>B</kbd></td><td>Draw a <code>cuboid_3d</code> on the active <a href="#editor-ground-reference" class="internal">ground reference</a> using the current <a href="#editor-drawing-box3d" class="internal">draw method</a> (3-click or drag). Auto-selects when picking a 3D-Box class.</td></tr>
   <tr><td><strong>Point Mask</strong></td><td><kbd>M</kbd></td><td>Paint projected point-cloud points to create a <code>point_mask</code>, or edit the mask whose brush button is active. Opens a gear control in the 3D pane for <a href="#editor-mask-settings" class="internal">mask settings</a>. Auto-selects when picking a Point Mask class.</td></tr>
   <tr><td><strong>Polyline</strong></td><td><kbd>L</kbd></td><td>Click world-space vertices. Double-click or <kbd>Enter</kbd> commits; <kbd>Esc</kbd> cancels; <kbd>Backspace</kbd> removes the last draft vertex. Existing Polylines enter their dedicated edit state through the pencil button in the timeline or annotation panel.</td></tr>
 </table>
@@ -803,7 +805,7 @@ DATA ascii
 <p><strong>Pane orientation.</strong> A focused 3D Box uses object-aligned axes. Point Masks, Polylines, Segments, and all creation tools use world axes; entering a creation tool preserves the panes' centre and zoom while clearing a previous box-aligned orientation. Segment focus is semantic only: it restores world axes but never re-centres a spatial view.</p>
 <p>You can edit a box directly in whichever pane you're hovering, so move / resize / rotate all work from the 3D view or any ortho pane (see <a href="#editor-viewer-box-editing" class="internal">Selecting &amp; Editing Boxes</a>).</p>
 <p>Point Mask Paint / Erase also works in the 3D, Top, Front, and Side panes. Brush, lasso, and rectangle selections are evaluated in the active pane's screen projection, so every point projected inside the gesture is included through depth unless a <a href="#editor-mask-constraint" class="internal">Constraint Box</a> limits the operation.</p>
-<p><strong>Ground-plane drawing eligibility.</strong> The perspective view always permits 3D Box, Constraint Box, and Polyline placement. Orthographic panes are enabled only when their camera ray can stably intersect the fixed world ground plane: <code>abs(cameraDirection · worldUp) ≥ sin(10°)</code> (about <code>0.174</code>). An ineligible ortho pane shows a disabled cursor and a short message in that pane's bottom-right corner. This is camera-angle based rather than hard-coded by pane name, so a rotated ortho view may become eligible. Shift-based vertical Polyline placement is available only in the perspective view.</p>
+<p><strong>Ground-plane drawing eligibility.</strong> The perspective view always permits 3D Box, Constraint Box, and Polyline placement. Orthographic panes are enabled only when their camera ray can stably intersect the active <a href="#editor-ground-reference" class="internal">ground reference</a>: <code>abs(cameraDirection · groundNormal) ≥ sin(10°)</code> (about <code>0.174</code>). An ineligible ortho pane shows a disabled cursor and a short message in that pane's bottom-right corner. This is camera-angle based rather than hard-coded by pane name, so a rotated ortho view may become eligible. Shift-based vertical Polyline placement is available only in the perspective view.</p>
 
 <h3 id="editor-viewer-focus">Focusing &amp; Tracking</h3>
 <p>The viewer maintains three related states: <strong>selected</strong> (the active annotation row/object), <strong>focused</strong> (the annotation whose geometry is tracked), and <strong>editing</strong> (an explicit geometry-changing mode). Selection normally moves focus to the same annotation. Focus is spatial for a Box, Point Mask, or Polyline with current-frame geometry; it is semantic only for a Segment.</p>
@@ -850,7 +852,7 @@ DATA ascii
 <p><strong>Set the front (heading).</strong> Hold <kbd>Alt</kbd> and click a <em>side</em> face in the 3D view to make it the box's front. Eligible faces highlight on <kbd>Alt</kbd>-hover; the top and bottom faces are never used for heading - for that you would need to rotate the box manually.</p>
 <p><strong>Auto-fit.</strong> Press <kbd>T</kbd> (or the <em>Auto-fit</em> button in the pose panel) to shrink the selected box tightly around the points inside it. Auto-fit only tightens — it never grows the box — and ignores ground / near-floor points so it hugs the actual object.</p>
 <p>After any move, resize, or rotate, the ortho panes and camera view re-center on the object, keeping your zoom unless the box no longer fits (then that pane zooms out just enough to frame it).</p>
-<p><strong>Rotation &amp; ground helpers.</strong> <kbd>R</kbd> / <kbd>Shift+R</kbd> rotate the box 90°; brackets nudge yaw. Press <kbd>Z</kbd> to level and rest the box on the ground, or <kbd>Shift+Z</kbd> to drop its lowest point while preserving tilt. The pose-panel Ground and Drop buttons remain available.</p>
+<p><strong>Rotation &amp; ground helpers.</strong> <kbd>R</kbd> / <kbd>Shift+R</kbd> rotate the box 90°; brackets nudge yaw. Press <kbd>Z</kbd> to level and rest the box on the active ground reference, or <kbd>Shift+Z</kbd> to drop its lowest point while preserving tilt. The pose-panel Ground and Drop buttons remain available; see <a href="#editor-ground-reference" class="internal">Ground Reference</a> for their exact behavior on slopes.</p>
 <p>A <strong>numeric pose panel</strong> in the corner shows the selected box's position (x/y/z), dimensions (length/width/height), and rotation (roll/pitch/yaw in degrees) and edits them two-way, alongside the Auto-fit and Ground buttons. On-box handles stay a consistent size across panes and zoom levels.</p>
 
 <h3 id="editor-keyframes">Keyframes</h3>
@@ -871,9 +873,10 @@ DATA ascii
 <p>The <strong>Point Cloud Settings</strong> dropdown in the top toolbar holds the viewer's rendering / drawing preferences:</p>
 <ul>
   <li><strong>Point size</strong> — slider controlling the on-screen size of rendered points.</li>
-  <li><strong>Dynamic box height</strong> — a checkbox (on by default). When enabled, drawing a 3D box sets its height to include the tallest point that falls inside the box's X-Y footprint (scanned from the decimated cloud with a small ~5% margin so the point sits just inside the top face). The bottom always stays on the ground (z=0). If no points fall inside the footprint, a fallback height of <strong>0.3 m</strong> is used. Applied at draw time (including live preview while drawing); turn it off to draw with a fixed default height.</li>
+  <li><strong>Dynamic box height</strong> — a checkbox (on by default). When enabled, drawing a 3D box sets its height to include the tallest point that falls inside the box's X-Y footprint (scanned from the decimated cloud with a small ~5% margin so the point sits just inside the top face). The bottom starts on the active <a href="#editor-ground-reference" class="internal">ground reference</a>. If no points fall inside the footprint, a fallback height of <strong>0.3 m</strong> is used. Applied at draw time (including live preview while drawing); turn it off to draw with a fixed default height.</li>
   <li><strong>Allow tilt (pitch / roll)</strong> — a checkbox (off by default). When off, the 3D view's rotation ring only lets you change yaw (rotation about the box's vertical axis), which keeps most road-scene boxes upright. Turn it on to also show pitch and roll rings for full 3-axis rotation in the 3D view.</li>
   <li><strong>Scale bars</strong> — a checkbox (off by default). When on, each ortho pane draws a small map-style ruler showing the current on-screen scale, handy for reading a box's real size at a glance.</li>
+  <li><strong>Show ground guide</strong> — keeps a translucent grid over the active ground reference, across the current cloud's full X-Y extent. It is useful for confirming an Auto or Custom reference before drawing.</li>
 </ul>
 <p>Coloring is set from its own toolbar control (see <a href="#editor-viewer-coloring" class="internal">Coloring</a>), and the Top / Front / Side rail is collapsed from the viewer edge (see <a href="#editor-viewer-layouts" class="internal">Layouts</a>).</p>
 
@@ -899,11 +902,11 @@ DATA ascii
 </ul>
 
 <h3 id="editor-polyline">Polyline Drawing &amp; Editing</h3>
-<p>Polylines are 3D world-space paths. A new instance starts and ends on the current frame and stores at least two raw <code>{ x, y, z }</code> vertices. A round ghost vertex previews placement before the first click. Normal placement uses the fixed world ground plane; in Perspective, hold <kbd>Shift</kbd> before the first click to freeze the ghost's X/Y and raise or lower Z on a vertical plane. The same Shift behavior remains available after each committed draft vertex.</p>
+<p>Polylines are 3D world-space paths. A new instance starts and ends on the current frame and stores at least two raw <code>{ x, y, z }</code> vertices. A round ghost vertex previews placement before the first click. Normal placement uses the active <a href="#editor-ground-reference" class="internal">ground reference</a>; in Perspective, hold <kbd>Shift</kbd> before the first click to freeze the ghost's X/Y and raise or lower Z on a vertical plane. The same Shift behavior remains available after each committed draft vertex.</p>
 <ul>
   <li><strong>Commit / cancel</strong> — double-click or <kbd>Enter</kbd> commits; <kbd>Esc</kbd> keeps the old geometry when replacing a line; <kbd>Backspace</kbd> removes the last draft vertex.</li>
   <li><strong>Edit filled frames</strong> — drag a visible vertex; click a segment to insert a vertex and drag it; double-click a vertex to remove it. Removing from a two-vertex line clears that frame.</li>
-  <li><strong>Ground a filled frame</strong> — while editing, press <kbd>Z</kbd> to set every vertex to <code>z=0</code>, or <kbd>Shift+Z</kbd> to translate the entire line until its lowest vertex rests on <code>z=0</code> without changing its shape.</li>
+  <li><strong>Ground a filled frame</strong> — while editing, press <kbd>Z</kbd> to set every vertex to the active ground height at the first vertex, or <kbd>Shift+Z</kbd> to translate the entire line until its lowest vertex reaches that height without changing its shape.</li>
   <li><strong>Replace</strong> — click blank canvas while editing a filled frame to start a replacement draft. The old line is muted until the new draft commits or is cancelled.</li>
   <li><strong>Edit mode</strong> — use the pencil button beside the Polyline in the timeline, Instance View, or Table View. Its blue active state and the viewer's <em>Editing: #N Class</em> chip identify the target; click it again to stop.</li>
   <li><strong>Empty frames</strong> — extending the visible range creates hollow frames. Drawing there creates an independent frame entry. There is no vertex correspondence or interpolation across frames.</li>
@@ -919,6 +922,19 @@ DATA ascii
   <li>Selecting a Segment moves semantic focus to that annotation and restores world-axis ortho panes, but does not re-centre a 3D or camera-image view because the Segment has no position.</li>
 </ol>
 <p><strong>Range rule.</strong> Segments are the only annotations that support whole-range movement. Boxes, Point Masks, and Polylines are authored against concrete source frames, so their timeline bars can only be resized at their start/end boundaries. Boundary trimming prunes data outside the new range; extending a Mask or Polyline creates valid empty frames that must be filled explicitly.</p>
+
+<h2 id="editor-ground-reference">Ground Reference</h2>
+<p>The <strong>Ground reference</strong> control in the top toolbar selects the surface used to place new 3D Boxes, Point Mask Constraint Boxes, and Polylines. It also drives the viewer pivot, grid, Dynamic box height, and Ground / Drop helpers. The reference is a drawing aid: annotation coordinates remain in the original point-cloud coordinate system.</p>
+<table>
+  <tr><th>Mode</th><th>Use</th></tr>
+  <tr><td><strong>Dataset Ground</strong></td><td>An author-supplied horizontal <code>groundZ</code> value from the imported scene. A frame may override that value. This is the default whenever the scene provides it.</td></tr>
+  <tr><td><strong>Auto Ground</strong></td><td>Detects one dominant, near-horizontal ground plane from the current point cloud. It is the default when Dataset Ground is not supplied.</td></tr>
+  <tr><td><strong>World z=0</strong></td><td>The fixed legacy coordinate plane. Choose it when z=0 is the intended drawing elevation.</td></tr>
+  <tr><td><strong>Custom Z</strong></td><td>A horizontal session-only elevation for exceptional areas such as a bridge deck. It starts at <code>0.00 m</code>, accepts values from <code>-50.00 m</code> through <code>+50.00 m</code> in <code>0.01 m</code> increments, and is never saved into the scene.</td></tr>
+</table>
+<p><strong>Auto Ground.</strong> Detection runs as part of loading every frame, so changing modes does not trigger a second wait. It divides the complete parsed cloud into an adaptive X-Y grid, takes low-elevation samples from each cell, then fits one dominant plane. The editor checks that plane's spatial coverage, point support, fit error, and tilt before accepting it. Auto Ground is intended for one broadly consistent road or floor surface—not multiple levels, bridge decks, steep terrain, or vertical structures—and accepts a tilt of up to 15°. Sparse, ambiguous, vertical, or steeper surfaces are rejected. If Auto Ground is unavailable for a frame, the editor warns once and uses Dataset Ground when available, otherwise World z=0. Auto results are session-only and are not written to exports.</p>
+<p><strong>Sloped surfaces and upright boxes.</strong> Auto Ground can be tilted, so a first placement point can be found at the plane height for its X-Y position even where no return is visible. New boxes remain upright: after the first click, a box or Constraint Box locks a horizontal base at that click's elevation for the rest of that gesture. On a slope, the box is not rotated to match the road.</p>
+<p><strong>Ground and Drop.</strong> For a selected box, <kbd>Z</kbd> / <em>Ground</em> clears pitch and roll and puts the bottom-face centre at the active ground height below the box centre. <kbd>Shift+Z</kbd> / <em>Drop</em> preserves rotation and moves the lowest box corner to that same centre-position height. Therefore Ground and Drop give the same position for an upright box; they differ only when the box is tilted. For a filled Polyline in edit mode, Ground flattens every vertex to the active ground height at its first vertex, while Drop preserves its shape and lowers its lowest vertex to that height.</p>
 
 <h2 id="editor-timeline">Frame Timeline</h2>
 <p>A frame-based timeline is docked below the <a href="#editor-viewer" class="internal">viewer</a> as the primary navigation surface. It draws a discrete <em>bin</em> per frame, one row per object over its visible range, and drives playback across the scene. A drag grip at its top edge resizes the split between viewer and timeline (double-click to reset); the row area scrolls internally when there are many objects.</p>
@@ -1017,12 +1033,12 @@ DATA ascii
   <li><strong>Click 2</strong> — the opposite front-bottom corner (B). This fixes the front edge and its heading; a live cuboid preview now follows the cursor.</li>
   <li><strong>Click 3</strong> — a point behind the front edge (C), setting the depth. The back edge stays perpendicular to the front edge, and the heading arrow points from the back edge toward the front.</li>
 </ol>
-<p>All three clicks land on the ground plane; press <kbd>Esc</kbd> to cancel a partial box.</p>
+<p>All three clicks land on the active <a href="#editor-ground-reference" class="internal">ground reference</a>; press <kbd>Esc</kbd> to cancel a partial box.</p>
 <h4>Drag method</h4>
 <ol>
-  <li>Drag on the ground to sweep out the box's axis-aligned X-Y footprint; release to create it.</li>
+  <li>Drag on the active ground reference to sweep out the box's axis-aligned X-Y footprint; release to create it.</li>
 </ol>
-<p>With either method the box's height comes from <a href="#editor-pc-settings" class="internal">Dynamic box height</a> (the tallest point inside the footprint, +5% margin, floor 0.3&nbsp;m) when that setting is on, otherwise a fixed default. The height updates live during the drag / third-click preview. The bottom of the box always rests on the ground.</p>
+<p>With either method the box's height comes from <a href="#editor-pc-settings" class="internal">Dynamic box height</a> (the tallest point inside the footprint, +5% margin, floor 0.3&nbsp;m) when that setting is on, otherwise a fixed default. The height updates live during the drag / third-click preview. The bottom of the upright box starts at the active ground reference's height where the gesture began.</p>
 
 <p>After drawing, switch to <strong>Select</strong> (<kbd>V</kbd>) to fine-tune the box's pose — the on-box handles, numeric pose panel, and rotate / auto-fit / ground shortcuts are all covered under <a href="#editor-viewer-box-editing" class="internal">Selecting &amp; Editing Boxes</a>. Re-posing a box at a later frame writes a <a href="#editor-keyframes" class="internal">keyframe</a> so the object tracks across the scene; trim its visible range on the <a href="#editor-timeline-rows" class="internal">timeline</a> to the frames where the object is present.</p>
 
@@ -1270,7 +1286,7 @@ DATA ascii
   <li><code>uploadedFile</code> — <code>{ uniqueName, fileName, fileType }</code>. Bytes live in SuperAnnotate storage; the platform resolves them via <code>uniqueName</code>. Optional <code>fileSize</code> is a sibling field on the frame.</li>
   <li><code>url</code> — a string URL with a sibling <code>urlKind</code> (see <a href="#ie-jsonl-url" class="internal">URL-linked point clouds</a>) and optional <code>fileType</code> / <code>fileSize</code> hints.</li>
 </ul>
-<p>The scene also carries scene-level <code>instances</code> (Segments, 3D Boxes, Point Masks, and Polylines) and <code>tags</code>. Boxes use pose keyframes; masks and polylines use explicit frame-local data; segments carry no geometry.</p>
+<p>The scene also carries scene-level <code>instances</code> (Segments, 3D Boxes, Point Masks, and Polylines), <code>tags</code>, and optional <a href="#ie-jsonl-ground" class="internal">ground metadata</a>. Boxes use pose keyframes; masks and polylines use explicit frame-local data; segments carry no geometry.</p>
 <div class="callout"><strong>Frames are the only source location.</strong> A scene has no top-level <code>uploadedFile</code>, <code>url</code>, <code>urlKind</code>, <code>fileType</code>, <code>fileSize</code>, or upload flag. Put all source and source-access fields on the corresponding entry in <code>frames[]</code>. The scene-level <code>name</code> is optional display metadata used for grouping in the annotation panel.</div>
 <div class="callout"><strong>PCD frames.</strong> Frame sources must be <code>.pcd</code> point clouds with <code>x</code>, <code>y</code>, and <code>z</code> fields. ASCII and uncompressed binary PCD are supported; binary-compressed PCD is not. If a frame cannot be fetched or parsed, the editor reports the load error and does not substitute synthetic data.</div>
 <p><strong>Minimum required keys:</strong> <code>metadata.name</code>, <code>data.point_cloud_annotation_tool.value.pointClouds</code>, one scene in <code>pointClouds</code>, and that scene's non-empty <code>frames</code> array. Every frame needs one source — <code>uploadedFile</code> or <code>url</code>. Everything else — <code>name</code>, <code>id</code>, <code>urlKind</code>, <code>fileType</code>, <code>fileSize</code>, <code>instances</code>, <code>tags</code>, and <code>itemTags</code> — is optional and can be added incrementally.</p>
@@ -1284,6 +1300,7 @@ DATA ascii
         "pointClouds": [
           {
             "name": "Ego LiDAR",
+            "groundZ": -1.80,
             "frames": [
               {
                 "id": "frame-0",
@@ -1303,7 +1320,8 @@ DATA ascii
                   "fileName": "0001.pcd",
                   "fileType": "application/octet-stream"
                 },
-                "fileSize": 4791220
+                "fileSize": 4791220,
+                "groundZ": -1.82
               }
             ],
             "instances": [
@@ -1373,7 +1391,24 @@ DATA ascii
   }
 }</pre>
 <div class="callout"><strong>Frame order matters.</strong> Frames play in array order; that order defines the 0-based frame index used by every <code>start</code> / <code>end</code> / <code>visibleRanges</code> and keyframe <code>frame</code> value. Each frame's <code>name</code> is optional (falls back to the file name or URL tail).</div>
-<div class="callout"><strong>Coordinates and the grid.</strong> Point positions and annotation geometry remain in the source sensor frame: +X forward, +Y left, and +Z up. The viewer grid and initial box-drawing plane are at <code>z = 0</code>; this is a coordinate reference plane, not detected physical ground. In sensor-mounted datasets such as KITTI, the LiDAR origin is above the road, so the visible road commonly sits at a negative Z value.</div>
+<div class="callout"><strong>Coordinates and ground metadata.</strong> Point positions and annotation geometry remain in the source sensor frame: +X forward, +Y left, and +Z up. In sensor-mounted datasets such as KITTI, the LiDAR origin is above the road, so the visible road commonly sits at a negative Z value. Provide <code>groundZ</code> when that known horizontal elevation should be the default drawing ground; otherwise the editor starts with Auto Ground.</div>
+
+<h3 id="ie-jsonl-ground">Ground Metadata</h3>
+<p>Use <code>pointClouds[].groundZ</code> to supply a known horizontal ground elevation in metres for the whole scene. It enables <strong>Dataset Ground</strong> and makes it the default drawing reference. A frame may use <code>frames[].groundZ</code> to override the scene value for that frame, for example when a sequence has a known calibration adjustment.</p>
+<pre>{
+  "pointClouds": [{
+    "groundZ": -1.80,
+    "frames": [
+      { "url": "https://storage.example.com/pcd/0000.pcd", "urlKind": "presigned" },
+      { "url": "https://storage.example.com/pcd/0001.pcd", "urlKind": "presigned", "groundZ": -1.82 }
+    ]
+  }]
+}</pre>
+<ul>
+  <li><strong>Use finite numbers in point-cloud metres.</strong> The value is not a distance from the lowest visible return; it is the world Z elevation of the intended horizontal drawing surface.</li>
+  <li><strong>Scene value first.</strong> A frame override is valid only when its containing scene also has <code>groundZ</code>. This guarantees Dataset Ground remains available throughout the sequence.</li>
+  <li><strong>Horizontal only.</strong> Metadata currently represents a scalar elevation. Use Auto Ground for a detected sloped surface, or Custom Z for a temporary session-only horizontal reference.</li>
+</ul>
 
 <h3 id="ie-jsonl-url">URL-Linked Point Clouds</h3>
 <p>To point at point clouds that live outside SuperAnnotate, replace each frame's <code>uploadedFile</code> with a <code>url</code> + <code>urlKind</code> pair:</p>
@@ -1413,11 +1448,13 @@ DATA ascii
   <tr><td><code>data.point_cloud_annotation_tool.value</code></td><td>top level</td><td>The tool-specific payload. Other tools may add their own keys under <code>data</code>.</td></tr>
   <tr><td><code>pointClouds</code></td><td>value</td><td>Array of <code>StoredPointCloudFile</code> scenes. Normally a single scene.</td></tr>
   <tr><td><code>pointClouds[].name</code></td><td>scene</td><td>Optional display name for the scene.</td></tr>
+  <tr><td><code>pointClouds[].groundZ</code></td><td>scene</td><td>Optional finite horizontal ground elevation in metres. Enables and defaults to Dataset Ground for every frame unless that frame supplies an override.</td></tr>
   <tr><td><code>pointClouds[].frames</code></td><td>scene</td><td><strong>Required non-empty</strong> ordered array of <code>PointCloudFrame</code> — the frame sequence. Array order defines the 0-based frame index. It is the only location for point-cloud source fields.</td></tr>
   <tr><td><code>frames[].uploadedFile</code></td><td>frame</td><td><code>{ uniqueName, fileName, fileType }</code> for SA-stored bytes. Mutually exclusive with <code>url</code>; optional <code>fileSize</code> belongs directly on the frame.</td></tr>
   <tr><td><code>frames[].url</code> + <code>urlKind</code></td><td>frame</td><td>External URL with access kind. See <a href="#ie-jsonl-url" class="internal">URL-Linked Point Clouds</a>.</td></tr>
   <tr><td><code>frames[].id</code> / <code>name</code></td><td>frame</td><td>Optional stable id and display name for the frame. <code>name</code> falls back to the file name or URL tail.</td></tr>
   <tr><td><code>frames[].timestamp</code></td><td>frame</td><td>Optional capture time in seconds (display-only; the timeline indexes by frame, not time).</td></tr>
+  <tr><td><code>frames[].groundZ</code></td><td>frame</td><td>Optional finite horizontal Dataset Ground override in metres. Accepted only when <code>pointClouds[].groundZ</code> is present.</td></tr>
   <tr><td><code>pointClouds[].cameras</code></td><td>scene</td><td>Optional array of <code>CameraSensor</code> calibrations. Present enables the <a href="#editor-viewer-cameras" class="internal">camera reference panel</a>. See <a href="#ie-jsonl-cameras" class="internal">Camera Calibration &amp; Images</a>.</td></tr>
   <tr><td><code>frames[].images</code></td><td>frame</td><td>Optional array of <code>FrameImage</code> for this frame — one per camera, keyed to <code>cameras[]</code> by <code>cameraId</code>. See <a href="#ie-jsonl-cameras" class="internal">Camera Calibration &amp; Images</a>.</td></tr>
   <tr><td><code>pointClouds[].instances</code></td><td>scene</td><td>Array of <code>StoredAnnotation</code> (Segments, 3D Boxes, Point Masks, and Polylines).</td></tr>
@@ -1541,7 +1578,7 @@ def decode_point_set(points):
   <tr><td><strong>name2id.json</strong></td><td>Reference mapping: class names → IDs (with their tool type), property names → IDs, tag class names → IDs, relationship type names → IDs, and (when configured) <a href="#config-item-context" class="internal">Item Context</a> slot names → IDs under the <code>itemContext</code> key.</td></tr>
   <tr><td><strong>annotations.jsonl</strong></td><td>One-line JSONL in the same shape accepted by <a href="#ie-jsonl-import" class="internal">JSONL Import</a>.</td></tr>
 </table>
-<p>The ZIP contains annotation data and source <em>references</em>; it does not bundle original point-cloud or camera-image bytes. Uploaded frames remain addressed by their <code>uploadedFile.uniqueName</code>, while URL-linked frames retain their URL metadata. The export strips video-only fields (<code>isVideo</code>, <code>videoFrameMetadata</code>) so the payload always matches the point-cloud schema.</p>
+<p>The ZIP contains annotation data and source <em>references</em>; it does not bundle original point-cloud or camera-image bytes. Uploaded frames remain addressed by their <code>uploadedFile.uniqueName</code>, while URL-linked frames retain their URL metadata. Any supplied scene <code>groundZ</code> and per-frame <code>groundZ</code> overrides are preserved in the export; Auto Ground and Custom Z are session-only and are never added. The export strips video-only fields (<code>isVideo</code>, <code>videoFrameMetadata</code>) so the payload always matches the point-cloud schema.</p>
 <div class="screenshot-placeholder">File download dialog showing annotations.zip with annotations.json, name2id.json, and annotations.jsonl.</div>
 
 <h3 id="ie-export-properties">Properties</h3>
@@ -1805,8 +1842,8 @@ def decode_point_set(points):
 </ul>
 
 <h3 id="tips-frame-count">Recommended Frame Counts</h3>
-<p>There is no hard frame-count maximum: the editor can handle longer scenes, and the included synthetic stress scenes exercise 200 and 500 frames without camera images. For routine annotation, however, keep a single item to roughly <strong>200–300 frames or fewer</strong> when practical. This keeps timeline bins and labels usable on smaller screens and limits how often a large real-data scene needs to refill its nearby ready window.</p>
-<p>Frame size matters as much as count. Dense point clouds and high-resolution camera images consume a larger ready-window budget than the synthetic demo, so a 100-frame real scene can be more demanding than a 500-frame synthetic scene. For longer captures, split work into logical scenes or sequences and preserve their frame ordering and meaningful range intervals.</p>
+<p>There is no hard frame-count maximum: the editor can handle longer scenes, and the included 100-frame synthetic scene exercises a longer no-image sequence. For routine annotation, however, keep a single item to roughly <strong>200–300 frames or fewer</strong> when practical. This keeps timeline bins and labels usable on smaller screens and limits how often a large real-data scene needs to refill its nearby ready window.</p>
+<p>Frame size matters as much as count. Dense point clouds and high-resolution camera images consume a larger ready-window budget than the synthetic demos, so a 100-frame real scene can be more demanding than the included 100-frame synthetic scene. For longer captures, split work into logical scenes or sequences and preserve their frame ordering and meaningful range intervals.</p>
 
 <h3 id="tips-filtering">Filtering &amp; Grouping</h3>
 <p>Reviewing hundreds of boxes in an unsorted list is impractical. The <a href="#editor-panel" class="internal">annotation panel</a> filtering, grouping, and ordering controls turn QA from random browsing into structured inspection.</p>
@@ -1918,6 +1955,7 @@ const navData = {
       { id: 'editor-polyline', label: 'Polyline Drawing & Editing' },
       { id: 'editor-segments', label: 'Segments' },
     ]},
+    { id: 'editor-ground-reference', label: 'Ground Reference' },
     { id: 'editor-timeline', label: 'Frame Timeline', children: [
       { id: 'editor-timeline-controls', label: 'Controls' },
       { id: 'editor-timeline-rows', label: 'Object Rows' },
@@ -1956,6 +1994,7 @@ const navData = {
     { id: 'ie-jsonl-import', label: 'JSONL Import', children: [
       { id: 'ie-jsonl-shape', label: 'Payload Shape' },
       { id: 'ie-jsonl-uploaded', label: 'Uploaded Point Cloud Scene' },
+      { id: 'ie-jsonl-ground', label: 'Ground Metadata' },
       { id: 'ie-jsonl-url', label: 'URL-Linked Point Clouds' },
       { id: 'ie-jsonl-keys', label: 'Structure Keys' },
       { id: 'ie-point-mask-format', label: 'Point Mask Data Format' },
