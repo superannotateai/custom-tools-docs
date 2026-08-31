@@ -251,7 +251,7 @@ th { font-weight:600; background:var(--bg-alt); }
 
 <h2 id="overview-capabilities">Key Capabilities</h2>
 <ul>
-  <li><strong>Seven annotation tools</strong> — bounding boxes, polygons (with boolean operations and <a href="#editor-polygon-edit" class="internal">editing mode</a>), polylines, pixel masks (with <a href="#editor-mask" class="internal">polygon/box/circle/square shapes</a>), keypoint skeletons, <a href="#editor-obbox" class="internal">rotated boxes</a>, and <a href="#editor-cuboid" class="internal">cuboids</a> (3D bounding boxes). <a href="#editor-drawing-tools" class="internal">Drawing Tools →</a></li>
+  <li><strong>Seven annotation tools</strong> — bounding boxes, polygons (with subtract and clip modes and <a href="#editor-polygon-edit" class="internal">editing mode</a>), polylines, pixel masks (with <a href="#editor-mask" class="internal">polygon/box/circle/square shapes</a>), keypoint skeletons, <a href="#editor-obbox" class="internal">rotated boxes</a>, and <a href="#editor-cuboid" class="internal">cuboids</a> (3D bounding boxes). <a href="#editor-drawing-tools" class="internal">Drawing Tools →</a></li>
   <li><strong>AI-assisted labeling</strong> — SAM 3 auto-detects objects from text prompts (full-image or <a href="#editor-region-sam3" class="internal">region-based</a>); a configurable AI model (OpenAI / Gemini / Anthropic) extracts text and properties from image crops. <a href="#editor-sam3" class="internal">SAM 3 →</a> · <a href="#editor-region-sam3" class="internal">Region SAM 3 →</a> · <a href="#editor-ai-autofill" class="internal">AI Auto-Fill →</a></li>
   <li><strong>AI-powered tracking</strong> — <a href="#editor-sam2" class="internal">SAM 2 Tracking</a> uses Meta's SAM 2 model to propagate bounding boxes and masks across frames automatically, with optional point prompts for precision. Supports tracking up to 10 objects simultaneously with parallel API calls. <a href="#editor-sam2" class="internal">SAM 2 →</a></li>
   <li><strong>Multi-image items</strong> — group video frames (configurable FPS), PDF pages, DICOM/NIfTI slices, or multi-camera views into a single annotatable item. <a href="#editor-image-management" class="internal">Image Management →</a></li>
@@ -290,13 +290,14 @@ th { font-weight:600; background:var(--bg-alt); }
 <p>Configuration defines the labeling schema — what annotators can create, what metadata they capture, and which AI features are available. A well-designed configuration is the single most impactful step before annotation begins.</p>
 
 <h2 id="config-access-control">Access Control</h2>
-<p>Access Control is a set of <strong>per-feature role allow-lists</strong>. Each control gates a separate capability and you choose which roles can use it:</p>
+<p>Access Control is a set of <strong>per-feature allow-lists</strong>. Each control gates a separate capability and you choose which roles can use it:</p>
 <ul>
-  <li><strong>Upload Files</strong> — which roles can use the in-editor <a href="#editor-image-management" class="internal">Upload</a> button to add new images, PDFs, videos, or DICOM/NIfTI files.</li>
-  <li><strong>Download Annotations</strong> — which roles see the <a href="#import-export" class="internal">Download</a> button to export the item as a ZIP.</li>
-  <li><strong>Annotation Isolation</strong> — Off or <em>By User</em>. When set to <em>By User</em>, each user only sees their own annotations in the editor and on export; the <strong>Bypass Isolation</strong> role list lets specific roles (e.g. QA leads) see everyone's work. See <a href="#editor-isolation" class="internal">Annotation Isolation</a>.</li>
+  <li><strong>Upload Files (Roles)</strong> — which roles can use the in-editor <a href="#editor-image-management" class="internal">Upload</a> button to add new images, PDFs, videos, or DICOM/NIfTI files.</li>
+  <li><strong>Download Annotations (Roles)</strong> — which roles see the <a href="#import-export" class="internal">Download</a> button to export the item as a ZIP.</li>
+  <li><strong>Annotation Isolation</strong> — Off or <em>By User</em>. When set to <em>By User</em>, each user only sees their own annotations in the editor. <strong>Bypass Isolation (Roles)</strong> and <strong>Bypass Isolation (Statuses)</strong> independently let reviewers see everyone's work. See <a href="#editor-isolation" class="internal">Annotation Isolation</a>.</li>
 </ul>
-<p>Roles are sourced from the SuperAnnotate platform's role list. <em>All Roles</em> is the default for Upload Files; <em>No one</em> is the default for Download Annotations and Bypass Isolation, so a fresh project is locked down until an admin opts roles in.</p>
+<p>Role and status pickers share the same behaviour: <em>Select all</em> stores <em>All Roles</em> or <em>All Statuses</em>, including roles or statuses added later; a partial selection stores only the checked IDs; <em>No Roles</em> or <em>No Statuses</em> grants no bypass. Upload and download default to admin-only. Isolation bypass defaults to no roles and no statuses when isolation is enabled.</p>
+<img src="images/config-access-control.png" alt="Access Control section showing per-feature role allow-lists for Upload, Download, and Annotation Isolation Bypass" style="width:100%; border-radius:8px; border:1px solid var(--border); margin:16px 0;">
 
 <h2 id="config-feature-control">Feature Control</h2>
 <p>Feature Control turns optional editor capabilities on or off, then exposes finer-grained role lists for the ones that need them:</p>
@@ -683,7 +684,7 @@ th { font-weight:600; background:var(--bg-alt); }
   <li><strong>1–10 slots</strong> per project — each one becomes a tab in the <a href="#editor-item-context" class="internal">editor's Item Context section</a>. Add slots with the <em>+ Add slot</em> button; drag the handle to reorder; click the <em>×</em> to delete.</li>
   <li><strong>Stable internal id</strong> — every slot gets an opaque id (e.g. <code>ctx-abc123</code>) at creation. Renaming or reordering a slot in config <em>never</em> moves stored item data; values stay attached to the same id forever. The id is also exposed in <a href="#ie-export-name2id" class="internal">name2id.json</a> so JSONL authors can address slots by name on upload.</li>
   <li><strong>Unique slot names</strong> — names must be unique per project (case-insensitive), same rule as classes and tags.</li>
-  <li><strong>Per-role visibility</strong> — each slot has independent <em>Hide From</em> and <em>View Only</em> role pickers (same widget as <a href="#config-classes" class="internal">class</a> and <a href="#config-tags" class="internal">tag</a> visibility). Defaults for new slots are <em>Hide From: No one</em> and <em>View Only: All Roles</em> — i.e. visible read-only to everyone until admin opts a role into editing. If a role is on both lists, <em>Hide From</em> wins.</li>
+  <li><strong>Per-role visibility</strong> — each slot has independent <em>Hide From</em> and <em>View Only</em> role pickers (same widget as <a href="#config-classes" class="internal">class</a> and <a href="#config-tags" class="internal">tag</a> visibility). Defaults for new slots are <em>Hide From: No Roles</em> and <em>View Only: All Roles</em> — i.e. visible read-only to everyone until admin opts a role into editing. If a role is on both lists, <em>Hide From</em> wins.</li>
   <li><strong>Default section height</strong> — admin sets the initial height of the strip in the editor (100–500 px, default 200 px). Annotators can drag-resize it for their session, but resized values are not persisted — every reload starts at the admin default.</li>
   <li><strong>Disabling is non-destructive</strong> — toggling Item Context off keeps the configured slots and any per-item values on disk; turning it back on later restores everything as it was.</li>
   <li><strong>Deleting a slot</strong> leaves prior values on disk as <em>orphans</em> — they no longer appear in the editor but ride through subsequent saves and downloads. Adding a new slot later generates a fresh id; orphan values do not reattach automatically.</li>
@@ -947,7 +948,7 @@ th { font-weight:600; background:var(--bg-alt); }
 <p>Both Instance View and Table View can group annotations by Image Name, Class Name, Tool Type, Property value, or Status. In Table View, groups display visual <strong>subheader rows</strong> that break the grid into collapsible sections — one per group value. Group headers include collapse / expand controls.</p>
 <p>Editable groups expose an <strong>Edit</strong> action next to the group label. Clicking it opens a <strong>bulk-edit popover</strong> where you can apply changes to every annotation in the group at once:</p>
 <ul>
-  <li>Change the class of all grouped annotations (same tool-type constraint applies).</li>
+  <li>Change the class of all grouped annotations. See <a href="#editor-class-changes" class="internal">Class Changes</a> for class eligibility, property retention, and confirmation details.</li>
   <li>Edit shared property values across the group.</li>
 </ul>
 <p>Changes from the bulk-edit popover are applied immediately and feed the standard <a href="#editor-undo-redo" class="internal">undo</a> stack.</p>
@@ -1345,19 +1346,27 @@ th { font-weight:600; background:var(--bg-alt); }
 </ul>
 
 <h2 id="editor-class-changes">Class Changes</h2>
-<p>Reclassifying an annotation is the most common <em>refinement</em> action — a "Vehicle" turns out to be a "Truck", a "Person" should have been "Pedestrian". Right-click any selected annotation (or use the panel row's overflow menu) → <strong>Change Class</strong> → pick the new class.</p>
+<p>To reclassify one annotation, click its class chip in the <a href="#editor-panel" class="internal">annotation panel</a> and choose a class from the menu. The annotation's geometry stays unchanged; only its class and property values are updated. To reclassify a group, use the <strong>Edit</strong> action described in <a href="#editor-panel-grouping" class="internal">Grouping &amp; Bulk Edit</a>.</p>
 <ul>
-  <li>The new class must share the same <em>tool type</em> as the original — a Bounding Box can become any other Bounding Box class, but not a Polygon (the underlying geometry differs). The dropdown only lists same-type classes.</li>
-  <li>Multi-select: select several annotations of the same tool type and reclassify all in one action.</li>
-  <li>Properties whose IDs match between the old and new class are <strong>preserved</strong>; properties unique to the old class are dropped, properties unique to the new class start empty.</li>
-  <li>To convert across tool types (e.g. Bounding Box → Polygon), delete the original and redraw it under the new class.</li>
+  <li><strong>Eligible classes.</strong> The menu lists only visible, editable classes with the same <em>tool type</em> as the annotation. A Bounding Box can become another Bounding Box class, but not a Polygon, because their geometry differs. To convert across tool types, delete the original and redraw it under the new class.</li>
+  <li><strong>Strict property matching.</strong> A populated value is retained only when the destination class has one property with the exact same name and type and an identical value-shape configuration. This includes Select options and order, single/multi-select mode, defaults, visibility rules and their controllers, text display mode, numeric bounds/step/unit, rating maximum, role-visibility settings, and whether each of those fields is absent or explicitly set. Property IDs are remapped as they are unique and can't match.</li>
+  <li><strong>What does not block retention.</strong> Required status, helper text, and AI extraction settings such as prompts, model routing, and prompt-edit permission can differ. They affect future validation, help, or extraction rather than the stored value itself.</li>
+  <li><strong>Rules and access are enforced.</strong> The destination property must be editable for the current user. After all compatible values are mapped, the destination's property and option visibility rules are evaluated together; a value whose controller does not allow it is removed. Invalid or stale values are not retained. Destination defaults fill properties that have no retained value.</li>
+  <li><strong>Confirmation and Undo.</strong> If any populated value cannot be retained, the confirmation dialog reports retained and removed counts before applying the change. The same summary is used for a grouped class change. One Undo restores the original class and every property value.</li>
+</ul>
+<h3 id="editor-unknown-class">Unknown class</h3>
+<p>When a class is <strong>deleted</strong>, or its <strong>tool type is changed</strong> in configuration, annotations that use its previous type are shown as <strong>Unknown</strong> instead of being converted or deleted. They render in neutral grey on the canvas and in the annotation panel until the original class is restored with the same ID and type.</p>
+<ul>
+  <li>An Unknown annotation keeps its geometry and its place on the image; only its class identity is unresolved.</li>
+  <li>It can be reclassified. The class menu offers visible, editable classes with a tool type compatible with the stored geometry.</li>
+  <li>Stored properties remain unchanged but are unavailable while the annotation is Unknown. AI extraction does not run on Unknown annotations.</li>
 </ul>
 
 <h2 id="editor-isolation">Annotation Isolation</h2>
 <p>When <strong>Annotation Isolation = By User</strong> is set in <a href="#config-access-control" class="internal">Access Control</a>, the editor filters every annotation, tag, and comment by <code>createdBy.email</code>: each user only sees their own work. This is essential for blind multi-annotation workflows where consensus or inter-annotator agreement is computed downstream — without isolation, late annotators would be biased by what early annotators drew.</p>
 <ul>
   <li>Hidden annotations remain in storage; they're just not rendered on the canvas, in the panel, or in the table.</li>
-  <li>Roles on the <strong>Bypass Isolation</strong> list see <em>everyone's</em> work — typically QA leads and project owners reviewing across annotators.</li>
+  <li>Users whose role is on <strong>Bypass Isolation (Roles)</strong>, or whose current item status is selected in <strong>Bypass Isolation (Statuses)</strong>, see <em>everyone's</em> work. The two bypass conditions are combined: matching either one is enough.</li>
   <li>Counters in the <a href="#editor-panel" class="internal">annotation panel</a> and the <a href="#editor-status-management" class="internal">frame status distribution</a> reflect the isolated view, so progress numbers always match what the user actually sees.</li>
 </ul>
 <div class="callout"><strong>Isolation is a display layer, not an access layer.</strong> Annotations from other users still travel in the JSON and ZIP exports — isolation only controls what's <em>shown</em> in the editor. Use SuperAnnotate's role-level access control for true data segregation.</div>
@@ -2281,6 +2290,9 @@ mask: { "counts": [4, 2, 1, 2, 3], "size": [3, 4] }</pre>
 <h3 id="limits-browser">Browser Compatibility</h3>
 <p>Best in Chrome and Edge (Chromium). Safari and Firefox supported with minor rendering differences.</p>
 
+<h3 id="limits-class-types">Cross-Type Class Changes</h3>
+<p>Reclassifying an annotation only allows the new class to share the same <em>tool type</em> as the old one — a Bounding Box can become another Bounding Box but not a Polygon, since the underlying geometry differs. To convert across types, delete the original annotation and redraw it under the new class. If a class is deleted or its tool type is changed in configuration, affected annotations become <a href="#editor-unknown-class" class="internal">Unknown</a> until reclassified or the original class is restored.</p>
+
 <h3 id="limits-api">API Rate Limits</h3>
 <p><a href="#editor-sam3" class="internal">SAM 3</a>, <a href="#editor-region-sam3" class="internal">Region SAM 3</a>, <a href="#editor-sam2" class="internal">SAM 2 Tracking</a> (all via <a href="#config-api-keys" class="internal">Fal.ai Proxy</a>), and <a href="#editor-ai-autofill" class="internal">AI Text autofill</a> calls (via the <a href="#config-api-keys" class="internal">AI Property Proxy</a>) are subject to provider rate limits. Running SAM 3 on "All Images" with many frames = one API call per frame. SAM 2 Tracking sends one API call per tracking run (covers multiple frames). For <a href="#limits-frames" class="internal">large items</a>, batch SAM 3 in groups of 50–100 frames. If you hit rate limits, check your proxy's API key quota in <strong>SuperAnnotate → Team Settings → Security → Proxies</strong>.</p>
 
@@ -2370,7 +2382,9 @@ const navData = {
     { id: 'editor-annotation-ordering', label: 'Annotation Ordering' },
     { id: 'editor-comments', label: 'Comments' },
     { id: 'editor-relationships', label: 'Relationships' },
-    { id: 'editor-class-changes', label: 'Class Changes' },
+    { id: 'editor-class-changes', label: 'Class Changes', children: [
+      { id: 'editor-unknown-class', label: 'Unknown class' },
+    ]},
     { id: 'editor-isolation', label: 'Annotation Isolation' },
     { id: 'editor-settings', label: 'Settings' },
     { id: 'editor-zoom', label: 'Zoom & Pan' },
@@ -2465,6 +2479,7 @@ const navData = {
     { id: 'limits-frames', label: 'Frames Per Item' },
     { id: 'limits-mask', label: 'Mask Data Size' },
     { id: 'limits-browser', label: 'Browser Compatibility' },
+    { id: 'limits-class-types', label: 'Cross-Type Class Changes' },
     { id: 'limits-api', label: 'API Rate Limits' },
     { id: 'limits-autosave', label: 'Auto-Save Timing' },
   ],
@@ -2651,14 +2666,25 @@ function expandToken(t) {
 
 function escapeRegex(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 
+function escapeHtml(text) {
+  return text.replace(/[&<>"']/g, character => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;',
+  })[character]);
+}
+
+function highlightTokens(text, tokens) {
+  const uniqueTokens = [...new Set(tokens)].sort((a, b) => b.length - a.length);
+  const regex = new RegExp('(' + uniqueTokens.map(escapeRegex).join('|') + ')', 'gi');
+  return escapeHtml(text).replace(regex, '<mark>$1</mark>');
+}
+
 function highlightMatch(text, query) {
   const tokens = query.trim().split(/\s+/).filter(t => t.length > 0);
-  let result = text;
-  for (const token of tokens) {
-    const regex = new RegExp('(' + escapeRegex(token) + ')', 'gi');
-    result = result.replace(regex, '<mark>$1</mark>');
-  }
-  return result;
+  return highlightTokens(text, tokens);
 }
 
 function getSnippet(fullText, tokens, maxLen) {
@@ -2672,11 +2698,7 @@ function getSnippet(fullText, tokens, maxLen) {
   let snippet = fullText.substring(start, end).replace(/\s+/g, ' ').trim();
   if (start > 0) snippet = '…' + snippet;
   if (end < fullText.length) snippet += '…';
-  for (const t of tokens) {
-    const regex = new RegExp('(' + escapeRegex(t) + ')', 'gi');
-    snippet = snippet.replace(regex, '<mark>$1</mark>');
-  }
-  return snippet;
+  return highlightTokens(snippet, tokens);
 }
 
 function renderSearchResults(query) {
