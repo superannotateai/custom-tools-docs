@@ -298,13 +298,13 @@ th { font-weight:600; background:var(--bg-alt); }
 <p>Configuration defines the labeling schema and the experience each role gets — what users can see, do, and capture. A well-designed configuration is the single most impactful step before annotation begins.</p>
 
 <h2 id="config-access-control">Access Control</h2>
-<p>Access Control is a set of <strong>per-feature role allow-lists</strong>. Each control gates a separate capability:</p>
+<p>Access Control is a set of <strong>per-feature allow-lists</strong>. Each control gates a separate capability:</p>
 <ul>
-  <li><strong>Upload Files</strong> — which roles can use the in-editor <a href="#editor-content-upload" class="internal">upload</a> button.</li>
-  <li><strong>Download Annotations</strong> — which roles see the <a href="#ie-export" class="internal">Download</a> button.</li>
-  <li><strong>Annotation Isolation</strong> — when on, by default each user only sees their own annotations; the <strong>Bypass</strong> role list lets specific roles see everyone's work. See <a href="#editor-isolation" class="internal">Annotation Isolation</a>.</li>
+  <li><strong>Upload Files (Roles)</strong> — which roles can use the in-editor <a href="#editor-content-upload" class="internal">upload</a> button.</li>
+  <li><strong>Download Annotations (Roles)</strong> — which roles see the <a href="#ie-export" class="internal">Download</a> button.</li>
+  <li><strong>Annotation Isolation</strong> — when on, by default each user only sees their own annotations. <strong>Bypass Isolation (Roles)</strong> and <strong>Bypass Isolation (Statuses)</strong> independently let reviewers see everyone's work. See <a href="#editor-isolation" class="internal">Annotation Isolation</a>.</li>
 </ul>
-<p>Each list is a strict allow-list: <strong>only the listed roles</strong> get the capability. An empty list means <em>no one</em> — leaving everything blank locks the feature down rather than opening it up. Defaults are conservative; Upload and Download default to admin-only.</p>
+<p>Role and status pickers share the same behaviour: <em>Select all</em> stores <em>All Roles</em> or <em>All Statuses</em>, including roles or statuses added later; a partial selection stores only the checked IDs; <em>No Roles</em> or <em>No Statuses</em> grants no bypass. Upload and download default to admin-only. Isolation bypass defaults to no roles and no statuses when isolation is enabled.</p>
 <img src="images/config-access-control.png" alt="Access Control section showing per-feature role allow-lists for Upload, Download, and Annotation Isolation Bypass" style="width:100%; border-radius:8px; border:1px solid var(--border); margin:16px 0;">
 
 <h2 id="config-tool-modes">Tool Modes</h2>
@@ -656,7 +656,7 @@ th { font-weight:600; background:var(--bg-alt); }
   <li><strong>1–10 slots</strong> per project — each one becomes a tab in the <a href="#editor-item-context" class="internal">editor's Item Context section</a>. Add slots with the <em>+ Add slot</em> button; drag the handle to reorder; click the <em>×</em> to delete.</li>
   <li><strong>Stable internal id</strong> — every slot gets an opaque id (e.g. <code>ctx-abc123</code>) at creation. Renaming or reordering a slot in config <em>never</em> moves stored item data; values stay attached to the same id forever. The id is also exposed in <a href="#ie-export-structure" class="internal">name2id.json</a> so JSONL authors can address slots by name on upload.</li>
   <li><strong>Unique slot names</strong> — names must be unique per project (case-insensitive), same rule as classes and tags.</li>
-  <li><strong>Per-role visibility</strong> — each slot has independent <em>Hide From</em> and <em>View Only</em> role pickers (same widget as <a href="#config-classes" class="internal">class</a> and <a href="#config-tags" class="internal">tag</a> visibility). Defaults for new slots are <em>Hide From: No one</em> and <em>View Only: All Roles</em> — i.e. visible read-only to everyone until admin opts a role into editing. If a role is on both lists, <em>Hide From</em> wins.</li>
+  <li><strong>Per-role visibility</strong> — each slot has independent <em>Hide From</em> and <em>View Only</em> role pickers (same widget as <a href="#config-classes" class="internal">class</a> and <a href="#config-tags" class="internal">tag</a> visibility). Defaults for new slots are <em>Hide From: No Roles</em> and <em>View Only: All Roles</em> — i.e. visible read-only to everyone until admin opts a role into editing. If a role is on both lists, <em>Hide From</em> wins.</li>
   <li><strong>Default section height</strong> — admin sets the initial height of the strip in the editor (100–500 px, default 200 px). Annotators can drag-resize it for their session, but resized values are not persisted — every reload starts at the admin default.</li>
   <li><strong>Disabling is non-destructive</strong> — toggling Item Context off keeps the configured slots and any per-item values on disk; turning it back on later restores everything as it was.</li>
   <li><strong>Deleting a slot</strong> leaves prior values on disk as <em>orphans</em> — they no longer appear in the editor but ride through subsequent saves and downloads. Adding a new slot later generates a fresh id; orphan values do not reattach automatically.</li>
@@ -960,7 +960,7 @@ th { font-weight:600; background:var(--bg-alt); }
 <p>The default layout: one row per instance. Each row shows:</p>
 <ul>
   <li>An eye icon for per-instance visibility, copy-id button, the class chip (click to <a href="#editor-class-changes" class="internal">change class</a>), the span text.</li>
-  <li>Quick-action icons — comments, relationships, info (opens <a href="#editor-property-editing" class="internal">property popover</a>), delete.</li>
+  <li>Quick-action icons — comments, relationships, info (opens <a href="#editor-property-editing" class="internal">property popover</a>).</li>
 </ul>
 <p>Click a row to scroll the span into view and select it. The panel supports:</p>
 <ul>
@@ -993,7 +993,7 @@ th { font-weight:600; background:var(--bg-alt); }
 <p>Both Instance View and Table View can group instances by Text Name, Class Name, Tool Type, or any individual Property. In Table View, groups display visual <strong>subheader rows</strong> that break the grid into collapsible sections — one per group value. Group headers include collapse / expand controls.</p>
 <p>Editable groups expose an <strong>Edit</strong> action next to the group label. Clicking it opens a <strong>bulk-edit popover</strong> where you can apply changes to every instance in the group at once:</p>
 <ul>
-  <li>Change the class of all grouped instances.</li>
+  <li>Change the class of all grouped instances. See <a href="#editor-class-changes" class="internal">Class Changes</a> for class eligibility, property retention, and confirmation details.</li>
   <li>Edit shared property values across the group.</li>
 </ul>
 <p>Changes from the bulk-edit popover are applied immediately and feed the standard <a href="#editor-undo-redo" class="internal">undo</a> stack.</p>
@@ -1127,16 +1127,27 @@ th { font-weight:600; background:var(--bg-alt); }
 <hr>
 
 <h2 id="editor-class-changes">Class Changes</h2>
-<p>Reclassifying an instance is cheap. In the <a href="#editor-panel-instance" class="internal">annotation panel</a>, click the class chip on the instance row to open the class menu and pick a new class. The span stays put and the class swaps.</p>
+<p>To reclassify one entity, click its class chip in the <a href="#editor-panel" class="internal">annotation panel</a> and choose a class from the menu. The annotated text span stays unchanged; only its class and property values are updated. To reclassify a group, use the <strong>Edit</strong> action described in <a href="#editor-panel-grouping" class="internal">Grouping &amp; Bulk Edit</a>.</p>
 <ul>
-  <li><strong>Property values are not carried over.</strong> Each class has its own property schema with its own property IDs, so previous values are dropped (orphaned) and the new class's default values are seeded. A class change is destructive for property data — use Undo if it was a mistake.</li>
+  <li><strong>Eligible classes.</strong> The menu lists only visible, editable classes. Text entities use the same annotation model, so there is no cross-tool-type conversion rule.</li>
+  <li><strong>Strict property matching.</strong> A populated value is retained only when the destination class has one property with the exact same name and type and an identical value-shape configuration. This includes Select options and order, single/multi-select mode, defaults, visibility rules and their controllers, text display mode, numeric bounds/step/unit, rating maximum, role-visibility settings, and whether each of those fields is absent or explicitly set. Property IDs are remapped as they are unique and can't match.</li>
+  <li><strong>What does not block retention.</strong> Required status, helper text, and AI extraction settings such as prompts, model routing, and prompt-edit permission can differ. They affect future validation, help, or extraction rather than the stored value itself.</li>
+  <li><strong>Rules and access are enforced.</strong> The destination property must be editable for the current user. After all compatible values are mapped, the destination's property and option visibility rules are evaluated together; a value whose controller does not allow it is removed. Invalid or stale values are not retained. Destination defaults fill properties that have no retained value.</li>
+  <li><strong>Confirmation and Undo.</strong> If any populated value cannot be retained, the confirmation dialog reports retained and removed counts before applying the change. The same summary is used for a grouped class change. One Undo restores the original class and every property value.</li>
+</ul>
+<h3 id="editor-unknown-class">Unknown class</h3>
+<p>When a class is <strong>deleted</strong> in configuration, entities that use it are shown as <strong>Unknown</strong> instead of being deleted. They remain anchored to their annotated text and appear as Unknown in the annotation panel until the class is restored with the same ID.</p>
+<ul>
+  <li>An Unknown entity keeps its annotated text span; only its class identity is unresolved.</li>
+  <li>It can be reclassified. The class menu offers visible, editable classes.</li>
+  <li>Stored properties remain unchanged but are unavailable while the entity is Unknown. AI extraction does not run on Unknown entities.</li>
 </ul>
 <img src="images/editor-class-change.png" alt="Annotation panel row with the class chip clicked, showing a class picker menu of available classes" style="width:100%; border-radius:8px; border:1px solid var(--border); margin:16px 0;">
 
 <hr>
 
 <h2 id="editor-isolation">Annotation Isolation</h2>
-<p>Annotation Isolation is a <strong>configuration-level</strong> privacy mechanism, not a per-instance dim toggle. When isolation is on, by default each user only sees the annotations they themselves created. Roles on the <a href="#config-access-control" class="internal">Isolation Bypass</a> list see everyone's instances — typical for reviewers and admins.</p>
+<p>Annotation Isolation is a <strong>configuration-level</strong> privacy mechanism, not a per-instance dim toggle. When isolation is on, by default each user only sees the annotations they themselves created. A role on <a href="#config-access-control" class="internal">Bypass Isolation (Roles)</a>, or the item's current status in <strong>Bypass Isolation (Statuses)</strong>, lets that viewer see everyone's instances. Matching either bypass is enough.</p>
 <ul>
   <li>Use isolation to prevent annotator bias by hiding peer annotations during the labelling pass.</li>
   <li>Reviewers in the bypass list can see all annotators' work side by side for QA.</li>
@@ -1773,7 +1784,9 @@ const navData = {
     ]},
     { id: 'editor-comments', label: 'Comments' },
     { id: 'editor-relationships', label: 'Relationships' },
-    { id: 'editor-class-changes', label: 'Class Changes' },
+    { id: 'editor-class-changes', label: 'Class Changes', children: [
+      { id: 'editor-unknown-class', label: 'Unknown class' },
+    ]},
     { id: 'editor-isolation', label: 'Annotation Isolation' },
     { id: 'editor-undo-redo', label: 'Undo / Redo' },
     { id: 'editor-content-length', label: 'Paste-Score & Content Length' },
@@ -1995,14 +2008,25 @@ function expandToken(t) {
 
 function escapeRegex(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 
+function escapeHtml(text) {
+  return text.replace(/[&<>"']/g, character => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;',
+  })[character]);
+}
+
+function highlightTokens(text, tokens) {
+  const uniqueTokens = [...new Set(tokens)].sort((a, b) => b.length - a.length);
+  const regex = new RegExp('(' + uniqueTokens.map(escapeRegex).join('|') + ')', 'gi');
+  return escapeHtml(text).replace(regex, '<mark>$1</mark>');
+}
+
 function highlightMatch(text, query) {
   const tokens = query.trim().split(/\s+/).filter(t => t.length > 0);
-  let result = text;
-  for (const token of tokens) {
-    const regex = new RegExp('(' + escapeRegex(token) + ')', 'gi');
-    result = result.replace(regex, '<mark>$1</mark>');
-  }
-  return result;
+  return highlightTokens(text, tokens);
 }
 
 function getSnippet(fullText, tokens, maxLen) {
@@ -2016,11 +2040,7 @@ function getSnippet(fullText, tokens, maxLen) {
   let snippet = fullText.substring(start, end).replace(/\s+/g, ' ').trim();
   if (start > 0) snippet = '…' + snippet;
   if (end < fullText.length) snippet += '…';
-  for (const t of tokens) {
-    const regex = new RegExp('(' + escapeRegex(t) + ')', 'gi');
-    snippet = snippet.replace(regex, '<mark>$1</mark>');
-  }
-  return snippet;
+  return highlightTokens(snippet, tokens);
 }
 
 function renderSearchResults(query) {
