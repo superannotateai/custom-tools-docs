@@ -39,6 +39,8 @@ body { font-family: var(--font); color: var(--text); background: var(--bg); font
 .hero p { font-size:17px; color:var(--text-secondary); max-width:600px; margin:0 auto; }
 
 /* Cards grid */
+.documentation-section { width:100%; }
+.section-heading { width:100%; max-width:calc(5 * var(--card-min) + 4 * var(--card-gap)); margin:0 auto; padding:0 24px 8px; text-align:center; font-size:24px; font-weight:700; letter-spacing:-0.01em; }
 .cards {
   display: grid;
   gap: var(--card-gap);
@@ -47,8 +49,10 @@ body { font-family: var(--font); color: var(--text); background: var(--bg); font
   padding: 8px 24px 64px;
   justify-content: center;
   grid-template-columns: 1fr;
-  max-width: min(100%, calc(var(--card-min) + 10px));
+  max-width: min(100%, calc(var(--card-min) + 48px));
 }
+.tool-cards { display:flex; flex-wrap:wrap; justify-content:center; gap:var(--card-gap); width:100%; max-width:calc(5 * var(--card-min) + 4 * var(--card-gap) + 48px); margin:0 auto; padding:8px 24px 64px; }
+.tool-cards .card { flex:0 1 var(--card-min); width:min(100%, var(--card-min)); }
 .card { display:flex; flex-direction:column; background:var(--bg-alt); border:1px solid var(--border); border-radius:14px; padding:26px; text-decoration:none; color:inherit; box-shadow:var(--card-shadow); transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
 .card:hover { transform:translateY(-3px); box-shadow:var(--card-shadow-hover); border-color:var(--accent); }
 .card-icon { width:46px; height:46px; border-radius:11px; background:var(--accent-light); color:var(--accent); display:flex; align-items:center; justify-content:center; margin-bottom:18px; }
@@ -62,21 +66,21 @@ body { font-family: var(--font); color: var(--text); background: var(--bg); font
 @media (min-width: 1020px) and (max-width: 1679px) {
   .cards {
     grid-template-columns: repeat(6, minmax(0, var(--card-min)));
-    max-width: calc(3 * var(--card-min) + 2 * var(--card-gap));
+    max-width: calc(3 * var(--card-min) + 2 * var(--card-gap) + 48px);
   }
-  .card:nth-child(1) { grid-column: 1 / span 2; }
-  .card:nth-child(2) { grid-column: 3 / span 2; }
-  .card:nth-child(3) { grid-column: 5 / span 2; }
-  .card:nth-child(4) { grid-column: 2 / span 2; }
-  .card:nth-child(5) { grid-column: 4 / span 2; }
+  .cards .card:nth-child(1) { grid-column: 1 / span 2; }
+  .cards .card:nth-child(2) { grid-column: 3 / span 2; }
+  .cards .card:nth-child(3) { grid-column: 5 / span 2; }
+  .cards .card:nth-child(4) { grid-column: 2 / span 2; }
+  .cards .card:nth-child(5) { grid-column: 4 / span 2; }
 }
 
 @media (min-width: 1680px) {
   .cards {
     grid-template-columns: repeat(5, minmax(0, var(--card-min)));
-    max-width: calc(5 * var(--card-min) + 4 * var(--card-gap));
+    max-width: calc(5 * var(--card-min) + 4 * var(--card-gap) + 48px);
   }
-  .card { grid-column: auto; }
+  .cards .card { grid-column: auto; }
 }
 
 /* Footer */
@@ -101,10 +105,13 @@ body { font-family: var(--font); color: var(--text); background: var(--bg); font
 
   <section class="hero">
     <h1>Custom Tools Documentation</h1>
-    <p>User guides for the SuperAnnotate multimodal annotation components. Pick a tool below to open its documentation.</p>
+    <p>Guides for SuperAnnotate’s custom annotation tools and platform workflows.</p>
   </section>
 
-  <main class="cards">
+  <main>
+    <section class="documentation-section" aria-labelledby="annotation-editors-heading">
+      <h2 class="section-heading" id="annotation-editors-heading">Annotation Tools</h2>
+      <div class="cards">
 
     <!-- Image Annotation Tool -->
     <a class="card" href="image-tool-docs/" target="_blank" rel="noopener noreferrer">
@@ -204,6 +211,25 @@ body { font-family: var(--font); color: var(--text); background: var(--bg); font
       </span>
     </a>
 
+      </div>
+    </section>
+
+    <section class="documentation-section" aria-labelledby="workflow-tools-heading">
+      <h2 class="section-heading" id="workflow-tools-heading">Platform Tools</h2>
+      <div class="tool-cards">
+        <!-- Smart Workflow -->
+        <a class="card" href="smart-workflow-docs/" target="_blank" rel="noopener noreferrer">
+          <div class="card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2"/><circle cx="18" cy="12" r="2"/><circle cx="6" cy="18" r="2"/><path d="M8 6h4a4 4 0 0 1 4 4"/><path d="M8 18h4a4 4 0 0 0 4-4"/></svg>
+          </div>
+          <div class="card-title">Smart Workflow</div>
+          <p class="card-desc">Configure automated work distribution, contributor profiles, task requests, and workflow-driven item actions.</p>
+          <span class="card-cta">View documentation
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+          </span>
+        </a>
+      </div>
+    </section>
   </main>
 
   <footer class="footer">
