@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Workflow — Documentation</title>
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<style>
+:root {
+  --bg:#fff; --bg-alt:#f8f9fb; --bg-code:#f3f4f6; --border:#e5e7eb;
+  --text:#1a1a2e; --text-secondary:#6b7280; --accent:#4271ff;
+  --accent-light:#e0eaff; --link:#6c5ce7; --warn-bg:#fff7ed;
+  --warn-border:#fdba74; --warn-fg:#9a3412; --err-bg:#fef2f2;
+  --err-border:#fecaca; --err-fg:#b91c1c; --sidebar-w:240px;
+  --header-h:52px; --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,sans-serif;
+  --mono:'SF Mono','Fira Code',Consolas,monospace;
+}
+[data-theme="dark"] {
+  --bg:#1a1a1a; --bg-alt:#222; --bg-code:#2a2a2a; --border:#3a3a3a;
+  --text:#e5e5e5; --text-secondary:#a0a0a0; --accent:#5a8aff;
+  --accent-light:#2a3550; --link:#a78bfa; --warn-bg:#302717;
+  --warn-border:#754a21; --warn-fg:#fdba74; --err-bg:#2a1f1f;
+  --err-border:#5a2f2f; --err-fg:#ff8a8a; color-scheme:dark;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:var(--font); color:var(--text); background:var(--bg); font-size:15px; line-height:1.65; }
+.header { position:fixed; top:0; left:0; right:0; height:var(--header-h); background:var(--bg); border-bottom:1px solid var(--border); display:flex; align-items:center; z-index:100; padding:0 24px; gap:8px; }
+.header-logo { font-weight:700; font-size:16px; color:var(--accent); margin-right:24px; white-space:nowrap; }
+.tab-bar { display:flex; gap:2px; }
+.tab-btn { background:none; border:none; font:inherit; font-size:14px; padding:8px 16px; cursor:pointer; border-radius:6px; color:var(--text-secondary); transition:all .15s; white-space:nowrap; }
+.tab-btn:hover { background:var(--bg-alt); color:var(--text); }
+.tab-btn.active { background:var(--accent-light); color:var(--accent); font-weight:600; }
+.layout { display:flex; padding-top:var(--header-h); min-height:100vh; }
+.left-sidebar { position:fixed; top:var(--header-h); left:0; bottom:0; width:var(--sidebar-w); overflow-y:auto; border-right:1px solid var(--border); background:var(--bg-alt); padding:16px 0; z-index:50; }
+.nav-section { padding:0 16px; margin-bottom:4px; }
+.nav-link { display:block; font-size:13.5px; padding:5px 12px; border-radius:6px; color:var(--text-secondary); text-decoration:none; transition:all .12s; cursor:pointer; }
+.nav-link:hover { background:var(--border); color:var(--text); }
+.nav-link.active { background:var(--accent-light); color:var(--accent); font-weight:600; }
+.nav-sub { padding-left:14px; }
+.nav-sub .nav-link { font-size:13px; padding:5px 10px; }
+.main { margin-left:var(--sidebar-w); padding:32px 48px 80px; max-width:820px; flex:1; }
+.tab-content { display:none; }
+.tab-content.active { display:block; }
+h1 { font-size:28px; font-weight:700; margin-bottom:8px; }
+h2 { font-size:22px; font-weight:700; margin-top:40px; margin-bottom:8px; scroll-margin-top:70px; }
+h3 { font-size:17px; font-weight:700; margin-top:32px; margin-bottom:6px; scroll-margin-top:70px; }
+h4 { font-size:15px; font-weight:600; margin-top:24px; margin-bottom:4px; scroll-margin-top:70px; }
+p { margin-bottom:12px; }
+ul,ol { margin-bottom:12px; padding-left:22px; }
+li { margin-bottom:4px; }
+a { color:var(--link); text-decoration:none; }
+a:hover { text-decoration:underline; }
+strong { font-weight:600; }
+code { font-family:var(--mono); font-size:13px; background:var(--bg-code); padding:2px 5px; border-radius:4px; }
+pre { background:var(--bg-code); padding:16px; border-radius:8px; overflow-x:auto; margin-bottom:16px; font-size:13px; line-height:1.5; font-family:var(--mono); }
+hr { border:none; border-top:1px solid var(--border); margin:32px 0; }
+.callout { background:var(--accent-light); border-left:3px solid var(--accent); padding:12px 16px; border-radius:0 6px 6px 0; margin-bottom:16px; font-size:14px; }
+.callout strong { color:var(--accent); }
+.callout.warning { background:var(--warn-bg); border-color:var(--warn-border); color:var(--warn-fg); }
+.callout.warning strong { color:inherit; }
+.callout.error { background:var(--err-bg); border-color:var(--err-border); color:var(--err-fg); }
+.callout.error strong { color:inherit; }
+.screenshot-placeholder { border:2px dashed var(--border); border-radius:8px; padding:32px 24px; text-align:center; color:var(--text-secondary); font-size:13px; margin:16px 0; background:var(--bg-alt); }
+.screenshot-placeholder::before { content:'📷'; display:block; font-size:24px; margin-bottom:8px; }
+.doc-screenshot { display:block; width:auto; max-width:100%; height:auto; margin:16px 0; border:1px solid var(--border); border-radius:8px; }
+.doc-screenshot-row { display:flex; flex-wrap:nowrap; gap:16px; justify-content:center; align-items:flex-start; margin:16px 0; }
+.doc-screenshot-row .doc-screenshot { flex:0 1 auto; min-width:0; width:auto; max-width:100%; height:auto; max-height:300px; margin:0; }
+table { width:100%; border-collapse:collapse; margin-bottom:16px; font-size:14px; }
+th,td { text-align:left; padding:8px 12px; border-bottom:1px solid var(--border); vertical-align:top; }
+th { font-weight:600; background:var(--bg-alt); }
+.header-search-wrap { position:relative; margin-left:auto; }
+.header-search-icon { position:absolute; left:10px; top:50%; transform:translateY(-50%); pointer-events:none; }
+.header-search-input { font:inherit; font-size:13px; padding:6px 12px 6px 32px; border:1px solid var(--border); border-radius:6px; width:220px; background:var(--bg-alt); color:var(--text); outline:none; transition:border-color .15s,width .2s; }
+.header-search-input:focus { border-color:var(--accent); width:280px; }
+.header-search-input::placeholder { color:var(--text-secondary); }
+.header-search-dropdown { display:none; position:absolute; top:calc(100% + 4px); right:0; width:360px; max-height:400px; overflow-y:auto; background:var(--bg); border:1px solid var(--border); border-radius:8px; box-shadow:0 8px 24px rgba(0,0,0,.12); z-index:200; }
+.header-search-dropdown.open { display:block; }
+.search-result-item { display:flex; flex-direction:column; padding:10px 14px; cursor:pointer; border-bottom:1px solid var(--border); transition:background .1s; }
+.search-result-item:last-child { border-bottom:none; }
+.search-result-item:hover,.search-result-item.active { background:var(--accent-light); }
+.search-result-title { font-size:13.5px; font-weight:600; color:var(--text); }
+mark { background:var(--accent-light); color:var(--accent); font-weight:700; border-radius:2px; padding:0 1px; }
+.search-result-snippet { display:block; font-size:12px; color:var(--text-secondary); line-height:1.4; margin-top:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.search-result-path { font-size:11.5px; color:var(--text-secondary); margin-top:3px; }
+.search-tab-badge { display:inline-block; background:var(--bg-alt); border:1px solid var(--border); border-radius:4px; padding:0 5px; font-size:10.5px; font-weight:600; margin-right:4px; text-transform:capitalize; }
+@media (max-width:800px) {
+  .header { padding:0 12px; overflow-x:auto; }
+  .header-logo { margin-right:8px; }
+  .tab-btn { padding:8px 10px; }
+  .left-sidebar,.header-search-wrap { display:none; }
+  .main { margin-left:0; padding:24px 20px 60px; }
+}
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-logo">Smart Workflow</div>
+  <nav class="tab-bar">
+    <button class="tab-btn active" data-tab="overview">Overview</button>
+    <button class="tab-btn" data-tab="configuration">Setup &amp; Configuration</button>
+    <button class="tab-btn" data-tab="profiles">Contributor Profiles</button>
+    <button class="tab-btn" data-tab="editor">Working Items &amp; Requests</button>
+    <button class="tab-btn" data-tab="faq">Troubleshooting &amp; FAQ</button>
+  </nav>
+  <div class="header-search-wrap">
+    <svg class="header-search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="text" class="header-search-input" id="docSearchInput" placeholder="Search docs…" autocomplete="off">
+    <div class="header-search-dropdown" id="docSearchDropdown"></div>
+  </div>
+</header>
+<div class="layout">
+  <aside class="left-sidebar" id="leftNav"></aside>
+  <main class="main">
+    <div class="tab-content active" data-tab="overview">
+      <h1>Overview</h1>
+      <p>Smart Workflow helps a project distribute work through defined tasks instead of manual item assignment. Administrators configure the workflow once, contributors receive a personal profile item, and contributors request work when they are ready.</p>
+      <h2 id="overview-capabilities">What Smart Workflow provides</h2>
+      <ul>
+        <li><strong>Task-based work distribution</strong> — organize project work by workflow status, request size, lifetime limits, and optional category selection.</li>
+        <li><strong>Contributor profile items</strong> — each Contributor receives a dedicated item where admins manage task access and contributors request their next work.</li>
+        <li><strong>Safe request handling</strong> — requests validate current access, request limits, project state, and available items before assignment.</li>
+        <li><strong>Work-item controls</strong> — contributors can Submit, Skip, or Return assigned work; tasks can require several contributors to submit before an item advances.</li>
+        <li><strong>Operational visibility</strong> — profile request history and Orchestrate run history help administrators understand what happened.</li>
+      </ul>
+      <h2 id="overview-lifecycle">How it works</h2>
+      <ol>
+        <li>An administrator completes the preparations of the <a class="internal" href="#config-workflow">workflow requirements</a>, sets up the automation orchestration (once per team), and publishes the project with component configuration.</li>
+        <li>When a user is added as a Contributor, automation creates or recovers that user’s profile item.</li>
+        <li>An administrator grants or changes access to the tasks on the profile, or relies on default task seeding mechanism for new profiles.</li>
+        <li>The contributor opens their profile, chooses a task, and requests work.</li>
+        <li>Automation finds and assigns eligible items. Contributors then work through those items with the configured actions.</li>
+      </ol>
+      <div class="callout"><strong>Two separate responsibilities.</strong> The component provides configuration and the item experience. The Orchestrate automation provisions profiles and fulfills task requests.</div>
+    </div>
+
+    <div class="tab-content" data-tab="configuration">
+      <h1>Setup &amp; Configuration</h1>
+      <p>Configuration connects the project workflow, user-profile component, and two automation actions. Complete this setup before adding Contributors to the project.</p>
+      <h2 id="config-workflow">Workflow requirements</h2>
+      <p>Start by creating a custom workflow under Team Setup → Workflows.</p>
+      <ul>
+        <li>The workflow must include a status named <strong>Profile</strong> for profile items.</li>
+        <li>The workflow must have a single <strong>Contributor</strong> role. Admin role is automatically available on all projects and does not need to be created.</li>
+        <li>Contributors must have access to every status in your Workflow.</li>
+        <li>Only the supported workflow-role structure should remain. The configuration screen identifies missing requirements and extra workflow roles before allowing setup.</li>
+      </ul>
+      <p>Below is an example of a workflow with all the requirements met.</p>
+      <img class="doc-screenshot" src="images/workflow-example.webp" alt="Example workflow with the required Profile status, Contributor role, and Contributor access to every status">
+      <div class="callout warning"><strong>Set up the workflow first.</strong> Changing statuses or role access later can make configured task statuses unavailable. Reopen configuration afterward to review and publish any required changes.</div>
+      <h2 id="config-orchestration">Install the orchestration</h2>
+      <ol>
+        <li>Download the <a href="assets/smart-workflow-orchestration-template.json" download data-doc-download="smart-workflow-orchestration-template.json">Smart Workflow orchestration template</a>.</li>
+        <li>Import it into Orchestrate for the same team as the project.</li>
+        <li>On the import screen, select the <strong>Contributor</strong> role and a <strong>Team API key</strong> to mount them on the template.
+          <img class="doc-screenshot" src="images/workflow-example.webp" alt="Orchestration import screen with the Contributor role and a Team API key selected">
+        </li>
+        <li>Confirm the contributor-added and contributor-role-updated triggers point to the profile handler action.</li>
+        <li>Confirm that the Team API key is mounted on both actions.
+          <p>Below is an example of the finished orchestration with the profile-provisioning and request-handler actions in place.</p>
+          <img class="doc-screenshot" src="images/orchestration.webp" alt="Smart Workflow orchestration containing the profile-provisioning and request-handler actions">
+        </li>
+        <li>Copy the incoming-webhook URL and API key from the request handler setup into the component’s Request webhook card.</li>
+      </ol>
+      <p>The template contains the profile-provisioning action and the request-handler action. It uses a placeholder for the Team API key; the shared DynamoDB lock configuration is intentionally included.</p>
+      <div class="callout"><strong>Permission Scope.</strong> While as a team admin, you can create a custom role, you must be given <strong>Access team API keys</strong> permission to select or create a Team API key.</div>
+      <h2 id="config-component">Configure the component</h2>
+      <p>Below is an example of the complete configuration screen. Complete all the sections, then select <strong>Next</strong> and <strong>Update</strong> to publish the configuration.</p>
+      <img class="doc-screenshot" src="images/configuration-screen.webp" alt="Smart Workflow configuration screen showing Request webhook, User Profile and Requests, and Tasks sections">
+      <h3 id="config-webhook">Request webhook</h3>
+      <p>In the <strong>Request webhook</strong> section, paste the incoming-webhook URL and API key from the created orchestration in your team. Both fields are required: if either is blank, contributors see an administrator-contact message and cannot select a task, category, or Request button.</p>
+      <div class="callout warning"><strong>Use the team’s own webhook details.</strong> Imported webhook settings are copied unchanged. Before publishing, confirm that they belong to an orchestration in this team; a webhook from another team receives the request but cannot access this project and fails.</div>
+      <h3 id="config-profile-requests">User Profile &amp; Requests</h3>
+      <ul>
+        <li><strong>Profile folder</strong> — profile items use a dedicated folder, normally <code>0_User_profiles</code>. The live folder name is shown here, and its resolved ID keeps it recognized after a rename once configuration has been published.</li>
+        <li><strong>Project task requests</strong> — pauses new requests project-wide without affecting already assigned work. It is independent from <a class="internal" href="#profiles-admin-controls">pause state for individual contributors</a>.</li>
+        <li><strong>Request by category</strong> — requires contributors to select one or more categories and limits new assignments to matching items.</li>
+        <li><strong>Exclude folders</strong> — prevents work items from selected project folders from being assigned through requests. The active profile folder is always excluded from this selector.</li>
+      </ul>
+      <h3 id="config-tasks">Tasks</h3>
+      <p>Each task represents a portion of the workflow. Its read-only ID is used by contributor profile access and request history, so existing task IDs remain stable while newly created tasks have IDs normalized from a task name.</p>
+      <table>
+        <thead><tr><th>Setting</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td>Attached statuses</td><td>Defines which work items belong to the task. Each workflow status can be attached to only one task.</td></tr>
+          <tr><td>Submits to / Skips to / Returns to</td><td>Defines where an item moves after each contributor action. Each destination must be an available Contributor transition from every status attached to this task.</td></tr>
+          <tr><td>Timeout status / Time limit</td><td>Optionally move an overdue regular work item automatically. Items are considered overdue after the active Editor time logged through telemetry exceeds the configured time limit.</td></tr>
+          <tr><td>Submits needed</td><td>Number of contributor submissions required before Submit advances the item. Needed for consensus workflows where multiple contributors must submit before an item advances.</td></tr>
+          <tr><td>Items per request</td><td>Maximum number of items assigned by one request, from 1 to 20.</td></tr>
+          <tr><td>Lifetime item limit</td><td>Optional cumulative number of items a profile may receive for this task.</td></tr>
+          <tr><td>New profile access</td><td>Seeds this task only when a new profile is created; it never changes existing profiles.</td></tr>
+        </tbody>
+      </table>
+      <div class="callout"><strong>Configure workflow transitions first.</strong> Attached and destination status choices come from the workflow assigned to this project, and must be accessible to the Contributor role. For each task, the Submits to, Skips to, and Returns to lists contain only statuses that the workflow allows Contributors to reach from every attached status. If a task has multiple attached statuses, its destination must be a valid transition from all of them. The same attached status cannot be selected in another task, which keeps every working item assigned to exactly one task.</div>
+      <h3 id="config-import-export">Import and export</h3>
+      <p>Export downloads the complete component configuration, including webhook URL and API key. Store it securely. Import replaces the current configuration only after confirmation and takes effect only after <strong>Next</strong> and <strong>Update</strong>.</p>
+      <ul>
+        <li>Folder IDs are retained only when they belong to the current project.</li>
+        <li>Status selections unavailable in the current workflow are removed.</li>
+        <li>Existing contributor profiles and request history are not migrated. Avoid importing a different task list or task IDs into a project already in use.</li>
+        <li>Webhook settings are imported unchanged. Verify they belong to an orchestration in the current team before publishing.</li>
+      </ul>
+    </div>
+
+    <div class="tab-content" data-tab="profiles">
+      <h1>Contributor Profiles</h1>
+      <p>A contributor profile is a dedicated item where the contributor requests work and an administrator manages the contributor’s task access.</p>
+      <h2 id="profiles-creation">Profile creation and recovery</h2>
+      <p>The profile handler runs when a user is added to the project as a Contributor or their project role changes to Contributor. It first confirms that the published form includes Smart Workflow, then finds or creates the profile item.</p>
+      <ul>
+        <li>A new profile is created in the profile folder with the <strong>Profile</strong> status.</li>
+        <li>If a matching unassigned profile item already exists, it is recovered and assigned to the contributor.</li>
+        <li>If the matching item is already assigned to the same contributor, it is retained.</li>
+        <li>If it belongs to another contributor, provisioning fails instead of taking over that person’s profile.</li>
+      </ul>
+      <h2 id="profiles-default-access">Default task access</h2>
+      <p>Tasks marked <strong>New profile access</strong> are copied into a profile only at the moment it is created. This is a starting point, not a live rule: changing this setting later never modifies an existing profile.</p>
+      <p>This makes defaults useful for intentionally onboarding contributors in batches:</p>
+      <ol>
+        <li>Select the task or tasks that the first group should receive by default, then publish the configuration.</li>
+        <li>Add the first group as Contributors. Each new profile is created with access tothose selected tasks.</li>
+        <li>Change the default selection, publish again, and then add the next group. The next group receives the new defaults; the first group keeps its existing access.</li>
+      </ol>
+      <div class="callout"><strong>Best practice.</strong> Select one default task when onboarding a batch unless you deliberately want every new contributor to start with multiple task options. Use the administrator controls on an existing profile to make exceptions or to change previously granted access.</div>
+      <h2 id="profiles-admin-controls">What administrators manage</h2>
+      <p>Administrators can update a contributor’s profile at any time. Each task-access or pause change is saved immediately, and concurrent contributor request history is preserved.</p>
+      <ul>
+        <li><strong>Allowed tasks</strong> — selects which current tasks this contributor may request.</li>
+        <li><strong>Pause requests</strong> — blocks new requests for this contributor while keeping their already assigned work available.</li>
+        <li><strong>Request history</strong> — shows successful, empty, and rejected request attempts so administrators can see the contributor’s request activity.</li>
+      </ul>
+      <h2 id="profiles-folder-recovery">Profile folder naming and recovery</h2>
+      <p>Keep the automatically created <code>0_User_profiles</code> folder name whenever possible. Folder renames are supported only after the folder’s live ID has been captured by opening and publishing configuration; renaming during setup can create an unintended second profile folder.</p>
+      <p>If a rename is necessary, use this sequence:</p>
+      <ol>
+        <li>Open the configuration screen and confirm that it detects the current profile folder.</li>
+        <li>Publish configuration so the live folder ID is stored.</li>
+        <li>Rename the folder in SuperAnnotate.</li>
+        <li>Reopen configuration, verify the renamed folder is detected, and publish again before inviting more contributors.</li>
+      </ol>
+      <p>Once a live ID is stored, Smart Workflow continues to recognize that folder after its name changes. If it is deleted, the next configuration or provisioning flow attempts recovery by the configured name and may create or resolve a replacement for future profiles.</p>
+      <div class="callout warning"><strong>Avoid untracked renames.</strong> If a profile folder is renamed before its ID has ever been saved through configuration, Smart Workflow cannot safely identify the arbitrary renamed folder. The next invite may create a new <code>0_User_profiles</code> folder, splitting future profiles from the renamed folder.</div>
+    </div>
+
+    <div class="tab-content" data-tab="editor">
+      <h1>Working Items &amp; Requests</h1>
+      <h2 id="editor-admin-profile">Administrator profile view</h2>
+      <p>On a user-profile item, administrators see task access chips, the contributor’s request-pause state, the request history, and the list of people who opened the item. Task and pause changes save immediately, and the profile refreshes when another session made an overlapping access change.</p>
+      <p>Below is an example of the administrator view for a contributor profile.</p>
+      <img class="doc-screenshot" src="images/administrator-profile-view.webp" alt="Administrator view of a contributor profile showing allowed-task controls, pause requests control, and request history">
+      <h2 id="editor-contributor-request">Contributor requests</h2>
+      <p>Contributors open their own profile, choose one granted task, choose categories when category-based reqeust is enabled, and select <strong>Request</strong>. The system verifies the current profile, task access, project/user pause state, request caps, and candidate availability before assigning work. A request records the chosen task, categories when applicable, and its final outcome in the profile history.</p>
+      <p>Request controls are unavailable when the webhook has not been configured, the contributor or project is paused, no task is granted, a task cap or lifetime limit is reached, or required categories have not been selected.</p>
+      <p>Below is an example of the contributor profile, including the task selector, category selection, Request button, and assigned-item queue.</p>
+      <img class="doc-screenshot" src="images/contributor-profile-request.webp" alt="Contributor profile view showing task selection, category selection, Request button, and assigned-item queue">
+      <h2 id="editor-request-outcomes">Request outcomes</h2>
+      <table>
+        <thead><tr><th>Outcome</th><th>What the contributor sees</th></tr></thead>
+        <tbody>
+          <tr><td>Items assigned</td><td>The profile reloads and the assigned items appear as links.</td></tr>
+          <tr><td>No eligible items</td><td>A neutral message explains that no items are currently available for the task.</td></tr>
+          <tr><td>Changed access, pause, categories, or limits</td><td>A specific message explains the current state and may block relevant controls until the page is refreshed, or accesses are updated by an admin.</td></tr>
+          <tr><td>Task temporarily busy</td><td>A retryable message asks the contributor to try again shortly. Can happen when a very large number of contributors are requesting work simultaneously.</td></tr>
+          <tr><td>Technical or configuration problem</td><td>A generic failure appears for the contributor; administrators can inspect the failed Orchestrate run.</td></tr>
+        </tbody>
+      </table>
+      <h2 id="editor-work-items">Working on assigned items</h2>
+      <p>Every completed action unassigns the item from the current contributor. This returns it to the workflow for its configured next step, or lets another contributor take it when more submissions are needed.</p>
+      <p>Below is an example of a regular work item with its available contributor actions.</p>
+      <img class="doc-screenshot" src="images/work-item-actions.webp" alt="Regular Smart Workflow item showing Submit, Skip, and Return actions">
+      <ul>
+        <li><strong>Submit</strong> validates the annotation form and records the contributor’s submission. When the configured number of distinct contributors has submitted, it moves the item to the task’s Submit status. An earlier Submit still unassigns the item so another contributor can provide the next required submission.</li>
+        <li><strong>Skip</strong> moves the item to the task’s Skip status without form validation, then unassigns it.</li>
+        <li><strong>Return</strong> moves the item to the task’s Return status without form validation, then unassigns it.</li>
+        <li><strong>Timeout</strong>, when configured for a regular work item, automatically moves it to the task’s Timeout status and unassigns it when the time limit is reached. It does not apply to profile items.</li>
+      </ul>
+      <p>After a successful action, Smart Workflow automatically moves the contributor to their next assigned working item, or to their profile when no working items remain.</p>
+      <h3>Timeout reminders</h3>
+      <p>A two-to-ten-minute time limit shows one reminder halfway through. A longer limit shows two reminders: one halfway through and one later reminder. Reminders only require acknowledgement; they do not extend the time limit. The item still moves to its Timeout status when the limit is reached, even if a reminder has not been acknowledged.</p>  
+      <h2 id="editor-stale-pages">Working from a stale page</h2>
+      <p>Profile and request changes can occur while a contributor has a profile open. Requests always use the current server-side profile state, and request-history saves preserve newer administrator task and pause changes. When displayed controls are no longer current, Smart Workflow explains what changed and asks the contributor to refresh the profile page.</p>
+    </div>
+
+    <div class="tab-content" data-tab="faq">
+      <h1>Troubleshooting &amp; FAQ</h1>
+      <h2 id="faq-profile-missing">Why was no profile created?</h2>
+      <p>Confirm the user was added as a Contributor, the workflow meets the required structure, the user-profile component has been published on the project form, and the profile-provisioning action is enabled with a Team API key. Then inspect the corresponding Orchestrate run.</p>
+      <h2 id="faq-default-access">Why did a default task not update an existing profile?</h2>
+      <p>New profile access is seeded only when a profile is first created. Republishing a different default changes only future profiles; update the existing contributor’s Allowed tasks directly when their access needs to change.</p>
+      <h2 id="faq-profile-changed">Why does a contributor still see old profile access?</h2>
+      <p>The contributor has an older copy of the profile page open. Refresh after an administrator changes Allowed tasks or pauses requests. If they submit a stale request, Smart Workflow keeps the administrator’s latest profile changes and shows a message asking them to refresh.</p>
+      <h2 id="faq-request-disabled">Why is Request disabled?</h2>
+      <p>Request is disabled when the webhook URL or API key is blank, requests are paused for the project or the individual contributor, no task is granted, the task cap or lifetime limit has been reached, or category selection is required but incomplete. Refresh after an administrator changes configuration or profile access.</p>
+      <h2 id="faq-no-items">Why did no items arrive?</h2>
+      <p>A successful “no items available” outcome means the request was valid but no unassigned candidate matched the task’s statuses, category selection, folder exclusions, and opened-item rules. Add eligible work items or adjust the configuration.</p>
+      <h2 id="faq-request-failed">Why did the request fail?</h2>
+      <p>Most contributor-facing failures need an administrator to review the request-handler Orchestrate run. Common causes include a broken published task configuration, unavailable workflow status, invalid webhook connection, missing Team API key, or a platform/API problem.</p>
+      <h2 id="faq-webhook-team">Can I use webhook settings from another team?</h2>
+      <p>No. A cross-team webhook can receive the request but its team-scoped automation cannot read the foreign project/item and the request fails. Exported webhook settings should only be imported into projects on the same team.</p>
+      <h2 id="faq-folder">What if the profile folder was deleted or renamed?</h2>
+      <p>A published folder ID survives renaming. A deleted folder is recovered by name when possible; otherwise a replacement profile folder may be created for future profiles. Avoid renaming the folder, especially before configuration has saved its ID. If you must rename it, follow the <a class="internal" href="#profiles-folder-recovery">recommended sequence</a>, then reopen and publish configuration before inviting more contributors.</p>
+      <h2 id="faq-import">Can I replace configuration on an active project?</h2>
+      <p>You can, but avoid replacing the task list or task IDs while existing profiles are in use. Their granted access and historical requests are not migrated to new task IDs. Export the current configuration first, make the change deliberately, and update affected profiles if needed.</p>
+      <h2 id="faq-retry">What is safe to retry?</h2>
+      <p>A temporarily busy request and a “no items available” result are safe to retry later. A failed Orchestrate run should be inspected and corrected before repeated retries. Profile provisioning is designed to recover a matching unassigned profile safely, but never takes a profile from another contributor.</p>
+    </div>
+  </main>
+</div>
+<script>
+document.documentElement.dataset.theme = window.__DOCS_THEME__ || 'light';
+window.addEventListener('message', event => {
+  if (event.data?.type === 'docs-theme') document.documentElement.dataset.theme = event.data.theme;
+});
+const navData = {
+  overview:[{id:'overview-capabilities',label:'Capabilities'},{id:'overview-lifecycle',label:'How it works'}],
+  configuration:[{id:'config-workflow',label:'Workflow requirements'},{id:'config-orchestration',label:'Install orchestration'},{id:'config-component',label:'Configure component',children:[{id:'config-webhook',label:'Request webhook'},{id:'config-profile-requests',label:'User Profile & Requests'},{id:'config-tasks',label:'Tasks'},{id:'config-import-export',label:'Import & export'}]}],
+  profiles:[{id:'profiles-creation',label:'Profile creation & recovery'},{id:'profiles-default-access',label:'Default task access'},{id:'profiles-admin-controls',label:'Admin controls'},{id:'profiles-folder-recovery',label:'Profile folder naming'}],
+  editor:[{id:'editor-admin-profile',label:'Administrator profile view'},{id:'editor-contributor-request',label:'Contributor requests'},{id:'editor-request-outcomes',label:'Request outcomes'},{id:'editor-work-items',label:'Working on assigned items'},{id:'editor-stale-pages',label:'Stale pages'}],
+  faq:[{id:'faq-profile-missing',label:'Why was no profile created?'},{id:'faq-default-access',label:'Why did a default task not update an existing profile?'},{id:'faq-profile-changed',label:'Why does a contributor still see old profile access?'},{id:'faq-request-disabled',label:'Why is Request disabled?'},{id:'faq-no-items',label:'Why did no items arrive?'},{id:'faq-request-failed',label:'Why did the request fail?'},{id:'faq-webhook-team',label:'Can I use webhook settings from another team?'},{id:'faq-folder',label:'What if the profile folder was deleted or renamed?'},{id:'faq-import',label:'Can I replace configuration on an active project?'},{id:'faq-retry',label:'What is safe to retry?'}],
+};
+const tabLabels = {overview:'Overview',configuration:'Setup & Configuration',profiles:'Contributor Profiles',editor:'Working Items & Requests',faq:'Troubleshooting & FAQ'};
+const anchorToTab = {};
+for (const [tab,items] of Object.entries(navData)) for (const item of items) {
+  anchorToTab[item.id]=tab; (item.children||[]).forEach(child => anchorToTab[child.id]=tab);
+}
+let activeTab='overview';
+const tabButtons=document.querySelectorAll('.tab-btn');
+const tabContents=document.querySelectorAll('.tab-content');
+function setHash(hash) { try { history.replaceState(null,'','#'+hash); } catch (_) {} }
+function clearHash() { try { history.replaceState(null,'',window.location.pathname); } catch (_) {} }
+function buildLeftNav(tab) {
+  const nav=document.getElementById('leftNav'); let html='<div class="nav-section">';
+  for (const item of navData[tab]||[]) {
+    html+=`<a class="nav-link" href="#${item.id}" data-id="${item.id}">${item.label}</a>`;
+    if (item.children) { html+='<div class="nav-sub">'; item.children.forEach(child => html+=`<a class="nav-link" href="#${child.id}" data-id="${child.id}">${child.label}</a>`); html+='</div>'; }
+  }
+  nav.innerHTML=html+'</div>';
+  nav.querySelectorAll('.nav-link').forEach(link => link.addEventListener('click', event => {
+    event.preventDefault(); const id=link.dataset.id; setHash(id);
+    document.getElementById(id)?.scrollIntoView({behavior:'smooth',block:'start'});
+  }));
+}
+function switchTab(tab,scrollToId,updateHash=true) {
+  activeTab=tab; tabButtons.forEach(button=>button.classList.toggle('active',button.dataset.tab===tab));
+  tabContents.forEach(content=>content.classList.toggle('active',content.dataset.tab===tab)); buildLeftNav(tab);
+  if (scrollToId) { if(updateHash) setHash(scrollToId); requestAnimationFrame(()=>document.getElementById(scrollToId)?.scrollIntoView({behavior:'smooth',block:'start'})); }
+  else { if(updateHash) clearHash(); window.scrollTo(0,0); }
+}
+tabButtons.forEach(button=>button.addEventListener('click',()=>switchTab(button.dataset.tab)));
+document.addEventListener('click',event=>{
+  const link=event.target.closest('a.internal'); if(!link)return; event.preventDefault();
+  const id=link.getAttribute('href').slice(1), tab=anchorToTab[id]; if(tab&&tab!==activeTab)switchTab(tab,id); else document.getElementById(id)?.scrollIntoView({behavior:'smooth',block:'start'});
+});
+document.addEventListener('click', event => {
+  const link = event.target.closest('a[data-doc-download]');
+  if (!link || window.parent === window) return;
+  event.preventDefault();
+  window.parent.postMessage(
+    { type: 'docs-download-asset', asset: link.dataset.docDownload },
+    '*'
+  );
+});
+function buildSearchIndex() {
+  const index = [];
+  for (const [tab, items] of Object.entries(navData)) {
+    const tabContent = document.querySelector(`.tab-content[data-tab="${tab}"]`);
+    if (!tabContent) continue;
+    for (const item of items) {
+      const el = document.getElementById(item.id);
+      let text = '';
+      if (el) {
+        let sibling = el.nextElementSibling;
+        const stopTags = new Set(['H1','H2','H3','H4']);
+        while (sibling && !(stopTags.has(sibling.tagName) && sibling.id)) {
+          text += ' ' + sibling.textContent;
+          sibling = sibling.nextElementSibling;
+        }
+      }
+      index.push({ id: item.id, label: item.label, tab, tabLabel: tabLabels[tab] || tab, parentLabel: null, text: (item.label + ' ' + text).toLowerCase(), rawLabel: item.label });
+      if (item.children) {
+        for (const child of item.children) {
+          const childEl = document.getElementById(child.id);
+          let childText = '';
+          if (childEl) {
+            let sibling = childEl.nextElementSibling;
+            const stopTags = new Set(['H1','H2','H3','H4']);
+            while (sibling && !(stopTags.has(sibling.tagName) && sibling.id)) {
+              childText += ' ' + sibling.textContent;
+              sibling = sibling.nextElementSibling;
+            }
+          }
+          index.push({ id: child.id, label: child.label, tab, tabLabel: tabLabels[tab] || tab, parentLabel: item.label, text: (child.label + ' ' + childText).toLowerCase(), rawLabel: child.label });
+        }
+      }
+    }
+  }
+  return index;
+}
+let searchIndex = null;
+const searchInput = document.getElementById('docSearchInput');
+const searchDropdown = document.getElementById('docSearchDropdown');
+let searchActiveIdx = -1;
+
+const synonyms = {
+  profile: 'contributor profile',
+  profiles: 'contributor profile',
+  request: 'task request',
+  requests: 'task request',
+  assignment: 'assigned items',
+  assignments: 'assigned items',
+  workflow: 'status transition',
+  status: 'workflow status',
+  statuses: 'workflow status',
+  orchestration: 'orchestrate',
+  automation: 'orchestrate',
+  docs: 'documentation',
+};
+
+function expandToken(t) {
+  const result = [t];
+  if (synonyms[t]) result.push(synonyms[t]);
+  return result;
+}
+
+function escapeRegex(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+function escapeHtml(text) {
+  return text.replace(/[&<>"']/g, character => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;',
+  })[character]);
+}
+
+function highlightTokens(text, tokens) {
+  const uniqueTokens = [...new Set(tokens)].sort((a, b) => b.length - a.length);
+  const regex = new RegExp('(' + uniqueTokens.map(escapeRegex).join('|') + ')', 'gi');
+  return escapeHtml(text).replace(regex, '<mark>$1</mark>');
+}
+
+function highlightMatch(text, query) {
+  const tokens = query.trim().split(/\s+/).filter(t => t.length > 0);
+  return highlightTokens(text, tokens);
+}
+
+function getSnippet(fullText, tokens, maxLen) {
+  let bestPos = fullText.length;
+  for (const t of tokens) {
+    const idx = fullText.indexOf(t);
+    if (idx >= 0 && idx < bestPos) bestPos = idx;
+  }
+  const start = Math.max(0, bestPos - 30);
+  const end = Math.min(fullText.length, start + maxLen);
+  let snippet = fullText.substring(start, end).replace(/\s+/g, ' ').trim();
+  if (start > 0) snippet = '…' + snippet;
+  if (end < fullText.length) snippet += '…';
+  return highlightTokens(snippet, tokens);
+}
+
+function renderSearchResults(query) {
+  if (!searchIndex) searchIndex = buildSearchIndex();
+  const q = query.trim().toLowerCase();
+  if (!q) { searchDropdown.classList.remove('open'); searchDropdown.innerHTML = ''; searchActiveIdx = -1; return; }
+
+  const tokens = q.split(/\s+/).filter(t => t.length > 0);
+  const scored = [];
+  for (const entry of searchIndex) {
+    const expandedChecks = tokens.map(t => {
+      const variants = expandToken(t);
+      return variants.some(v => entry.text.includes(v));
+    });
+    if (!expandedChecks.every(Boolean)) continue;
+
+    let score = 0;
+    const labelLower = entry.label.toLowerCase();
+    if (entry.text.includes(q)) score += 20;
+    for (const t of tokens) {
+      if (labelLower.includes(t)) score += 10;
+      let idx = 0, count = 0;
+      while ((idx = entry.text.indexOf(t, idx)) !== -1) { count++; idx += t.length; }
+      score += Math.min(count, 5);
+      const firstPos = entry.text.indexOf(t);
+      if (firstPos >= 0) score += Math.max(0, 5 - Math.floor(firstPos / 200));
+    }
+    scored.push({ entry, score });
+  }
+
+  scored.sort((a, b) => b.score - a.score);
+  const matches = scored.slice(0, 15);
+  if (matches.length === 0) {
+    searchDropdown.innerHTML = '<div class="search-no-results">No results found</div>';
+    searchDropdown.classList.add('open');
+    searchActiveIdx = -1;
+    return;
+  }
+  searchDropdown.innerHTML = matches.map((s, i) => {
+    const m = s.entry;
+    const snippet = getSnippet(m.text, tokens, 100);
+    return `<div class="search-result-item" data-idx="${i}" data-id="${m.id}" data-tab="${m.tab}">
+      <span class="search-result-title">${highlightMatch(m.rawLabel, query.trim())}</span>
+      <span class="search-result-snippet">${snippet}</span>
+      <span class="search-result-path"><span class="search-tab-badge">${m.tabLabel}</span>${m.parentLabel ? m.parentLabel + ' › ' : ''}${m.label}</span>
+    </div>`;
+  }).join('');
+  searchDropdown.classList.add('open');
+  searchActiveIdx = -1;
+}
+
+function selectSearchResult(id, tab) {
+  searchDropdown.classList.remove('open');
+  searchInput.value = '';
+  searchActiveIdx = -1;
+  switchTab(tab, id);
+}
+
+searchInput.addEventListener('input', () => renderSearchResults(searchInput.value));
+searchInput.addEventListener('focus', () => { if (searchInput.value.trim()) renderSearchResults(searchInput.value); });
+searchDropdown.addEventListener('click', e => {
+  const item = e.target.closest('.search-result-item');
+  if (!item) return;
+  selectSearchResult(item.dataset.id, item.dataset.tab);
+});
+searchInput.addEventListener('keydown', e => {
+  const items = searchDropdown.querySelectorAll('.search-result-item');
+  if (!items.length) return;
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    searchActiveIdx = Math.min(searchActiveIdx + 1, items.length - 1);
+    items.forEach((it, i) => it.classList.toggle('active', i === searchActiveIdx));
+    items[searchActiveIdx]?.scrollIntoView({ block: 'nearest' });
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    searchActiveIdx = Math.max(searchActiveIdx - 1, 0);
+    items.forEach((it, i) => it.classList.toggle('active', i === searchActiveIdx));
+    items[searchActiveIdx]?.scrollIntoView({ block: 'nearest' });
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    const sel = searchActiveIdx >= 0 ? items[searchActiveIdx] : items[0];
+    if (sel) selectSearchResult(sel.dataset.id, sel.dataset.tab);
+  } else if (e.key === 'Escape') {
+    searchDropdown.classList.remove('open');
+    searchInput.blur();
+  }
+});
+document.addEventListener('click', e => {
+  if (!e.target.closest('.header-search-wrap')) { searchDropdown.classList.remove('open'); searchActiveIdx = -1; }
+});
+function updateScrollSpy(){let current;for(const item of navData[activeTab]||[]){for(const entry of [item,...(item.children||[])])if(document.getElementById(entry.id)?.getBoundingClientRect().top<=100)current=entry.id;}document.querySelectorAll('.nav-link').forEach(link=>link.classList.toggle('active',link.dataset.id===current));}
+window.addEventListener('scroll',updateScrollSpy,{passive:true});
+const initialId=window.location.hash.slice(1), initialTab=anchorToTab[initialId]||'overview'; buildLeftNav(initialTab);
+if(initialTab!=='overview')switchTab(initialTab,initialId,false); else if(initialId)requestAnimationFrame(()=>document.getElementById(initialId)?.scrollIntoView({block:'start'}));
+</script>
+</body>
+</html>
