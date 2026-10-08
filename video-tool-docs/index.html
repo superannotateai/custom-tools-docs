@@ -249,9 +249,10 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 
 <h2 id="overview-capabilities">Key Capabilities</h2>
 <ul>
-  <li><strong>Frame-based video annotation</strong> — synchronised video player with <em>bounding boxes</em>, <em>cuboids</em>, and <em>keypoints / skeletons</em> drawn over the frame, plus time-interval <em>segments</em>. The <a href="#editor-frame-panel" class="internal">Frame Panel</a> drives frame-level annotation with visible ranges, keyframes, and per-instance editing. Live brightness / contrast / saturation / shape-opacity adjustments. <a href="#editor-video" class="internal">Video →</a></li>
-  <li><strong>Five annotation tool types</strong> — <strong>Segment</strong> (time interval), <strong>Box</strong> (axis-aligned rectangle on the video frame, keyframed), <strong>Rotated Box</strong> (oriented rectangle drawn with a three-click workflow, keyframed), <strong>Cuboid</strong> (image-space 3D cuboid on the video frame, keyframed), and <strong>Keypoint</strong> (single point or multi-point skeleton on the video frame, keyframed). <a href="#config-classes" class="internal">Classes &amp; Tools →</a></li>
-  <li><strong>Keyframes &amp; interpolation</strong> — Box, Rotated Box, Cuboid, and Keypoint geometry is keyframed over time and linearly interpolated between keyframes (rotation interpolates along the shortest angle), so a few poses describe smooth motion across a clip. <a href="#editor-interpolation" class="internal">Interpolation →</a></li>
+  <li><strong>Frame-based video annotation</strong> — synchronised video player with <em>bounding boxes</em>, <em>polygons</em>, <em>cuboids</em>, and <em>keypoints / skeletons</em> drawn over the frame, plus time-interval <em>segments</em>. The <a href="#editor-frame-panel" class="internal">Frame Panel</a> drives frame-level annotation with visible ranges, keyframes, and per-instance editing. Live brightness / contrast / saturation / shape-opacity adjustments. <a href="#editor-video" class="internal">Video →</a></li>
+  <li><strong>Six annotation types</strong> — <strong>Segment</strong> (time interval), <strong>Box</strong> (axis-aligned rectangle), <strong>Rotated Box</strong> (oriented rectangle), <strong>Polygon</strong> (editable multi-vertex outline), <strong>Cuboid</strong> (image-space 3D cuboid), and <strong>Keypoint</strong> (single point or multi-point skeleton). The separate <a href="#editor-drawing-scribble" class="internal"><strong>Scribble</strong> tool</a> creates Polygon instances with SAM 2. <a href="#config-classes" class="internal">Classes &amp; Tools →</a></li>
+  <li><strong>AI-assisted annotation and tracking</strong> — draw one or more Scribble strokes to generate a polygon on the current frame, or propagate a selected Box or Polygon forward with SAM tracking through a secure Fal.ai team proxy. <a href="#editor-drawing-scribble" class="internal">Scribble →</a> · <a href="#editor-sam-tracking" class="internal">Tracking →</a></li>
+  <li><strong>Keyframes &amp; interpolation</strong> — Box, Rotated Box, Cuboid, and Keypoint geometry interpolates between keyframes (rotation follows the shortest angle). Polygon geometry uses hold semantics: each stored outline remains unchanged until the next polygon keyframe. <a href="#editor-interpolation" class="internal">Interpolation →</a></li>
   <li><strong>Per-class properties</strong> — Free Text, AI Text, AI Select, Select (single / multi), Numeric, Rating, and Approval properties on every class. Per-role visibility and option-visibility rules. <a href="#config-properties" class="internal">Properties →</a></li>
   <li><strong>AI autofill</strong> — for each AI Text or AI Select property, the model fills the value from the per-property prompt (for AI Select, choosing from the predefined option list). <a href="#editor-ai-autofill" class="internal">AI Autofill →</a></li>
   <li><strong>Multi-video items</strong> — a single item can hold up to <strong>10</strong> video files, each with its own annotations and tags. Navigate via tabs, or open <a href="#editor-split-view" class="internal">Split View</a> to play and compare every file in parallel as live, interactive cards. <a href="#editor-multifile" class="internal">Multi-File Items →</a></li>
@@ -264,16 +265,16 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 <h2 id="overview-how-it-works">How It Works</h2>
 <p>The tool has two runtime modes, keeping <em>setup</em> separate from <em>working</em>:</p>
 <ol>
-  <li><strong><a href="#config-access-control" class="internal">Configuration mode</a></strong> — An admin defines classes (with tool type), tags, properties, feature toggles, the AI proxy, and per-role instructions. This schema determines what every annotator sees and can do.</li>
-  <li><strong><a href="#editor-layout" class="internal">Working mode</a></strong> — Users open items, draw segments / boxes / cuboids / keypoints, fill properties, and review. Everything <a href="#ie-autosave" class="internal">auto-saves</a>.</li>
+  <li><strong><a href="#config-access-control" class="internal">Configuration mode</a></strong> — An admin defines classes (with tool type), tags, properties, feature toggles, AI Property / Fal.ai proxies, SAM feature controls, and per-role instructions. This schema determines what every annotator sees and can do.</li>
+  <li><strong><a href="#editor-layout" class="internal">Working mode</a></strong> — Users open items, draw segments / boxes / polygons / cuboids / keypoints, optionally use Scribble or SAM tracking, fill properties, and review. Everything <a href="#ie-autosave" class="internal">auto-saves</a>.</li>
 </ol>
 <p>Typical flow: admin configures the project → items arrive (uploaded video or <a href="#ie-jsonl-url" class="internal">URL-linked</a> video via JSONL) → annotators work → <a href="#ie-export" class="internal">export annotations</a> for model training.</p>
 
 <h2 id="overview-first-annotation">First Annotation</h2>
 <ol>
   <li>Open an item in the editor and let the video load.</li>
-  <li>Pick a <a href="#config-classes" class="internal">class</a> from the dropdown (or press <kbd>1</kbd>–<kbd>9</kbd> for the first nine classes). The matching <a href="#editor-tool-selector" class="internal">tool</a> (Segment, Box, Rotated Box, Cuboid, or Keypoint) auto-selects.</li>
-  <li>For <strong>Segment</strong>, use <em>+ Segment</em> on the frame panel to add a time interval. For <strong>Box</strong>, drag a rectangle on the video. For <strong>Rotated Box</strong>, use the three-click workflow on the video. For <strong>Cuboid</strong>, use the four-click workflow on the video. For <strong>Keypoint</strong>, click to place the point (or each skeleton joint in turn).</li>
+  <li>Pick a <a href="#config-classes" class="internal">class</a> from the dropdown (or press <kbd>1</kbd>–<kbd>9</kbd> for the first nine classes). The matching <a href="#editor-tool-selector" class="internal">tool</a> (Segment, Box, Rotated Box, Polygon, Cuboid, or Keypoint) auto-selects.</li>
+  <li>For <strong>Segment</strong>, use <em>+ Segment</em> on the frame panel. For <strong>Box</strong>, drag a rectangle. For <strong>Rotated Box</strong>, use the three-click workflow. For <strong>Polygon</strong>, click its vertices and double-click to finish. For <strong>Cuboid</strong>, use the four-click workflow. For <strong>Keypoint</strong>, click to place the point (or each skeleton joint in turn).</li>
   <li>The annotation appears in the <a href="#editor-panel" class="internal">annotation panel</a> on the right.</li>
   <li>Fill any <a href="#editor-property-editing" class="internal">properties</a> the class defines, or run <a href="#editor-ai-autofill" class="internal">AI autofill</a> on configured AI Text and AI Select properties.</li>
   <li>Move on. Everything <a href="#ie-autosave" class="internal">auto-saves</a> as you go.</li>
@@ -338,16 +339,17 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 <p>A class is what a user assigns to a new annotation. Each class has:</p>
 <ul>
   <li><strong>Name</strong> — the label shown in the class picker and the annotation panel.</li>
-  <li><strong>Color</strong> — the highlight / fill colour used for that class's segments, boxes, cuboids, and keypoints.</li>
-  <li><strong>Tool Type</strong> — one of <strong>Segment</strong>, <strong>Box</strong>, <strong>Rotated Box</strong>, <strong>Cuboid</strong>, or <strong>Keypoint</strong>. Picking a class auto-selects the matching tool in the editor toolbar. Keypoint classes also expose an <a href="#config-keypoint-skeleton" class="internal">Edit Skeleton</a> button for defining a multi-point skeleton.</li>
+  <li><strong>Color</strong> — the highlight / fill colour used for that class's segments, boxes, polygons, cuboids, and keypoints. Pending Scribble strokes use the selected Polygon class colour too.</li>
+  <li><strong>Tool Type</strong> — one of <strong>Segment</strong>, <strong>Box</strong>, <strong>Rotated Box</strong>, <strong>Polygon</strong>, <strong>Cuboid</strong>, or <strong>Keypoint</strong>. Picking a class auto-selects the matching tool in the editor toolbar. Keypoint classes also expose an <a href="#config-keypoint-skeleton" class="internal">Edit Skeleton</a> button for defining a multi-point skeleton.</li>
   <li><strong>Properties</strong> — the structured fields captured on each annotation of this class (see <a href="#config-properties" class="internal">Properties</a> below).</li>
 </ul>
-<p>The five tool types and what they produce:</p>
+<p>The six annotation types and what they produce:</p>
 <table>
   <tr><th>Type</th><th>Where it draws</th><th>Captures</th></tr>
   <tr><td><strong>Segment</strong></td><td>The <a href="#editor-frame-panel" class="internal">frame panel</a> timeline. Use <em>+ Segment</em> to add an interval, then trim its start / end.</td><td>A time interval in seconds.</td></tr>
-  <tr><td><strong>Box</strong></td><td>The video frame. Drag a rectangle; add keyframes at multiple times to track movement.</td><td>A rectangle (<code>x</code>, <code>y</code>, <code>w</code>, <code>h</code>) plus a start/end interval, with <a href="#editor-keyframes" class="internal">keyframes</a> and <a href="#editor-interpolation" class="internal">interpolation</a>.</td></tr>
+  <tr><td><strong>Box</strong></td><td>The video frame. Drag a rectangle; add keyframes at multiple times to track movement.</td><td>A rectangle (<code>x</code>, <code>y</code>, <code>width</code>, <code>height</code>) plus a start/end interval, with <a href="#editor-keyframes" class="internal">keyframes</a> and <a href="#editor-interpolation" class="internal">interpolation</a>.</td></tr>
   <tr><td><strong>Rotated Box</strong></td><td>The video frame. Three-click placement (set the top edge, then the height) for an oriented rectangle. Edit with eight resize handles plus a rotation handle.</td><td>An oriented rectangle stored as centre (<code>cx</code>, <code>cy</code>), size (<code>width</code>, <code>height</code>) and a <code>rotation</code> angle (radians) plus a start/end interval, with keyframes and <a href="#editor-interpolation" class="internal">interpolation</a>.</td></tr>
+  <tr><td><strong>Polygon</strong></td><td>The video frame. Click three or more vertices and double-click to finish; or use <a href="#editor-drawing-scribble" class="internal">Scribble</a> to generate the outline with SAM 2.</td><td>An ordered array of normalised points plus a start/end interval, visible ranges, and hold-semantics polygon keyframes. Existing polygons can also be <a href="#editor-sam-tracking" class="internal">tracked forward</a> with SAM 3.1.</td></tr>
   <tr><td><strong>Cuboid</strong></td><td>The video frame. Four-click placement for an image-space 3D cuboid shape.</td><td>Eight corner points plus a start/end interval, with keyframes and <a href="#editor-interpolation" class="internal">interpolation</a>.</td></tr>
   <tr><td><strong>Keypoint</strong></td><td>The video frame. Click to place a single point, or place each <a href="#config-keypoint-skeleton" class="internal">skeleton</a> joint in turn.</td><td>One point, or a set of named skeleton points (each optional), plus a start/end interval, with per-point keyframes and <a href="#editor-interpolation" class="internal">interpolation</a>.</td></tr>
 </table>
@@ -562,8 +564,12 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 
 <h2 id="config-ai-proxy">AI Proxy</h2>
 <!-- #Inert (planned): AI property extraction is inert. -->
-<div class="callout"><strong>Inert (planned).</strong> <a href="#editor-ai-autofill" class="internal">AI property extraction</a> is <strong>not functional</strong> in the video tool yet. Creating and selecting a proxy works as described; the property-fill consumption is dormant until video frame-aware extraction is added.</div>
+<div class="callout"><strong>AI Property Proxy only is Inert (planned):</strong> <a href="#editor-ai-autofill" class="internal">AI property extraction</a> is not functional in the video tool yet. The separate <strong>Fal.ai Proxy</strong> is fully functional and powers <a href="#editor-drawing-scribble" class="internal">Scribble polygon generation</a> and <a href="#editor-sam-tracking" class="internal">Box / Polygon tracking</a>.</div>
 <p>All AI features communicate with external providers through <strong>SuperAnnotate Proxies</strong>. Proxies act as secure intermediaries: your team's API keys live server-side in SuperAnnotate and are never exposed to users in Config Screen or Editor sessions.</p>
+<ul>
+  <li><strong>AI Property Proxy</strong> — retained for AI Text / AI Select extraction and the documentation Ask AI assistant. Property extraction itself is currently inert.</li>
+  <li><strong>Fal.ai Proxy</strong> — powers SAM 2 bounding-box tracking, SAM 3.1 polygon tracking, and SAM 2 Scribble polygon generation.</li>
+</ul>
 
 <h3 id="config-why-proxies">Why Proxies?</h3>
 <ul>
@@ -572,12 +578,14 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 </ul>
 
 <h3 id="config-proxy-providers">Providers &amp; usage</h3>
-<p>The provider is auto-detected from each proxy's allowed domain:</p>
+<p>The provider is auto-detected from each proxy's allowed domain. Two independent proxies feed two distinct capabilities. Each route has its own model dropdown and saved selection:</p>
 <table>
   <tr><th>Provider</th><th>Allowed Domain</th><th>Used For</th></tr>
   <tr><td>OpenAI</td><td><code>api.openai.com</code></td><td><a href="#editor-ai-autofill" class="internal">AI Text and AI Select property auto-fill</a></td></tr>
   <tr><td>Gemini</td><td><code>generativelanguage.googleapis.com</code></td><td>AI Text and AI Select property auto-fill</td></tr>
+  <tr><td>Fal.ai</td><td><code>fal.run</code></td><td><a href="#editor-sam-tracking" class="internal">SAM tracking</a> and <a href="#editor-drawing-scribble" class="internal">Scribble polygon generation</a></td></tr>
 </table>
+<p>You can configure either card independently. Fal.ai features only become available when a compatible <code>fal.run</code> proxy is selected and their individual feature checkbox is enabled.</p>
 
 <h3 id="config-proxy-setup">Set up proxies</h3>
 <h4 id="config-create-proxies">1. Create proxies in SuperAnnotate</h4>
@@ -591,6 +599,7 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
       <tr><th>Provider</th><th>Header Key</th><th>Header Value</th></tr>
       <tr><td>OpenAI</td><td><code>authorization</code></td><td><code>Bearer &lt;your-openai-key&gt;</code></td></tr>
       <tr><td>Gemini</td><td><code>x-goog-api-key</code></td><td><code>&lt;your-gemini-key&gt;</code></td></tr>
+      <tr><td>Fal.ai</td><td><code>authorization</code></td><td><code>Key &lt;your-fal-key&gt;</code></td></tr>
     </table>
   </li>
   <li>Save the proxy. The proxy name is what you'll select in the configuration dropdown.</li>
@@ -601,7 +610,13 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 </div>
 
 <h4 id="config-select-proxies">2. Select proxies in Configuration</h4>
-<p>In the component's <strong>Configuration</strong> screen, under the <strong>AI Property Proxy</strong> card, the dropdown is automatically populated with all proxies available in your team for the matching domains. Select the appropriate one and the <strong>Saved</strong> badge appears, along with a <strong>provider badge</strong> (OpenAI / Gemini), so you can confirm at a glance which provider the editor will route through.</p>
+<p>Under <strong>AI Proxy Settings</strong>, the Configuration screen shows two independent cards:</p>
+<table>
+  <tr><th>Card</th><th>What to select</th><th>Unlocks</th></tr>
+  <tr><td><strong>AI Property Proxy</strong></td><td>An OpenAI or Gemini team proxy</td><td>The documentation Ask AI assistant today; AI property extraction when that capability is enabled later.</td></tr>
+  <tr><td><strong>Fal.ai Proxy</strong></td><td>A team proxy whose allowed domain resolves to <code>fal.run</code></td><td><a href="#editor-sam-tracking" class="internal">Box / Polygon tracking</a> and <a href="#editor-drawing-scribble" class="internal">Scribble polygon generation</a>.</td></tr>
+</table>
+<p>Each selector is populated from compatible proxies available to the current team. Select one and the card shows <strong>Saved</strong>. If no compatible Fal.ai proxy exists, the selector reports that none were found and all three Fal.ai feature checkboxes remain disabled.</p>
 <p>Once the AI Property Proxy is selected, the <strong>Model</strong> dropdown next to it is unlocked. Three models are offered for each provider, sorted from cheapest/fastest to most capable — the middle option is selected by default. The currently available models are:</p>
 <table>
   <tr><th>Provider</th><th>Models (cheapest → most capable)</th></tr>
@@ -610,6 +625,24 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 </table>
 <p>Changing the proxy to a different provider resets the model to that provider's default (middle tier). The selected model applies to all AI properties not having their own <a href="#config-ai-property-proxy-override" class="internal">proxy/model override</a>. Annotators do not see the selected provider/models in the editor.</p>
 <img class="doc-screenshot" src="images/config-ai-proxy-setup.webp" alt="Configuration screen showing proxy selection dropdowns">
+
+<h3 id="config-fal-features">Fal.ai Features &amp; Processing Resolution</h3>
+<p>The Fal.ai card has three independent feature checkboxes. All default to <strong>on</strong>; disable only the capabilities the project should not expose:</p>
+<table>
+  <tr><th>Toggle</th><th>What it controls</th></tr>
+  <tr><td><strong>SAM 2 Bounding Box Tracking</strong></td><td>Shows <strong>Track bbox</strong> for an eligible selected Box and allows SAM 2 to write forward Box keyframes.</td></tr>
+  <tr><td><strong>SAM 3.1 Polygon Tracking</strong></td><td>Shows <strong>Track polygon</strong> for an eligible selected Polygon and allows SAM 3.1 to write forward Polygon keyframes.</td></tr>
+  <tr><td><strong>SAM 2 Scribble Polygon Generation</strong></td><td>Makes the <a href="#editor-drawing-scribble" class="internal">Scribble tool</a> available whenever the user has at least one visible Polygon class. Creating a result still requires the currently selected Polygon class to be editable for that role.</td></tr>
+</table>
+<p>Without a selected Fal.ai proxy, the checkboxes are disabled but their saved on/off values are retained. Re-selecting a compatible proxy restores those choices. In the editor, a feature requires <em>both</em> a configured Fal.ai proxy and its checkbox to be enabled; unavailable controls are hidden rather than left as non-functional buttons.</p>
+<p><strong>Processing resolution</strong> limits the longest side of every frame sent to SAM. Source videos smaller than the limit are never enlarged. Choose:</p>
+<ul>
+  <li><strong>512 px — Fast</strong> for the quickest requests and lowest detail.</li>
+  <li><strong>1024 px — Balanced (default)</strong> for general use.</li>
+  <li><strong>1536 px — High detail</strong> for smaller or more intricate targets.</li>
+  <li><strong>2048 px — Maximum detail</strong> for the highest configured detail at greater processing cost.</li>
+</ul>
+<p>The same setting applies to Box tracking, Polygon tracking, and single-frame Scribble generation.</p>
 
 <h3 id="config-docs-ask-ai">Ask AI in editor documentation</h3>
 <p>Ask AI is available only when this documentation is opened from a working item in the Editor. It is not available when the documentation is opened from the Configuration screen or as a standalone web page. In the Editor, Ask AI is an assistant chat panel that uses the configured AI Property Proxy and model to answer questions about this documentation.</p>
@@ -624,8 +657,10 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
   <li><strong>"AI Property Proxy is not configured"</strong> — return to Configuration and select an AI Property Proxy.</li>
   <li><strong>"Unsupported AI proxy domain"</strong> — the selected proxy is not routed to a supported provider hostname. Recreate it with one of the endpoints listed in <a href="#config-proxy-providers" class="internal">Providers &amp; usage</a>.</li>
   <li><strong>Provider request fails</strong> — verify the API key stored in the SuperAnnotate proxy is valid, not revoked, and has sufficient quota or billing with the provider.</li>
+  <li><strong>No Fal.ai proxies found</strong> — create or update a team proxy with allowed domain <code>fal.run</code>, then reopen or refresh Configuration.</li>
+  <li><strong>Tracking or Scribble controls are missing</strong> — confirm that the Fal.ai Proxy is selected, the corresponding <a href="#config-fal-features" class="internal">feature checkbox</a> is on, and the required Box or Polygon class is visible. Generation and tracking also require an editable (not view-only) class; tracking additionally requires a paused video, a visible selected instance with forward frames remaining, and no active job already targeting that instance.</li>
 </ul>
-<p>See <a href="#limits-api" class="internal">API Rate Limits</a> for guidance when running autofill across large datasets.</p>
+<p>See <a href="#limits-api" class="internal">API Rate Limits</a> for guidance when running AI features across large datasets.</p>
 
 <h2 id="config-advanced">Advanced Settings</h2>
 <p>Advanced Settings contains project-wide behaviour choices, primarily for video-heavy workflows:</p>
@@ -662,7 +697,7 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 </div>
 
 <h2 id="config-import-export">Import / Export</h2>
-<p>The whole configuration — classes (with tool types), tags, properties, access control, feature toggles, AI proxy selection, relationships — can be exported as a single JSON file and re-imported into another project.</p>
+<p>The whole configuration — classes (with tool types), tags, properties, access control, feature toggles, AI Property / Fal.ai proxy selections, SAM processing resolution, relationships — can be exported as a single JSON file and re-imported into another project.</p>
 <ul>
   <li><strong>Export config</strong> — downloads a JSON file with the full schema. Version-control it alongside your project code for reproducibility.</li>
   <li><strong>Import config</strong> — reads a previously exported config JSON and <strong>replaces</strong> the current configuration. A confirmation prompt is shown first.</li>
@@ -677,14 +712,14 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 <div class="tab-content" data-tab="editor">
 
 <h1>Editor</h1>
-<p>The editor is where the actual work happens — uploading video, drawing segments, boxes, cuboids, and keypoints, filling properties, reviewing. The layout puts the video front-and-centre and surfaces the right controls for the task at hand.</p>
+<p>The editor is where the actual work happens — uploading video, drawing segments, boxes, polygons, cuboids, and keypoints, using optional AI-assisted generation / tracking, filling properties, and reviewing. The layout puts the video front-and-centre and surfaces the right controls for the task at hand.</p>
 
 <h2 id="editor-layout">Editor Layout</h2>
 <p>Three regions, each with a purpose:</p>
 <ul>
-  <li><strong><a href="#editor-top-toolbar" class="internal">Top toolbar</a></strong> — tool / class selectors, upload, download, instructions, split-view toggle, shortcuts, documentation, theme, video adjustments, fullscreen, undo / redo.</li>
+  <li><strong><a href="#editor-top-toolbar" class="internal">Top toolbar</a></strong> — tool / class selectors; contextual Generate Polygon, Track, and active-job status controls; upload, download, instructions, split-view toggle, shortcuts, documentation, theme, video adjustments, fullscreen, undo / redo.</li>
   <li><strong>Center video area</strong> — the video player. Below it sits a row of <a href="#editor-controls" class="internal">playback controls</a> and the <a href="#editor-frame-panel" class="internal">Frame Panel</a> timeline; above it, a tab strip on multi-file items.</li>
-  <li><strong>Right <a href="#editor-panel" class="internal">annotation panel</a></strong> — the list of segments, boxes, cuboids, keypoints, and tags, with grouping, ordering, filtering, and quick access to properties, comments, and relationships. Can be collapsed.</li>
+  <li><strong>Right <a href="#editor-panel" class="internal">annotation panel</a></strong> — the list of segments, boxes, polygons, cuboids, keypoints, and tags, with grouping, ordering, filtering, and quick access to properties, comments, and relationships. Can be collapsed. The <a href="#editor-tracking-modal" class="internal">tracking modal</a> overlays this panel when it is enabled.</li>
 </ul>
 <img class="doc-screenshot" src="images/editor-layout.webp" alt="Editor layout: tool dropdown, class selector, canvas, and annotations panel">
 
@@ -704,7 +739,7 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
   <li><strong>Uploaded</strong> — the user drops video files onto the upload zone or into the <a href="#editor-upload" class="internal">Upload</a> modal. The bytes live in SuperAnnotate storage; the editor references them via a <code>uniqueName</code>.</li>
   <li><strong>URL-linked</strong> — the JSONL payload contains a <code>url</code> with a <code>urlKind</code> (<code>public</code>, <code>presigned</code>, or <code>integration</code>). The editor signs / fetches the URL on load. See <a href="#ie-jsonl-url" class="internal">URL-linked video</a>.</li>
 </ul>
-<p>Both kinds are equally annotatable. The difference is only <em>where the bytes come from</em> — the editor doesn't gate any feature on the source.</p>
+<p>Both kinds support normal manual annotation. The difference is primarily <em>where the bytes come from</em>. Browser-side capture / frame extraction for <a href="#editor-drawing-scribble" class="internal">Scribble</a> and <a href="#editor-sam-tracking" class="internal">SAM tracking</a> still requires the source to be readable and decodable by the browser; a cross-origin source that plays but blocks extraction may need corrected CORS settings or a different loading route.</p>
 <div class="callout"><strong>Video only.</strong> The tool accepts video files exclusively. If an item's linked source is not a valid video (e.g. an audio file or another media type), the editor refuses to load it and shows an informative banner instead of an empty canvas — the item needs a valid video source.</div>
 
 <h3 id="editor-upload">In-Editor Upload</h3>
@@ -759,7 +794,7 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 <p>Every card in the grid contains:</p>
 <ul>
   <li><strong>Header</strong> — file name, plus a hover-revealed <em>"Open"</em> pill that disambiguates exit-split affordances from the in-card playback affordances.</li>
-  <li><strong>Video frame</strong> — a live <code>&lt;video&gt;</code> element that plays inline. Box, cuboid, and keypoint annotation overlays render on top of the frame at the card's current time. <em>Display only</em> — no annotation editing in Split View.</li>
+  <li><strong>Video frame</strong> — a live <code>&lt;video&gt;</code> element that plays inline. Box, Rotated Box, Polygon, Cuboid, and Keypoint annotation overlays render on top of the frame at the card's current time. <em>Display only</em> — no annotation editing, Scribble generation, or tracking in Split View.</li>
   <li><strong>Control strip</strong> at the bottom — mute toggle, play / pause button, current-time / duration readout, and an <strong>interactive seek bar</strong>. Click or drag on the seek bar to scrub the card's playback position.</li>
 </ul>
 <p>All cards use a consistent row height so video frames stay legible across the grid.</p>
@@ -789,7 +824,7 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
   <li><kbd>&lt;</kbd> / <kbd>&gt;</kbd> — seek 10 s back / forward.</li>
   <li><kbd>M</kbd> — mute / unmute.</li>
 </ul>
-<p>Tool shortcuts (<kbd>S</kbd>, <kbd>G</kbd>, <kbd>B</kbd>, <kbd>D</kbd>, <kbd>K</kbd>) and class shortcuts (<kbd>1</kbd>–<kbd>9</kbd>) are <em>ignored</em> in Split View — Split View is for playback and tagging only; annotation editing happens in Split 0.</p>
+<p>Tool shortcuts (<kbd>S</kbd>, <kbd>G</kbd>, <kbd>B</kbd>, <kbd>P</kbd>, <kbd>L</kbd>, <kbd>D</kbd>, <kbd>K</kbd>) and class shortcuts (<kbd>1</kbd>–<kbd>9</kbd>) are <em>ignored</em> in Split View — Split View is for playback and tagging only; annotation editing and AI-assisted annotation happen in Split 0.</p>
 
 <h3 id="editor-split-persistence">Position Persistence</h3>
 <p>The current playback position of <em>every</em> file is preserved as you move between Split 0 and the higher split modes:</p>
@@ -807,8 +842,9 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 <h2 id="editor-top-toolbar">Top Toolbar</h2>
 <p>Left to right, the top toolbar exposes:</p>
 <ul>
-  <li><strong><a href="#editor-tool-selector" class="internal">Tool selector</a></strong> — Select / Segment / Box / Rotated Box / Cuboid / Keypoint. Picking a class auto-switches to its matching tool, but the dropdown lets you switch tools manually.</li>
+  <li><strong><a href="#editor-tool-selector" class="internal">Tool selector</a></strong> — Select / Segment / Box / Rotated Box / Polygon / Scribble / Cuboid / Keypoint. Picking a class auto-switches to its matching annotation tool; Scribble is a separate assisted-creation tool for Polygon classes.</li>
   <li><strong><a href="#editor-class-selector" class="internal">Class selector</a></strong> — pick the active class for new annotations. Searchable; first nine classes carry <kbd>1</kbd>–<kbd>9</kbd> shortcuts.</li>
+  <li id="editor-toolbar-sam-actions"><strong>Contextual SAM actions</strong> — <strong>Generate polygon</strong> appears after drawing Scribble strokes; <strong>Track bbox</strong> / <strong>Track polygon</strong> appears only for an eligible selected instance; <strong>Tracking (N)</strong> reopens active jobs; and <strong>Creating polygons (N)</strong> reports active Scribble generations. See <a href="#editor-sam-tracking" class="internal">AI-Assisted Tracking</a>.</li>
   <li><strong>Upload</strong> — opens the <a href="#editor-upload" class="internal">upload modal</a> (when allowed).</li>
   <li><strong>Download</strong> — exports the current item as a ZIP (when allowed). See <a href="#ie-export" class="internal">Download / Export</a>.</li>
   <li><strong>Instructions</strong> — opens the <a href="#config-instructions" class="internal">Project Instructions</a> PDF for the user's role (when uploaded).</li>
@@ -823,23 +859,25 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 <img class="doc-screenshot" src="images/editor-toolbar.webp" alt="Top toolbar highlighted: tool and class selectors, Upload, Download, shortcuts, adjustments, undo and redo">
 
 <h3 id="editor-tool-selector">Tool Selector</h3>
-<p>Five tools, plus a class-driven auto-pair behaviour:</p>
+<p>Eight toolbar tools, including Select and the assisted Scribble tool, plus class-driven auto-pair behaviour:</p>
 <table>
   <tr><th>Tool</th><th>Shortcut</th><th>Use</th></tr>
   <tr><td><strong>Select</strong></td><td><kbd>S</kbd></td><td>Free cursor — click annotations to inspect, drag handles to resize, drag bodies to move. No new annotations are created.</td></tr>
   <tr><td><strong>Segment</strong></td><td><kbd>G</kbd></td><td>Add a time interval from the <a href="#editor-frame-panel" class="internal">frame panel</a>. Auto-selects when picking a class with type <em>Segment</em>.</td></tr>
   <tr><td><strong>Box</strong></td><td><kbd>B</kbd></td><td>Drag a rectangle on the video frame. Auto-selects when picking a class with type <em>Box</em>.</td></tr>
   <tr><td><strong>Rotated Box</strong></td><td><kbd>Shift</kbd>+<kbd>B</kbd></td><td>Three-click oriented-box drawing on the video frame. Auto-selects when picking a class with type <em>Rotated Box</em>.</td></tr>
+  <tr><td><strong>Polygon</strong></td><td><kbd>P</kbd></td><td>Click three or more vertices and double-click to finish an editable outline. Auto-selects when picking a class with type <em>Polygon</em>.</td></tr>
+  <tr><td><strong>Scribble</strong></td><td><kbd>L</kbd></td><td>Draw one or more strokes through an object, then generate a Polygon with SAM 2. Available only with an editable Polygon class, a configured Fal.ai proxy, and the Scribble feature enabled.</td></tr>
   <tr><td><strong>Cuboid</strong></td><td><kbd>D</kbd></td><td>Four-click cuboid drawing on the video frame. Auto-selects when picking a class with type <em>Cuboid</em>.</td></tr>
   <tr><td><strong>Keypoint</strong></td><td><kbd>K</kbd></td><td>Click to place a single point, or each <a href="#config-keypoint-skeleton" class="internal">skeleton</a> joint in turn, on the video frame. Auto-selects when picking a class with type <em>Keypoint</em>.</td></tr>
 </table>
-<p>The tool selector only lists tools that have at least one matching class configured. Shortcuts for hidden tools are disabled.</p>
+<p>The tool selector only lists class-driven tools that have at least one matching visible class configured. Scribble is the exception: it uses Polygon classes and additionally requires its Fal.ai proxy and feature toggle. Shortcuts for hidden tools are disabled.</p>
 
 <h3 id="editor-class-selector">Class Selector</h3>
 <p>The class dropdown lists every class visible to the user's role, with a colour swatch, the class name, and a shortcut badge for the first nine. Type to filter by name. Selecting a class:</p>
 <ul>
   <li>Sets it as the active class for new annotations.</li>
-  <li>Auto-selects the matching <a href="#editor-tool-selector" class="internal">tool</a> (Segment / Box / Rotated Box / Cuboid / Keypoint) so the next gesture draws the right kind of annotation.</li>
+  <li>Auto-selects the matching <a href="#editor-tool-selector" class="internal">tool</a> (Segment / Box / Rotated Box / Polygon / Cuboid / Keypoint) so the next gesture draws the right kind of annotation. Scribble is selected manually when you want assisted Polygon creation.</li>
   <li>Classes flagged as <em>view-only</em> for the user's role show a small lock icon and cannot be selected for new annotations.</li>
 </ul>
 
@@ -853,6 +891,7 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 <ul>
   <li><strong>Box overlay</strong> — when the active tool is <em>Box</em>, drag on the video frame to draw a rectangle. Existing boxes are rendered on top of the frame at their current time and respect the <a href="#editor-video-adjust" class="internal">Shape Opacity</a> setting.</li>
   <li><strong>Rotated Box overlay</strong> — when the active tool is <em>Rotated Box</em>, use the <a href="#editor-drawing-obbox" class="internal">three-click workflow</a> to draw an oriented rectangle. Existing rotated boxes render at their current angle and respect the <a href="#editor-video-adjust" class="internal">Shape Opacity</a> setting.</li>
+  <li><strong>Polygon overlay</strong> — Polygon instances render as class-coloured filled outlines. In Select mode, the active Polygon exposes draggable vertices and clickable edges for editing. Pending <a href="#editor-drawing-scribble" class="internal">Scribble</a> strokes and tracking include / exclude points are temporary overlays and never persist as annotations themselves.</li>
   <li><strong>Cuboid overlay</strong> — when the active tool is <em>Cuboid</em>, use the <a href="#editor-drawing-cuboid" class="internal">four-click workflow</a> to draw a cuboid. Existing cuboids render with transparent side/floor faces, a translucent front face (controlled by the <a href="#editor-video-adjust" class="internal">Shape Opacity</a> setting), and solid edges.</li>
   <li><strong>Keypoint overlay</strong> — when the active tool is <em>Keypoint</em>, click to place a single point or each <a href="#config-keypoint-skeleton" class="internal">skeleton</a> joint in turn. Existing keypoints render on top of the frame at their current time; skeletons also draw their connecting bones. See <a href="#editor-drawing-keypoint" class="internal">Keypoint &amp; Skeleton</a>.</li>
   <li><strong>Zoom and pan</strong> — mouse wheel zooms around the cursor; drag pans while zoomed. Overlay geometry stays aligned with the video under the transform.</li>
@@ -861,14 +900,15 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 </ul>
 
 <h3 id="editor-keyframes">Keyframes</h3>
-<p>Box, cuboid, and keypoint annotations can hold multiple <em>keyframes</em> to track changes over time. For boxes, each keyframe stores a (time, rect) pair; for cuboids, a (time, eight-point shape) pair; for keypoints, a (time, point positions) pair. Between keyframes, geometry is <a href="#editor-interpolation" class="internal">interpolated</a> linearly so the annotation tracks moving objects without creating a separate instance per frame.</p>
+<p>Box, Rotated Box, Polygon, Cuboid, and Keypoint annotations can hold multiple <em>keyframes</em> to track changes over time. For boxes, each keyframe stores a (time, rect) pair; for rotated boxes, a (time, centre / size / rotation) tuple; for polygons, a (time, ordered points) pair; for cuboids, a (time, eight-point shape) pair; for keypoints, a (time, point positions) pair. Boxes, rotated boxes, cuboids, and keypoints interpolate as described below; Polygon keyframes use hold semantics.</p>
 <p>A keyframe diamond is shown on the <a href="#editor-frame-panel" class="internal">Frame Panel</a> at every frame where geometry is explicitly stored. Re-drawing or moving an annotation at a new frame creates a keyframe there; the first placement of an instance establishes its starting pose without cluttering the timeline with a redundant diamond.</p>
 <p><strong>Cuboid redraw direction:</strong> When redrawing a cuboid at a new keyframe, it is important to draw in the <em>same direction</em> as the original (e.g. both left-to-right). Drawing in the opposite direction swaps point indices and causes the cuboid to "flip inside out" during interpolation. When you select a cuboid and click <strong>Redraw</strong>, labels <strong>1</strong> and <strong>2</strong> appear at the original first and second click positions with a directional arrow to guide consistent drawing.</p>
 
 <h3 id="editor-interpolation">Interpolation</h3>
-<p>Keyframes are sparse: you set geometry at a handful of frames and the editor fills in everything between them. For every frame inside an annotation's <a href="#editor-frame-panel-rows" class="internal">visible range</a>, the displayed geometry is computed by <strong>linear interpolation</strong> between the nearest keyframe before and the nearest keyframe after the current frame.</p>
+<p>Keyframes are sparse: you set geometry at a handful of frames and the editor resolves the shape for every frame inside an annotation's <a href="#editor-frame-panel-rows" class="internal">visible range</a>.</p>
 <ul>
-  <li><strong>Between two keyframes</strong> — each value (box edges, cuboid corners, or keypoint positions) moves in a straight line at a constant rate from the earlier keyframe's value to the later one. A box that is small on frame 10 and large on frame 40 grows smoothly across the frames in between.</li>
+  <li><strong>Boxes, Rotated Boxes, Cuboids, and Keypoints</strong> — values move between compatible keyframes according to their existing interpolation rules. A box that is small on frame 10 and large on frame 40 grows smoothly across the frames in between.</li>
+  <li><strong>Polygons</strong> — the latest polygon keyframe at or before the current frame is held unchanged until another polygon keyframe replaces it. This avoids unreliable point-to-point morphing when outlines have different vertex counts. Manual edits and SAM tracking both create polygon keyframes.</li>
   <li><strong>Before the first / after the last keyframe</strong> — geometry is clamped (held constant) at the nearest keyframe's value, so the annotation never disappears or drifts outside the keyframed span.</li>
   <li><strong>Outside visible ranges</strong> — the annotation is simply not drawn. Interpolation only happens within a visible range.</li>
 </ul>
@@ -881,19 +921,20 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 </ul>
 <h4>Editing a range boundary</h4>
 <p>When you drag the start or end of a <a href="#editor-frame-panel-rows" class="internal">visible range</a> inward and that move drops keyframes that fell outside the new boundary, the editor first computes the interpolated pose at the new boundary and writes it as a fresh keyframe. This keeps the annotation's geometry continuous instead of snapping to whatever keyframe is left — moving a boundary never causes a visible "jump."</p>
+<p>For Polygon instances, the same boundary protection writes the outline held at that frame; it does not introduce point interpolation.</p>
 
 <h3 id="editor-video-adjust">Video Adjustments</h3>
 <p>Video adjustments button in the top toolbar opens a settings dropdown:</p>
 <ul>
   <li><strong>Brightness / Contrast / Saturation</strong> — applied as a CSS filter on the video frame so the original bytes are never mutated.</li>
-  <li><strong>Shape Opacity</strong> — controls the fill opacity of bounding boxes and cuboid front faces rendered on top of the video. Useful for keeping the underlying frame readable when many overlapping annotations are present.</li>
+  <li><strong>Shape Opacity</strong> — controls the fill opacity of bounding boxes, polygons, and cuboid front faces rendered on top of the video. Useful for keeping the underlying frame readable when many overlapping annotations are present.</li>
   <li><strong>Keypoint Size</strong> — slider (2–10, default 5) controlling the visual size of <a href="#editor-drawing-keypoint" class="internal">keypoint</a> dots only. Saved per user in browser local storage rather than the project config, so each annotator can pick a comfortable size; the hit/select area scales up with larger sizes but never shrinks below the default for small sizes, keeping small points easy to click.</li>
   <li><strong>Reset</strong> — restores all sliders and the keypoint size to their defaults.</li>
 </ul>
 <img class="doc-screenshot" src="images/editor-settings.webp" alt="Settings popup">
 
 <h2 id="editor-frame-panel">Frame Panel</h2>
-<p>In <a href="#config-feature-control" class="internal">Frame Mode</a> (the tool's player mode), a full frame-based timeline appears below the video as the primary navigation surface. The Frame Panel is designed for frame-level annotation work with boxes, cuboids, and keypoints.</p>
+<p>In <a href="#config-feature-control" class="internal">Frame Mode</a> (the tool's player mode), a full frame-based timeline appears below the video as the primary navigation surface. The Frame Panel is designed for frame-level annotation work with boxes, polygons, cuboids, and keypoints.</p>
 
 <h3 id="editor-frame-panel-controls">Controls</h3>
 <p>The Frame Panel control bar provides:</p>
@@ -905,11 +946,11 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 </ul>
 
 <h3 id="editor-frame-panel-rows">Instance Rows</h3>
-<p>Each box, cuboid, keypoint, or segment annotation appears as a row in the Frame Panel timeline (a skeleton occupies one row, not one row per joint):</p>
+<p>Each box, rotated box, polygon, cuboid, keypoint, or segment annotation appears as a row in the Frame Panel timeline (a skeleton occupies one row, not one row per joint):</p>
 <ul>
   <li><strong>Visible ranges</strong> shown as coloured spans using the instance class colour.</li>
   <li><strong>Range handles</strong> — drag the start / end edges of a visible range to adjust boundaries.</li>
-  <li><strong>Keyframe diamonds</strong> — mark frames where geometry is explicitly stored; between keyframes, position is interpolated.</li>
+  <li><strong>Keyframe diamonds</strong> — mark frames where geometry is explicitly stored. Boxes, Rotated Boxes, Cuboids, and Keypoints use their interpolation rules between compatible keyframes; Polygons hold the latest stored outline.</li>
   <li><strong>Row actions</strong> — open Instance View, add visible range, cut (split) range at the current frame, delete range, delete instance.</li>
 </ul>
 
@@ -927,7 +968,7 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
   <li><strong>Add</strong> a new visible range at the current frame.</li>
   <li><strong>Cut</strong> (split) a range at the current frame.</li>
   <li><strong>Delete</strong> the visible range under the playhead (when more than one range exists).</li>
-  <li><strong>Delete keyframes</strong> from the focused instance.</li>
+  <li><strong>Delete an individual keyframe change</strong> by hovering its diamond and clicking the trash icon in the keyframe popover.</li>
 </ul>
 <p>An <strong>X</strong> button in the upper frame timeline exits Instance View and returns to the full multi-row Frame Panel.</p>
 
@@ -970,6 +1011,39 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
   <li>To track movement, scrub to a later frame, select the box, and add a new keyframe — the box position interpolates between keyframes.</li>
 </ol>
 <img class="doc-screenshot" src="images/editor-bbox.webp" alt="A car annotated with a simple boundig box">
+
+<h3 id="editor-drawing-polygon">Polygon</h3>
+<p>Polygon is a first-class annotation type for objects that need an outline rather than a rectangle.</p>
+<ol>
+  <li>Pick a class of type <em>Polygon</em> (or press <kbd>P</kbd>). The Polygon tool selects automatically.</li>
+  <li>Pause at the desired frame and click around the object's boundary. A live class-coloured outline follows the cursor.</li>
+  <li>After placing at least three distinct, non-collinear vertices, <strong>double-click</strong>, press <kbd>Enter</kbd>, or click on the first vertex to finish. Points that are effectively on top of each other are collapsed before validation, preventing accidental zero-length edges from a double-click.</li>
+  <li>The Polygon receives the same configured default interval as other frame-based annotations. Near the end of the video that interval is shortened to the available duration; creation is blocked only when no valid interval remains.</li>
+</ol>
+<p>Press <kbd>Esc</kbd> before completion to discard the draft. A Polygon must retain at least three distinct vertices and enclose a non-zero area.</p>
+
+<h4>Editing polygons</h4>
+<p>Switch to <strong>Select</strong> (<kbd>S</kbd>) and click a visible Polygon:</p>
+<ul>
+  <li><strong>Move a vertex</strong> — drag any vertex handle.</li>
+  <li><strong>Add a vertex</strong> — click or drag a polygon edge; a new point is inserted at the nearest location on that edge.</li>
+  <li><strong>Delete a vertex</strong> — <kbd>Alt</kbd>-click or right-click its handle. The last three vertices cannot be removed.</li>
+  <li><strong>Move the whole polygon</strong> — drag inside the filled shape. Movement is clamped so the outline remains inside the video frame.</li>
+</ul>
+<p>Editing on a later frame creates a Polygon keyframe at that frame. The new outline is held until the next Polygon keyframe; it is not point-morphed. Polygon instances otherwise behave like the existing frame annotations: they support visible ranges, properties, comments, relationships, whole-instance Delete / Backspace, undo / redo, panel and Frame Panel rows, Split View rendering, save / reload, and export.</p>
+<img class="doc-screenshot" src="images/editor-polygon.webp" alt="A car annotated with a simple polygon">
+
+<h3 id="editor-drawing-scribble">Scribble Polygon Generation</h3>
+<p>Scribble is an assisted creation tool, not an annotation type. It uses <strong>SAM 2 Image</strong> on the current video frame to create one ordinary, editable Polygon instance.</p>
+<ol>
+  <li>Configure the <a href="#config-fal-features" class="internal">Fal.ai Proxy</a>, enable <strong>SAM 2 Scribble Polygon Generation</strong>, and select an editable Polygon class.</li>
+  <li>Choose <strong>Scribble</strong> from the tool menu or press <kbd>L</kbd>. The tool is hidden if its proxy, feature toggle, or a visible Polygon class is missing.</li>
+  <li>Pause on the target frame and drag one or more class-coloured strokes <em>through the object</em>. Multiple separate strokes can identify different parts of the same object.</li>
+  <li>Click <strong>Generate polygon</strong> in the toolbar or press <kbd>Enter</kbd>. Press <kbd>Esc</kbd> instead to discard the current strokes. Seeking to another frame before generation also clears the draft.</li>
+</ol>
+<p>The tool samples the strokes into a bounded set of positive prompts, sends one processing-resolution-capped frame to Fal.ai, downloads the returned mask, keeps the connected region containing the prompts, and vectorises it into Polygon vertices. Very short strokes can be ignored, so use a deliberate drag rather than a tap.</p>
+<p>After submission the editor switches to Select. The submitted strokes remain dimmed with a small spinner while their job runs, and a non-clickable <strong>Creating polygons (N)</strong> toolbar status shows how many generations are active. You can switch back to Scribble and submit more work without waiting; generation uses its own queue, allows up to five waiting jobs, and does not appear in the tracking Jobs tab. <kbd>Esc</kbd> clears only an unsubmitted draft; seeking to another frame or starting playback clears it too. A submitted generation runs until it completes, becomes stale, or the editor is closed. A completed result creates a normal Polygon with the captured class and default visible range, ready for manual editing or later <a href="#editor-sam-tracking" class="internal">Polygon tracking</a>.</p>
+<img class="doc-screenshot" src="images/editor-scribble.webp" alt="A motorcyclist marked with two scribble strokes with generate polygon contextual button visible on toolbar">
 
 <h3 id="editor-drawing-obbox">Rotated Box</h3>
 <ol>
@@ -1055,7 +1129,69 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 <h4>Editing a skeleton</h4>
 <p>Select a skeleton and use its <strong>edit</strong> control (the time-based redraw icon) to re-place its joints at the current frame, creating a keyframe there. During editing, <kbd>,</kbd> / <kbd>.</kbd> (and the on-screen arrows) navigate between joints, and the trash / delete control removes the joint under the cursor. If editing leaves every joint unchanged, no redundant keyframe is added.</p>
 
-<p>To remove any annotation, select it (panel row, segment row, box, cuboid, or keypoint) and press <kbd>Delete</kbd> or <kbd>Backspace</kbd>.</p>
+<p>To remove any annotation, select it (panel row, segment row, box, rotated box, polygon, cuboid, or keypoint) and press <kbd>Delete</kbd> or <kbd>Backspace</kbd>.</p>
+
+<hr>
+
+<h2 id="editor-sam-tracking">AI-Assisted Box &amp; Polygon Tracking</h2>
+<p>Tracking propagates the geometry of one existing annotation forward through the current video. Axis-aligned Boxes use <strong>SAM 2 Video</strong>; Polygons use <strong>SAM 3.1 Video</strong> masks that are converted into editable Polygon keyframes. Both run through the configured <a href="#config-fal-features" class="internal">Fal.ai team proxy</a>.</p>
+
+<h3 id="editor-tracking-eligibility">When tracking is available</h3>
+<p>The toolbar shows <strong>Track bbox</strong> or <strong>Track polygon</strong> only when every requirement is currently satisfied:</p>
+<ul>
+  <li>A compatible Fal.ai proxy is selected and that shape's <a href="#config-fal-features" class="internal">feature checkbox</a> is enabled.</li>
+  <li>The editor is in working mode, the video is paused, and Split View is set to <strong>0</strong> (single editable view).</li>
+  <li>Exactly one editable Polygon or <strong>axis-aligned</strong> Box instance is selected and is visible at the current frame.</li>
+  <li>At least one frame remains after the current frame on the timeline.</li>
+  <li>The same instance does not already have an active tracking job.</li>
+</ul>
+<p>If any requirement stops being true, the contextual Track action is hidden. A job already queued continues independently unless it is cancelled or its captured source / annotation becomes stale.</p>
+
+<h3 id="editor-tracking-modal">Track / Jobs modal</h3>
+<p>Click the contextual Track action to open an on-demand modal over the annotation panel. If the configured panel is collapsed, it is temporarily expanded and returns to its previous state when the modal closes. If the project has <em>Annotation Panel: None</em>, the editor creates a temporary panel-sized host on the right so the experience remains consistent without covering the toolbar or video.</p>
+<p>The modal has two tabs:</p>
+<ul>
+  <li><strong>Track</strong> — setup for the currently eligible selected instance. It identifies the instance, shape seed, provider, starting frame, ending frame, and requested forward frame count.</li>
+  <li><strong>Jobs</strong> — all active tracking work, with current stage, queue position when waiting, and a Cancel action. <strong>Cancel all</strong> appears when more than one job is active.</li>
+</ul>
+<p>The default run is <strong>30 forward frames</strong>, reduced when fewer remain. Enter any value from 1 through the available limit; one run can cover at most <strong>300 forward frames</strong>. Seeking while paused keeps the modal available when the new frame remains eligible and recalculates the start/end range as if setup had been reopened there. Selecting another eligible Box / Polygon updates Track setup but does not force the user away from Jobs. If setup becomes ineligible while jobs remain, Track is disabled and the modal stays on Jobs; with no jobs it closes. Starting playback, switching tools, changing video files, or entering / changing Split View closes the modal. Closing the modal does <em>not</em> cancel queued jobs; when no jobs exist, it does abort timestamp preparation that is still in progress, and preparation restarts automatically the next time Track is opened.</p>
+<p><kbd>Esc</kbd> closes the modal. Normal seek, frame-step, mute, labels, fullscreen, and undo / redo shortcuts remain available; playback closes the modal. <kbd>Delete</kbd> and <kbd>Backspace</kbd> are blocked while it is open so an instance behind the overlay cannot be removed accidentally.</p>
+
+<h3 id="editor-tracking-prompts">Include / Exclude point prompts</h3>
+<p>The <strong>Refine target</strong> section is optional:</p>
+<ul>
+  <li>Choose <strong>Include (+)</strong>, then click one or more positions inside the target object.</li>
+  <li>Choose <strong>Exclude (−)</strong>, then click background or a nearby distractor the model should avoid.</li>
+  <li><strong>Stop adding</strong> returns the canvas to normal interaction. Individual points can be removed from the list, or use <strong>Clear all</strong>.</li>
+</ul>
+<p>Points are shown both on the video and in the modal with include / exclude counts. For Polygon tracking, the editor automatically derives a small set of positive interior points from the current outline when no Include points were supplied, so the provider still receives a target seed. Added prompts belong only to the current setup and disappear when it is closed, re-anchored, or queued.</p>
+
+<h3 id="editor-tracking-preparation">Automatic timestamp preparation</h3>
+<p>Opening Track setup automatically resolves the video's exact source presentation timestamps. Existing valid <code>videoFrameMetadata.frameTimestamps</code> are reused immediately; otherwise the browser indexes the source. There is no manual preparation button. The modal reports <em>Preparing video for tracking…</em>, progress as frames are indexed, and finally <em>Video ready for tracking</em>. A newly prepared index is reused for that video for the rest of the editor session.</p>
+<p>Exact source timestamps keep extraction aligned for both constant- and variable-frame-rate video. <strong>Queue tracking</strong> remains disabled until preparation succeeds. If indexing fails, the modal explains the problem and provides <strong>Retry</strong>; reloading the item and verifying that the source is accessible and decodable are the first troubleshooting steps.</p>
+
+<h3 id="editor-tracking-jobs">Queue, progress, results &amp; cancellation</h3>
+<p>Press <strong>Queue tracking</strong> to capture an immutable job from the current source, geometry, prompts, range, proxy, and processing resolution. The modal switches to Jobs, while a toolbar <strong>Tracking (N)</strong> button keeps active work reachable after the modal is closed.</p>
+<p>The queue separates browser work from provider work:</p>
+<ul>
+  <li><strong>Local preparation lane</strong> — extracts exact source frames, downsizes them to the configured processing resolution, and encodes the temporary H.264 clip.</li>
+  <li><strong>Remote lane</strong> — sends one prepared job at a time to Fal.ai, waits for the result, decodes the returned masks, and commits geometry. While the remote lane waits, local preparation for the next job can proceed.</li>
+</ul>
+<p>Jobs report stages such as extracting frames, encoding, ready for Fal.ai, tracking, decoding masks, and vectorising polygons. The queue accepts up to five waiting jobs and prevents duplicate active jobs for the same annotation. Cancel from the Jobs tab at any stage; local or remote work may remain listed briefly while its asynchronous operation observes the cancellation, but cancelled work never applies geometry.</p>
+<p>On success, the requested interval of the selected instance is replaced with tracked keyframes and visible ranges while geometry outside that interval is preserved. Missing Box masks can create visibility gaps. Invalid interior Polygon gaps fail the run rather than silently inventing outlines; a pure missing tail may be completed by holding the provider's last returned Polygon through the requested end. One Undo reverts one completed tracking commit. Results are also rejected without mutation if the video source, class, selected instance geometry, or access state changed while the job was running; this stale-result guard also protects jobs that finish after a file switch.</p>
+
+<h3 id="editor-tracking-review">Reviewing tracked results</h3>
+<p>Tracking is an acceleration step, not an accuracy guarantee. After a run:</p>
+<ol>
+  <li>Scrub through the requested interval and inspect the overlay.</li>
+  <li>Use the Frame Panel and its keyframe hover controls to locate stored changes and any visibility gaps.</li>
+  <li>Correct a Box or Polygon manually at the first inaccurate frame; the edit creates a normal keyframe.</li>
+  <li>If the run targeted the wrong object, Undo it, reopen Track, add a few Include points on the target and Exclude points on the distractor, then retry a shorter range first.</li>
+</ol>
+<div class="doc-screenshot-row">
+  <img class="doc-screenshot" src="images/editor-track-modal.webp" alt="Track Modal">
+  <img class="doc-screenshot" src="images/editor-jobs-modal.webp" alt="Jobs Modal">
+</div>
 
 <hr>
 
@@ -1299,6 +1435,7 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 
 <h2 id="editor-undo-redo">Undo / Redo</h2>
 <p>The tool maintains a single history stack of annotation actions — drawing, moving, keyframe edits, range edits, class changes, and property edits. <kbd>Ctrl(⌘)+Z</kbd> reverts to the previous snapshot; <kbd>Ctrl(⌘)+Shift+Z</kbd> (or <kbd>Ctrl(⌘)+Y</kbd>) re-applies it.</p>
+<p>Each completed Scribble generation or SAM tracking commit adds one undo step. If a background result finishes for a video that is no longer active, its undo snapshot is deferred and added to the normal history when that video is opened again, so tab switching does not make the result irreversible.</p>
 
 </div>
 
@@ -1401,13 +1538,13 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 <p><code>urlKind</code> tells the editor how to access the URL:</p>
 <table>
   <tr><th>Value</th><th>Meaning</th></tr>
-  <tr><td><code>"uploaded"</code></td><td>Bytes live in SuperAnnotate (rare in JSONL — usually carried by <code>uploadedFile</code> instead).</td></tr>
-  <tr><td><code>"public"</code></td><td>Publicly accessible URL — fetched directly.</td></tr>
-  <tr><td><code>"presigned"</code></td><td>Pre-signed URL (e.g. AWS S3) — fetched directly but may expire.</td></tr>
-  <tr><td><code>"integration"</code></td><td>Requires platform integration credentials — the platform signs the URL before fetching.</td></tr>
-  <tr><td><code>"asset"</code></td><td>Reserved for SA-internal asset URLs that need re-signing on each load.</td></tr>
+  <tr><td><code>"uploaded"</code></td><td>SuperAnnotate-uploaded file identified by <code>uploadedFile.uniqueName</code>, rather than a <code>url</code>. The platform resolves it to a temporary browser URL.</td></tr>
+  <tr><td><code>"public"</code></td><td>External public URL — used directly by the browser.</td></tr>
+  <tr><td><code>"presigned"</code></td><td>Already-signed URL (e.g. AWS S3) — used directly by the browser and may expire.</td></tr>
+  <tr><td><code>"integration"</code></td><td>URL associated with a project integration. It uses the platform signing route, the same route as <code>"asset"</code>, with the item's integration context.</td></tr>
+  <tr><td><code>"asset"</code></td><td>Generic URL routed through the platform signing service. This is the default for an ordinary URL when <code>urlKind</code> is omitted; it does not establish where the file is stored.</td></tr>
 </table>
-<div class="callout"><strong>Default behaviour:</strong> When <code>urlKind</code> is omitted, the URL is treated as an integration / asset URL and routed through the platform's signing path. If you are providing public or pre-signed URLs, you <strong>must</strong> set <code>urlKind</code> to <code>"public"</code> or <code>"presigned"</code> explicitly, otherwise the signing step will fail and the video will not load.</div>
+<div class="callout"><strong>Default behaviour:</strong> When <code>urlKind</code> is omitted, <code>blob:</code> / <code>data:</code> URLs are treated as <code>"public"</code>, URLs with recognised cloud-signature query parameters are treated as <code>"presigned"</code>, and every other URL is treated as <code>"asset"</code> and sent through the platform signing route. For a public or already-signed URL that is not recognised automatically, set <code>urlKind</code> to <code>"public"</code> or <code>"presigned"</code> explicitly; otherwise signing will be attempted and the video will not load.</div>
 
 <h3 id="ie-jsonl-keys">Structure Keys</h3>
 <table>
@@ -1423,7 +1560,7 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
   <tr><td><code>videos[].tags</code></td><td>file</td><td>Array of video-scoped tags: <code>{ tagClassId, propertyValues }</code>.</td></tr>
   <tr><td><code>itemTags</code></td><td>value</td><td>Array of item-scoped tags: <code>{ tagClassId, propertyValues }</code>. Apply to the whole item regardless of file count.</td></tr>
   <tr><td><code>itemContext</code></td><td>value</td><td>Optional plain-text values for the <a href="#config-item-context" class="internal">Item Context</a> slots — see <a href="#ie-export-item-context" class="internal">Item Context</a> for the shape and the orphan-key rules.</td></tr>
-  <tr><td><code>instances[].type</code></td><td>annotation</td><td>One of <code>"segment"</code>, <code>"bbox"</code> (Box), <code>"obbox"</code> (Rotated Box), <code>"cuboid"</code>, <code>"keypoint"</code>.</td></tr>
+  <tr><td><code>instances[].type</code></td><td>annotation</td><td>One of <code>"segment"</code>, <code>"bbox"</code> (Box), <code>"obbox"</code> (Rotated Box), <code>"polygon"</code>, <code>"cuboid"</code>, <code>"keypoint"</code>.</td></tr>
   <tr><td><code>instances[].classId</code></td><td>annotation</td><td>References a class ID from the project's <a href="#config-classes" class="internal">class list</a>.</td></tr>
   <tr><td><code>instances[].instanceNumber</code></td><td>annotation</td><td>Optional user-facing sequential number (<code>#1</code>, <code>#2</code>, …) shown next to the class name in the instance panel, table, canvas labels and Frame Panel. Unique across the whole item (all video files). Auto-assigned on load when absent (next free number, max+1) and persisted on the next save, so it can be omitted from preannotations.</td></tr>
   <tr><td><code>instances[].start</code> / <code>end</code></td><td>annotation</td><td>Time interval in <strong>seconds</strong> from the start of the video. Present on every type.</td></tr>
@@ -1431,11 +1568,13 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
   <tr><td><code>instances[].bboxKeyframes</code></td><td>bbox</td><td>Optional array of <code>{ time, x, y, width, height }</code> keyframes for tracking box movement across frames. Between keyframes, position and size are <a href="#editor-interpolation" class="internal">interpolated</a> linearly.</td></tr>
   <tr><td><code>instances[].obbox</code></td><td>obbox</td><td><code>{ cx, cy, width, height, rotation }</code> — the oriented rectangle on the video frame, in normalised coordinates. <code>cx</code>/<code>cy</code> are the box centre and <code>rotation</code> is in <strong>radians</strong>. This matches the image tool's oriented-box format exactly. Rotated Box instances carry this instead of <code>bbox</code>.</td></tr>
   <tr><td><code>instances[].obboxKeyframes</code></td><td>obbox</td><td>Optional array of <code>{ time, cx, cy, width, height, rotation }</code> keyframes for tracking a rotated box across frames. Between keyframes, centre and size are <a href="#editor-interpolation" class="internal">interpolated</a> linearly and rotation along the shortest angle.</td></tr>
+  <tr><td><code>instances[].polygon</code></td><td>polygon</td><td>Array of <code>{ x, y }</code> vertices in normalised video coordinates. Vertices are ordered around the outline and the closing edge from the last point back to the first is implicit.</td></tr>
+  <tr><td><code>instances[].polygonKeyframes</code></td><td>polygon</td><td>Optional array of <code>{ time, points }</code> keyframes, where <code>points</code> has the same shape as <code>polygon</code>. Polygon geometry uses latest-keyframe hold semantics rather than point interpolation, so keyframes may safely contain different vertex counts.</td></tr>
   <tr><td><code>instances[].cuboid</code></td><td>cuboid</td><td><code>{ points }</code> — an array of eight <code>{ x, y }</code> corner points in normalised coordinates defining the cuboid shape. Points 0–3 are the front face and points 4–7 are the back face, each wound from the first click's side to the second click's side. See <a href="#editor-drawing-cuboid" class="internal">Cuboid drawing</a> for the full ordering.</td></tr>
   <tr><td><code>instances[].cuboidKeyframes</code></td><td>cuboid</td><td>Optional array of <code>{ time, points }</code> keyframes for tracking cuboid changes across frames. Each entry has the same eight-point structure as <code>cuboid</code>. Between keyframes, points are <a href="#editor-interpolation" class="internal">interpolated</a> linearly.</td></tr>
   <tr><td><code>instances[].keypoints</code></td><td>keypoint</td><td>Array of <code>{ pointId, x, y }</code> points in normalised coordinates. A single-point keypoint has one entry; a <a href="#config-keypoint-skeleton" class="internal">skeleton</a> has one entry per placed joint (skipped joints are simply absent).</td></tr>
   <tr><td><code>instances[].keypointKeyframes</code></td><td>keypoint</td><td>Optional array of <code>{ time, points }</code> whole-skeleton keyframes. The point set per keyframe may be partial; per-point <a href="#editor-interpolation" class="internal">interpolation</a> uses the forward-fill model.</td></tr>
-  <tr><td><code>instances[].visibleRanges</code></td><td>bbox / obbox / cuboid / keypoint</td><td>Optional array of <code>{ start, end }</code> frame spans defining when the instance is visible. Used in the <a href="#editor-frame-panel" class="internal">Frame Panel</a> to allow an instance to appear and disappear without creating separate rows.</td></tr>
+  <tr><td><code>instances[].visibleRanges</code></td><td>bbox / obbox / polygon / cuboid / keypoint</td><td>Optional array of <code>{ start, end }</code> frame spans defining when the instance is visible. Used in the <a href="#editor-frame-panel" class="internal">Frame Panel</a> to allow an instance to appear and disappear without creating separate rows.</td></tr>
   <tr><td><code>instances[].propertyValues</code></td><td>annotation</td><td>Object keyed by <a href="#config-properties" class="internal">property ID</a>. Values are strings; multi-select values are option labels joined with <code>", "</code>. For <a href="#config-timebased-properties" class="internal">time-based</a> properties this mirrors the timeline's <em>start</em> value, so time-agnostic consumers still work.</td></tr>
   <tr><td><code>instances[].propertyKeyframes</code></td><td>annotation</td><td>Optional object keyed by <a href="#config-timebased-properties" class="internal">time-based</a> property ID; each value is an array of <code>{ time, value }</code> entries sorted by time (seconds). The value applies forward from its <code>time</code> until the next entry (step function, no interpolation). See <a href="#editor-timebased-properties" class="internal">Time-Based Property Editing</a>.</td></tr>
   <tr><td><code>instances[].comments</code></td><td>annotation</td><td>Optional flat array — see <a href="#ie-export-comments" class="internal">Comments</a>.</td></tr>
@@ -1589,6 +1728,7 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
   <li><a href="#config-access-control" class="internal">Access control</a>: admins, annotators, reviewers; isolation set to <em>By User</em> with admins / reviewers in the bypass list.</li>
   <li><a href="#config-classes" class="internal">Classes</a>: per-object classes of type <em>Box</em> — e.g. Person, Vehicle, Animal.</li>
   <li><a href="#config-properties" class="internal">Properties</a>: a Single Select <em>Visibility</em> (Full / Partial / Occluded), Numeric <em>Confidence</em>, and a Free Text <em>ID</em> if multiple instances of the same class need to be distinguished.</li>
+  <li><a href="#config-fal-features" class="internal">Fal.ai Proxy</a> (optional): select a <code>fal.run</code> team proxy and leave <strong>SAM 2 Bounding Box Tracking</strong> enabled for assisted propagation.</li>
 </ul>
 
 <h3>Workflow</h3>
@@ -1596,11 +1736,32 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
   <li>Admin uploads the dataset to the project at the SuperAnnotate platform level as <a href="#ie-jsonl-import" class="internal">JSONL</a> (with <code>uploadedFile</code> entries or URL-linked clips).</li>
   <li>Annotator opens the item; the video appears with the <a href="#editor-frame-panel" class="internal">Frame Panel</a> timeline below it.</li>
   <li>They scrub to the first frame where the object is visible, pick the class (the Box tool auto-selects), and drag a rectangle on the video frame.</li>
-  <li>They scrub forward to a frame where the object has moved, select the same box, and drag it to a new position — a <a href="#editor-keyframes" class="internal">keyframe</a> is created and the box <a href="#editor-interpolation" class="internal">interpolates</a> between keyframes.</li>
-  <li>Repeat at each "kink" in the trajectory; the box smoothly tracks the object across the clip. Trim the instance's <a href="#editor-frame-panel-rows" class="internal">visible range</a> to the frames where the object is present.</li>
+  <li>For a short or predictable movement, scrub forward and manually reposition the same box to create <a href="#editor-keyframes" class="internal">keyframes</a>. For a longer run, keep it selected and use <a href="#editor-sam-tracking" class="internal"><strong>Track bbox</strong></a> to propagate it up to 300 frames forward.</li>
+  <li>Review the result, correct inaccurate frames with normal Box edits, and trim the instance's <a href="#editor-frame-panel-rows" class="internal">visible range</a> to the frames where the object is present.</li>
   <li>Use <a href="#editor-video-adjust" class="internal">Video Adjustments</a> to dial Brightness / Contrast for hard-to-see footage and turn down Shape Opacity when overlapping annotations obscure the frame.</li>
   <li>Switch to <a href="#editor-panel-table" class="internal">Table View</a> to sort by start time and verify each box has a complete track and visibility property.</li>
-  <li>Export — each Box annotation carries its <code>box</code> rect plus a <code>keyframes</code> array of (time, rect) pairs. Cuboid annotations carry a <code>cuboid</code> eight-point shape plus an optional <code>cuboidKeyframes</code> array.</li>
+  <li>Export — each Box annotation carries its <code>bbox</code> rect plus a <code>bboxKeyframes</code> array of (time, rect) entries. Cuboid annotations carry a <code>cuboid</code> eight-point shape plus an optional <code>cuboidKeyframes</code> array.</li>
+</ol>
+
+<hr>
+
+<h2 id="sol-video-polygons">Polygon Segmentation &amp; Tracking Workflow</h2>
+<p><strong>Goal:</strong> Capture an object's precise silhouette and optionally follow that outline forward through the video.</p>
+
+<h3>Configuration</h3>
+<ul>
+  <li>Create one or more <a href="#config-classes" class="internal">Polygon classes</a> with distinct colours and task-specific properties.</li>
+  <li>Select a <a href="#config-fal-features" class="internal">Fal.ai Proxy</a>. Enable <strong>SAM 2 Scribble Polygon Generation</strong> for assisted initial outlines and <strong>SAM 3.1 Polygon Tracking</strong> for forward propagation.</li>
+  <li>Choose a <a href="#config-fal-features" class="internal">processing resolution</a> appropriate to the target size and boundary detail.</li>
+</ul>
+
+<h3>Workflow</h3>
+<ol>
+  <li>Pause on a clear frame. Either draw the Polygon manually with <kbd>P</kbd>, or choose <a href="#editor-drawing-scribble" class="internal">Scribble</a> (<kbd>L</kbd>), make one or more strokes through the object, and press <kbd>Enter</kbd>.</li>
+  <li>Inspect the generated outline. Drag vertices, click edges to add detail, or remove unnecessary vertices with <kbd>Alt</kbd>-click / right-click.</li>
+  <li>With the Polygon selected, click <a href="#editor-sam-tracking" class="internal"><strong>Track polygon</strong></a>. Start with a short range; use Include points on the object and Exclude points on nearby distractors if needed.</li>
+  <li>Review the tracked visible range in the Frame Panel. Manual corrections create ordinary hold-semantics Polygon keyframes.</li>
+  <li>Export — each instance carries <code>polygon</code>, <code>polygonKeyframes</code>, and <code>visibleRanges</code>, along with its class, properties, comments, and relationships.</li>
 </ol>
 
 <hr>
@@ -1635,10 +1796,10 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 <h2>Efficiency Tips</h2>
 
 <h3 id="tips-class-shortcuts">Class Shortcuts (1–9)</h3>
-<p>The first nine classes in your project bind to <kbd>1</kbd>–<kbd>9</kbd>. With hundreds of annotations to draw per session, keyboard shortcuts save real minutes — and because picking a class auto-selects its matching tool (Segment / Box / Cuboid / Keypoint), pressing the digit before each draw is the fastest possible flow. Put the nine most-used classes first in <a href="#config-classes" class="internal">configuration</a> and train the muscle memory.</p>
+<p>The first nine classes in your project bind to <kbd>1</kbd>–<kbd>9</kbd>. With hundreds of annotations to draw per session, keyboard shortcuts save real minutes — and because picking a class auto-selects its matching tool (Segment / Box / Rotated Box / Polygon / Cuboid / Keypoint), pressing the digit before each draw is the fastest possible flow. Put the nine most-used classes first in <a href="#config-classes" class="internal">configuration</a> and train the muscle memory.</p>
 
-<h3 id="tips-tool-shortcuts">Tool Shortcuts (S / G / B / D / K)</h3>
-<p>Even though picking a class auto-selects a tool, you can switch tools manually with <kbd>S</kbd> (Select), <kbd>G</kbd> (Segment), <kbd>B</kbd> (Box), <kbd>Shift</kbd>+<kbd>B</kbd> (Rotated Box), <kbd>D</kbd> (Cuboid), <kbd>K</kbd> (Keypoint). <kbd>S</kbd> in particular is worth memorising — drop into Select mode to inspect / move existing annotations without accidentally drawing new ones.</p>
+<h3 id="tips-tool-shortcuts">Tool Shortcuts (S / G / B / P / L / D / K)</h3>
+<p>Even though picking a class auto-selects a tool, you can switch tools manually with <kbd>S</kbd> (Select), <kbd>G</kbd> (Segment), <kbd>B</kbd> (Box), <kbd>Shift</kbd>+<kbd>B</kbd> (Rotated Box), <kbd>P</kbd> (Polygon), <kbd>L</kbd> (Scribble), <kbd>D</kbd> (Cuboid), and <kbd>K</kbd> (Keypoint). <kbd>S</kbd> in particular is worth memorising — drop into Select mode to inspect / move existing annotations without accidentally drawing new ones. While Scribble has pending strokes, <kbd>Enter</kbd> submits them and <kbd>Esc</kbd> clears them.</p>
 
 <h3 id="tips-seek">Fast Seeking</h3>
 <p>Sub-frame precision matters for tight keyframes. The seek shortcuts skip dropdown-hunting:</p>
@@ -1671,6 +1832,15 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 </ul>
 <p>If you find yourself wanting a property on every annotation in a video file, it probably belongs as a video-level tag instead.</p>
 
+<h3 id="tips-sam-tracking">SAM Tracking &amp; Scribble Quality</h3>
+<ul>
+  <li><strong>Start with a short tracking run.</strong> Track 10–30 frames, review, then continue from a clean frame. Short checkpoints make drift easier to catch and undo.</li>
+  <li><strong>Use prompts selectively.</strong> Start from the shape alone. If the model follows a distractor, add two or three Include points inside the target and one or two Exclude points on the competing object or background.</li>
+  <li><strong>Anchor on a clear frame.</strong> Tracking and Scribble work best when the target is well-separated and not motion-blurred at the starting frame.</li>
+  <li><strong>Use multiple Scribble strokes for disconnected visual parts.</strong> Stroke through the object rather than tracing its border; SAM produces the border. If the target is small or intricate, raise the <a href="#config-fal-features" class="internal">processing resolution</a>.</li>
+  <li><strong>Review every result.</strong> SAM output is a starting point. Use ordinary Box / Polygon keyframes and visible ranges for corrections; one Undo removes the most recent completed generation or tracking commit.</li>
+</ul>
+
 <h3 id="tips-autosave">Auto-Save Timing</h3>
 <p><a href="#ie-autosave" class="internal">Auto-save</a> debounces to the local data layer ~1 second after annotation actions; the server push runs on a 60-second interval whenever unsaved changes exist. There's no manual Save button on the main toolbar, so <strong>wait a couple of seconds</strong> after your last edit before closing the tab to ensure the local layer has captured your work — and ideally wait for the next 60-second server push cycle for full server-side persistence.</p>
 
@@ -1692,11 +1862,21 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 </ul>
 
 <h3 id="limits-api">API Rate Limits</h3>
-<p><a href="#editor-ai-autofill" class="internal">AI autofill</a> calls are routed through your <a href="#config-ai-proxy" class="internal">AI proxy</a>, and the underlying provider (OpenAI or Gemini) enforces its own rate limits. Running autofill on hundreds of annotations back-to-back will eventually hit those limits — the tool surfaces the upstream error inline. Mitigations:</p>
+<p><a href="#editor-ai-autofill" class="internal">AI autofill</a>, <a href="#editor-drawing-scribble" class="internal">Scribble generation</a>, and <a href="#editor-sam-tracking" class="internal">SAM tracking</a> are routed through their configured team proxies, and the upstream provider enforces quota, billing, and rate limits. A Scribble generation makes one Fal.ai image request; each queued tracking run makes one Fal.ai video request after browser-side preparation. Mitigations:</p>
 <ul>
-  <li>Fill properties in batches and pause briefly between batches.</li>
+  <li>Run AI work in sensible batches and avoid queuing many long tracking ranges at once.</li>
   <li>Check quota in <strong>SuperAnnotate → Team Settings → Security → Proxies</strong>.</li>
   <li>Switch to a higher-tier key if you routinely hit limits.</li>
+</ul>
+
+<h3 id="limits-sam-tracking">SAM Tracking Limits</h3>
+<ul>
+  <li><strong>Forward only, 300-frame maximum.</strong> One run starts at the paused current frame and covers at most 300 subsequent frames, further limited by the source frames remaining.</li>
+  <li><strong>Single editable view only.</strong> Track and Scribble controls are hidden in Split View and preview / view-only contexts.</li>
+  <li><strong>Supported geometry.</strong> Tracking supports axis-aligned Boxes and Polygons. Scribble creates Polygons. Rotated Boxes, Cuboids, Keypoints, and Segments are not SAM targets.</li>
+  <li><strong>Browser media support.</strong> Tracking requires exact timestamp indexing, frame extraction, and H.264 encoding in the browser. Unsupported codecs, inaccessible sources, or browser limitations surface as preparation errors without changing annotations.</li>
+  <li><strong>Timestamp source and cache.</strong> Imported exact <code>frameTimestamps</code> are reusable metadata. When they are absent, the browser prepares a session-only index, reused until the editor closes or the video source changes.</li>
+  <li><strong>Remote output still needs review.</strong> Occlusion, motion blur, scene cuts, small targets, and similar nearby objects can cause gaps or drift. Use shorter runs, point prompts, higher processing resolution, and manual keyframe correction.</li>
 </ul>
 
 <h3 id="limits-class-types">Cross-Type Class Changes</h3>
@@ -1756,6 +1936,7 @@ const navData = {
       { id: 'config-why-proxies', label: 'Why Proxies?' },
       { id: 'config-proxy-providers', label: 'Providers & usage' },
       { id: 'config-proxy-setup', label: 'Set up proxies' },
+      { id: 'config-fal-features', label: 'Fal.ai Features & Resolution' },
       { id: 'config-docs-ask-ai', label: 'Ask AI in editor documentation' },
       { id: 'config-panel-bulk-ai-extraction', label: 'Bulk extraction toggle' },
       { id: 'config-proxy-troubleshooting', label: 'Troubleshooting' },
@@ -1787,6 +1968,7 @@ const navData = {
     { id: 'editor-top-toolbar', label: 'Top Toolbar', children: [
       { id: 'editor-tool-selector', label: 'Tool Selector' },
       { id: 'editor-class-selector', label: 'Class Selector' },
+      { id: 'editor-toolbar-sam-actions', label: 'Contextual SAM Actions' },
     ]},
     { id: 'editor-waveform', label: 'Video & Overlays', children: [
       { id: 'editor-video', label: 'Video Player' },
@@ -1804,9 +1986,19 @@ const navData = {
     { id: 'editor-drawing', label: 'Creating Annotations', children: [
       { id: 'editor-drawing-segment', label: 'Segment' },
       { id: 'editor-drawing-box', label: 'Box' },
+      { id: 'editor-drawing-polygon', label: 'Polygon' },
+      { id: 'editor-drawing-scribble', label: 'Scribble Generation' },
       { id: 'editor-drawing-obbox', label: 'Rotated Box' },
       { id: 'editor-drawing-cuboid', label: 'Cuboid' },
       { id: 'editor-drawing-keypoint', label: 'Keypoint & Skeleton' },
+    ]},
+    { id: 'editor-sam-tracking', label: 'AI-Assisted Tracking', children: [
+      { id: 'editor-tracking-eligibility', label: 'Availability' },
+      { id: 'editor-tracking-modal', label: 'Track / Jobs Modal' },
+      { id: 'editor-tracking-prompts', label: 'Include / Exclude Points' },
+      { id: 'editor-tracking-preparation', label: 'Timestamp Preparation' },
+      { id: 'editor-tracking-jobs', label: 'Queue & Results' },
+      { id: 'editor-tracking-review', label: 'Reviewing Results' },
     ]},
     { id: 'editor-panel', label: 'Annotation Panel', children: [
       { id: 'editor-panel-instance', label: 'Instance View' },
@@ -1850,6 +2042,7 @@ const navData = {
   ],
   solutions: [
     { id: 'sol-video-boxes', label: 'Video Bounding-Box Tracking' },
+    { id: 'sol-video-polygons', label: 'Polygon Segmentation & Tracking' },
     { id: 'sol-keypoints', label: 'Keypoint / Pose Tracking' },
   ],
   tips: [
@@ -1858,11 +2051,13 @@ const navData = {
     { id: 'tips-seek', label: 'Fast Seeking' },
     { id: 'tips-filtering', label: 'Filtering & Grouping' },
     { id: 'tips-tags-vs-props', label: 'Tags vs Properties' },
+    { id: 'tips-sam-tracking', label: 'SAM Tracking & Scribble' },
     { id: 'tips-autosave', label: 'Auto-Save Timing' },
     { id: 'limits-browser', label: 'Browser Compatibility' },
     { id: 'limits-multifile', label: 'Multi-File Cap' },
     { id: 'limits-gemini-size', label: 'Gemini Inline-Data Limit' },
     { id: 'limits-api', label: 'API Rate Limits' },
+    { id: 'limits-sam-tracking', label: 'SAM Tracking Limits' },
     { id: 'limits-class-types', label: 'Cross-Type Class Changes' },
   ],
 };
