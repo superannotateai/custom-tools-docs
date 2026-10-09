@@ -89,6 +89,7 @@ a { color:var(--link); text-decoration:none; }
 a:hover { text-decoration:underline; }
 strong { font-weight:600; }
 code { font-family:var(--mono); font-size:13px; background:var(--bg-code); padding:2px 5px; border-radius:4px; }
+kbd { display:inline-flex; align-items:center; font-family:var(--font); font-size:.9em; font-weight:600; line-height:1; padding:2px 5px; border:1px solid var(--border); border-bottom-width:2px; border-radius:4px; background:var(--bg-code); white-space:nowrap; }
 pre { background:var(--bg-code); padding:16px; border-radius:8px; overflow-x:auto; margin-bottom:16px; font-size:13px; line-height:1.5; font-family:var(--mono); }
 hr { border:none; border-top:1px solid var(--border); margin:32px 0; }
 
@@ -330,7 +331,7 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
   <li><strong>Download First</strong> (default) — the whole file downloads (with a progress bar) before playback. Seeking is reliable and the waveform is ready up front.</li>
   <li><strong>Stream First</strong> — playback starts as soon as the file streams from its source; the waveform renders once its peaks are ready.</li>
 </ul>
-<p>Each file adapts to its host automatically. A <em>Download First</em> file whose host blocks cross-origin downloads (CORS) <strong>falls back to streaming</strong>; a <em>Stream First</em> file whose host doesn't support range requests <strong>falls back to a full download</strong> (needed for reliable seeking). When a file's actual behavior differs from the configured mode, a <strong>toast</strong> appears — stacking if several files fall back, and shown no matter which file or view you're on — and a persistent <strong>yellow warning icon</strong> marks that file: to the left of its card title in <a href="#editor-split-view" class="internal">Split View</a>, and to the left of the mute button in single view. Hover the icon for a tooltip explaining why the file fell back.</p>
+<p>Each file adapts to its source automatically. If the source blocks cross-origin byte access (CORS), <em>Download First</em> falls back to browser streaming; <em>Stream First</em> continues streaming, but a full waveform cannot be generated. A <em>Stream First</em> source that does not support range requests instead falls back to a full download (needed for reliable seeking). Whenever a source forces a different loading strategy or limits waveform generation, a <strong>toast</strong> appears — stacking if several files are affected, and shown no matter which file or view you're on — and a persistent <strong>yellow warning icon</strong> marks that file: to the left of its card title in <a href="#editor-split-view" class="internal">Split View</a>, and to the left of the mute button in single view. Hover the icon for details.</p>
 
 <h3 id="config-panel-settings">Annotation Panel Settings</h3>
 <p>Click <strong>Configure Annotation Panel…</strong> to set the project-wide defaults that apply when an editor is first opened. Each control commits live — <strong>Done</strong> simply closes the modal and <strong>Restore to Default</strong> clears every setting in this modal back to the built-in baseline. Editors can still resize, regroup, or reorder per-session from the panel header; this modal only controls what they start with.</p>
@@ -688,7 +689,7 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 <h2 id="editor-layout">Editor Layout</h2>
 <p>Three regions, each with a purpose:</p>
 <ul>
-  <li><strong><a href="#editor-top-toolbar" class="internal">Top toolbar</a></strong> — tool / class selectors, upload, download, instructions, split-view toggle, shortcuts, documentation, theme, video adjustments, fullscreen, undo / redo.</li>
+  <li><strong><a href="#editor-top-toolbar" class="internal">Top toolbar</a></strong> — tool / class selectors, upload, download, instructions, split-view toggle, <a href="#editor-shortcuts" class="internal">shortcuts</a>, documentation, theme, video adjustments, fullscreen, undo / redo.</li>
   <li><strong>Center media area</strong> — the audio waveform and / or the video player. Below them sits a row of <a href="#editor-controls" class="internal">playback controls</a>; above them, a tab strip on multi-file items. An optional <a href="#editor-transcript" class="internal">transcript panel</a> docks at the bottom.</li>
   <li><strong>Right <a href="#editor-panel" class="internal">annotation panel</a></strong> — the list of segments, boxes, entities, and tags, with grouping, ordering, filtering, and quick access to properties, comments, and relationships. Can be collapsed.</li>
 </ul>
@@ -698,7 +699,7 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 <p>The <a href="#editor-top-toolbar" class="internal">top toolbar</a> exposes three layout helpers:</p>
 <ul>
   <li><strong>Fullscreen</strong> (<kbd>F</kbd>) — maximises the tool area within its host page to reduce visual clutter.</li>
-  <li><strong>Fit video to view</strong> (<kbd>Shift+F</kbd>) — when the video viewport is zoomed, reset it back to the fitted view.</li>
+  <li><strong>Fit video to view</strong> (<kbd>⇧+F</kbd>) — when the video viewport is zoomed, reset it back to the fitted view.</li>
   <li><strong>Dark mode toggle</strong> — flips the UI to a dark palette. The same preference is applied to this documentation popup.</li>
 </ul>
 
@@ -808,9 +809,9 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 <p>Available shortcuts in both modes:</p>
 <ul>
   <li><kbd>Space</kbd> — play / pause.</li>
-  <li><kbd>Shift+Space</kbd> — play / pause even while typing in transcript or property fields.</li>
+  <li><kbd>⇧+Space</kbd> — play / pause even while typing in transcript or property fields.</li>
   <li><kbd>,</kbd> / <kbd>.</kbd> — seek 3 s back / forward.</li>
-  <li><kbd>&lt;</kbd> / <kbd>&gt;</kbd> — seek 10 s back / forward.</li>
+  <li><kbd>⇧+,</kbd> / <kbd>⇧+.</kbd> — seek 10 s back / forward.</li>
   <li><kbd>M</kbd> — mute / unmute.</li>
 </ul>
 <p>Tool shortcuts (<kbd>S</kbd>, <kbd>G</kbd>, <kbd>B</kbd>, <kbd>E</kbd>) and class shortcuts (<kbd>1</kbd>–<kbd>9</kbd>) are <em>ignored</em> in Split View — Split View is for playback and tagging only; annotation editing happens in Split 0.</p>
@@ -867,6 +868,23 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 
 <hr>
 
+<h2 id="editor-shortcuts">Keyboard Shortcuts</h2>
+<p>The toolbar shortcuts button opens the same in-app reference. This table is the complete editor-level shortcut reference.</p>
+<table>
+  <tr><th>Shortcut</th><th>Action</th></tr>
+  <tr><td><kbd>S</kbd> / <kbd>G</kbd> / <kbd>B</kbd> / <kbd>E</kbd></td><td>Select / Segment / Box / Entity tool.</td></tr>
+  <tr><td><kbd>1</kbd>–<kbd>9</kbd></td><td>Select class by position.</td></tr>
+  <tr><td><kbd>Space</kbd> / <kbd>⇧+Space</kbd></td><td>Play / pause; <kbd>⇧+Space</kbd> also works while editing text.</td></tr>
+  <tr><td><kbd>,</kbd> / <kbd>.</kbd>; <kbd>⇧+,</kbd> / <kbd>⇧+.</kbd></td><td>Seek 3 seconds; seek 10 seconds.</td></tr>
+  <tr><td><kbd>M</kbd> / <kbd>H</kbd></td><td>Mute / unmute; toggle annotation visibility.</td></tr>
+  <tr><td><kbd>O</kbd> / <kbd>⇧+O</kbd></td><td>Toggle hover labels / class names on shape labels.</td></tr>
+  <tr><td><kbd>F</kbd> / <kbd>⇧+F</kbd></td><td>Fullscreen / fit video to view.</td></tr>
+  <tr><td><kbd>Delete</kbd></td><td>Delete selected annotation. Backspace also works.</td></tr>
+  <tr><td><kbd>Tab</kbd> / <kbd>⇧+Tab</kbd></td><td>Next / previous annotation.</td></tr>
+  <tr><td><kbd>⌘+Z</kbd> / <kbd>Ctrl+Z</kbd></td><td>Undo.</td></tr>
+  <tr><td><kbd>⌘+⇧+Z</kbd> / <kbd>Ctrl+⇧+Z</kbd>; <kbd>⌘+Y</kbd> / <kbd>Ctrl+Y</kbd></td><td>Redo.</td></tr>
+</table>
+
 <h2 id="editor-waveform">Waveform &amp; Video</h2>
 <p>The center area renders one or both surfaces depending on the media and the project configuration.</p>
 
@@ -887,7 +905,7 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
   <li><strong>Zoom and pan</strong> — mouse wheel zooms around the cursor; drag pans while zoomed. Overlay geometry stays aligned with the video under the transform.</li>
   <li><strong>Hide / Show Video</strong> — the <strong>Toggle Video</strong> button in the playback controls hides the video frame to reclaim vertical space when you're focused on waveform-only work; the audio keeps playing.</li>
   <li><strong>Overlay labels</strong> — toggled with <kbd>O</kbd> or the labels button: when on, hovering an annotation shows a small label chip with its class and primary text/value.</li>
-  <li><strong>Shape class names</strong> — toggled with <kbd>Shift+O</kbd> from the canvas label button: video boxes switch between number-only labels and class-name-plus-number labels.</li>
+  <li><strong>Shape class names</strong> — toggled with <kbd>⇧+O</kbd> from the canvas label button: video boxes switch between number-only labels and class-name-plus-number labels.</li>
 </ul>
 <p>This tool is audio-first: it offers a single video canvas with axis-aligned box tracking. For frame-level video work — a frame panel, cuboids, rotated boxes, or per-instance visible ranges — use the dedicated <strong>Video Annotation Tool</strong>.</p>
 <img class="doc-screenshot" src="images/editor-video-player.webp" alt="Video Player with bounding boxes">
@@ -909,18 +927,18 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 <h2 id="editor-controls">Playback Controls</h2>
 <p>A row of controls under the player exposes everything needed to drive playback and switch view modes:</p>
 <ul>
-  <li><strong>Play / Pause</strong> (<kbd>Space</kbd>, or <kbd>Shift+Space</kbd> while typing), <strong>Mute</strong> (<kbd>M</kbd>).</li>
+  <li><strong>Play / Pause</strong> (<kbd>Space</kbd>, or <kbd>⇧+Space</kbd> while typing), <strong>Mute</strong> (<kbd>M</kbd>).</li>
   <li><strong>Time display</strong> — current / total in seconds.</li>
   <li><strong>Zoom Out / In</strong> on the waveform.</li>
   <li><strong>Toggle Multi-channel</strong> — stack channels or mix to mono.</li>
   <li><strong>Show / Hide Video</strong>.</li>
   <li><strong>Overlay labels</strong> (<kbd>O</kbd>).</li>
-  <li><strong>Shape class names</strong> (<kbd>Shift+O</kbd>, video canvas only).</li>
+  <li><strong>Shape class names</strong> (<kbd>⇧+O</kbd>, video canvas only).</li>
   <li><strong>Transcript</strong> — opens / closes the <a href="#editor-transcript" class="internal">transcript panel</a>.</li>
   <li><strong>Playback speed</strong> — dropdown with values from <code>0.25x</code> to <code>3x</code>.</li>
   <li><strong>Record Audio</strong> — when <a href="#config-audio-subsettings" class="internal">Recording</a> is enabled.</li>
 </ul>
-<p>Use <kbd>,</kbd> / <kbd>.</kbd> to seek 3 s back / forward and <kbd>&lt;</kbd> / <kbd>&gt;</kbd> for 10 s jumps. Press <kbd>M</kbd> to toggle mute. Press <kbd>O</kbd> to toggle overlay labels on hover, and press <kbd>Shift+O</kbd> on video items to toggle class names on shape labels. Press <kbd>F</kbd> to toggle fullscreen, and on video items press <kbd>Shift+F</kbd> to fit the zoomed video back to view. Press <kbd>Shift+Space</kbd> to play / pause even while typing in transcript or property fields. All shortcuts also work in <a href="#editor-split-view" class="internal">Split View</a>, where they target the focused card (or all cards in broadcast mode).</p>
+<p>Use <kbd>,</kbd> / <kbd>.</kbd> to seek 3 s back / forward and <kbd>⇧+,</kbd> / <kbd>⇧+.</kbd> for 10 s jumps. Press <kbd>M</kbd> to toggle mute. Press <kbd>O</kbd> to toggle overlay labels on hover, and press <kbd>⇧+O</kbd> on video items to toggle class names on shape labels. Press <kbd>F</kbd> to toggle fullscreen, and on video items press <kbd>⇧+F</kbd> to fit the zoomed video back to view. Press <kbd>⇧+Space</kbd> to play / pause even while typing in transcript or property fields. All shortcuts also work in <a href="#editor-split-view" class="internal">Split View</a>, where they target the focused card (or all cards in broadcast mode).</p>
 
 <hr>
 
@@ -1202,7 +1220,7 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 <hr>
 
 <h2 id="editor-undo-redo">Undo / Redo</h2>
-<p>The tool maintains a single history stack of annotations and transcript segments. <kbd>Ctrl(⌘)+Z</kbd> reverts to the previous snapshot; <kbd>Ctrl(⌘)+Shift+Z</kbd> (or <kbd>Ctrl(⌘)+Y</kbd>) re-applies it. Both annotation actions and transcript edits undo together — there's no separate sub-stack to fall through.</p>
+<p>The tool maintains a single history stack of annotations and transcript segments. <kbd>⌘+Z</kbd> / <kbd>Ctrl+Z</kbd> reverts to the previous snapshot; <kbd>⌘+⇧+Z</kbd> / <kbd>Ctrl+⇧+Z</kbd> (or <kbd>⌘+Y</kbd> / <kbd>Ctrl+Y</kbd>) re-applies it. Both annotation actions and transcript edits undo together — there's no separate sub-stack to fall through.</p>
 
 </div>
 
@@ -1316,13 +1334,13 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 <p><code>urlKind</code> tells the editor how to access the URL:</p>
 <table>
   <tr><th>Value</th><th>Meaning</th></tr>
-  <tr><td><code>"uploaded"</code></td><td>Bytes live in SuperAnnotate (rare in JSONL — usually carried by <code>uploadedFile</code> instead).</td></tr>
-  <tr><td><code>"public"</code></td><td>Publicly accessible URL — fetched directly.</td></tr>
-  <tr><td><code>"presigned"</code></td><td>Pre-signed URL (e.g. AWS S3) — fetched directly but may expire.</td></tr>
-  <tr><td><code>"integration"</code></td><td>Requires platform integration credentials — the platform signs the URL before fetching.</td></tr>
-  <tr><td><code>"asset"</code></td><td>Reserved for SA-internal asset URLs that need re-signing on each load.</td></tr>
+  <tr><td><code>"uploaded"</code></td><td>SuperAnnotate-uploaded file identified by <code>uploadedFile.uniqueName</code>, rather than a <code>url</code>. The platform resolves it to a temporary browser URL.</td></tr>
+  <tr><td><code>"public"</code></td><td>External public URL — used directly by the browser.</td></tr>
+  <tr><td><code>"presigned"</code></td><td>Already-signed URL (e.g. AWS S3) — used directly by the browser and may expire.</td></tr>
+  <tr><td><code>"integration"</code></td><td>URL associated with a project integration. It uses the platform signing route, the same route as <code>"asset"</code>, with the item's integration context.</td></tr>
+  <tr><td><code>"asset"</code></td><td>Generic URL routed through the platform signing service. This is the default for an ordinary URL when <code>urlKind</code> is omitted; it does not establish where the file is stored.</td></tr>
 </table>
-<div class="callout"><strong>Default behaviour:</strong> When <code>urlKind</code> is omitted, the URL is treated as an integration / asset URL and routed through the platform's signing path. If you are providing public or pre-signed URLs, you <strong>must</strong> set <code>urlKind</code> to <code>"public"</code> or <code>"presigned"</code> explicitly, otherwise the signing step will fail and the media will not load.</div>
+<div class="callout"><strong>Default behaviour:</strong> When <code>urlKind</code> is omitted, <code>blob:</code> / <code>data:</code> URLs are treated as <code>"public"</code>, URLs with recognised cloud-signature query parameters are treated as <code>"presigned"</code>, and every other URL is treated as <code>"asset"</code> and sent through the platform signing route. For a public or already-signed URL that is not recognised automatically, set <code>urlKind</code> to <code>"public"</code> or <code>"presigned"</code> explicitly; otherwise signing will be attempted and the media will not load.</div>
 
 <h3 id="ie-peaks">Peaks Files</h3>
 <p>To skip re-decoding a long audio file every time it's opened, the editor stores a small JSON <em>peaks file</em> alongside each media file:</p>
@@ -1602,19 +1620,6 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 <h3 id="tips-class-shortcuts">Class Shortcuts (1–9)</h3>
 <p>The first nine classes in your project bind to <kbd>1</kbd>–<kbd>9</kbd>. With hundreds of regions to draw per session, keyboard shortcuts save real minutes — and because picking a class auto-selects its matching tool (Segment / Box / Entity), pressing the digit before each draw is the fastest possible flow. Put the nine most-used classes first in <a href="#config-classes" class="internal">configuration</a> and train the muscle memory.</p>
 
-<h3 id="tips-tool-shortcuts">Tool Shortcuts (S / G / B / D / E)</h3>
-<p>Even though picking a class auto-selects a tool, you can switch tools manually with <kbd>S</kbd> (Select), <kbd>G</kbd> (Segment), <kbd>B</kbd> (Box), <kbd>E</kbd> (Entity). <kbd>S</kbd> in particular is worth memorising — drop into Select mode to inspect / move existing annotations without accidentally drawing new ones.</p>
-
-<h3 id="tips-seek">Fast Seeking on the Waveform</h3>
-<p>Sub-second precision matters for tight in/out points. The seek shortcuts skip dropdown-hunting:</p>
-<ul>
-  <li><kbd>Space</kbd> — play / pause.</li>
-  <li><kbd>,</kbd> / <kbd>.</kbd> — seek 3 s back / forward.</li>
-  <li><kbd>&lt;</kbd> / <kbd>&gt;</kbd> — seek 10 s back / forward.</li>
-  <li><kbd>M</kbd> — mute / unmute.</li>
-  <li><kbd>Tab</kbd> / <kbd>Shift+Tab</kbd> — jump to the next / previous annotation.</li>
-</ul>
-<p>Every shortcut on this list works in <a href="#editor-split-view" class="internal">Split View</a> as well — they target the card you most recently played, paused, seeked, muted, or selected from the panel.</p>
 <p>Combine with <a href="#config-audio-subsettings" class="internal">Segment Loops</a> to nail boundaries: select a segment, hit play, the segment loops automatically while you nudge edges with the mouse.</p>
 
 <h3 id="tips-filtering">Filtering &amp; Grouping</h3>
@@ -1762,6 +1767,7 @@ const navData = {
       { id: 'editor-tool-selector', label: 'Tool Selector' },
       { id: 'editor-class-selector', label: 'Class Selector' },
     ]},
+    { id: 'editor-shortcuts', label: 'Keyboard Shortcuts' },
     { id: 'editor-waveform', label: 'Waveform & Video', children: [
       { id: 'editor-waveform-player', label: 'Audio Waveform' },
       { id: 'editor-video', label: 'Video Player' },
@@ -1828,8 +1834,6 @@ const navData = {
   ],
   tips: [
     { id: 'tips-class-shortcuts', label: 'Class Shortcuts' },
-    { id: 'tips-tool-shortcuts', label: 'Tool Shortcuts' },
-    { id: 'tips-seek', label: 'Fast Seeking' },
     { id: 'tips-filtering', label: 'Filtering & Grouping' },
     { id: 'tips-overlap', label: 'Overlapping Segments' },
     { id: 'tips-tags-vs-props', label: 'Tags vs Properties' },
