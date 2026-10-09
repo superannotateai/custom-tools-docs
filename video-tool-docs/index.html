@@ -89,6 +89,7 @@ a { color:var(--link); text-decoration:none; }
 a:hover { text-decoration:underline; }
 strong { font-weight:600; }
 code { font-family:var(--mono); font-size:13px; background:var(--bg-code); padding:2px 5px; border-radius:4px; }
+kbd { display:inline-flex; align-items:center; font-family:var(--font); font-size:.9em; font-weight:600; line-height:1; padding:2px 5px; border:1px solid var(--border); border-bottom-width:2px; border-radius:4px; background:var(--bg-code); white-space:nowrap; }
 pre { background:var(--bg-code); padding:16px; border-radius:8px; overflow-x:auto; margin-bottom:16px; font-size:13px; line-height:1.5; font-family:var(--mono); }
 hr { border:none; border-top:1px solid var(--border); margin:32px 0; }
 
@@ -717,7 +718,7 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 <h2 id="editor-layout">Editor Layout</h2>
 <p>Three regions, each with a purpose:</p>
 <ul>
-  <li><strong><a href="#editor-top-toolbar" class="internal">Top toolbar</a></strong> — tool / class selectors; contextual Generate Polygon, Track, and active-job status controls; upload, download, instructions, split-view toggle, shortcuts, documentation, theme, video adjustments, fullscreen, undo / redo.</li>
+  <li><strong><a href="#editor-top-toolbar" class="internal">Top toolbar</a></strong> — tool / class selectors; contextual Generate Polygon, Track, and active-job status controls; upload, download, instructions, split-view toggle, <a href="#editor-shortcuts" class="internal">shortcuts</a>, documentation, theme, video adjustments, fullscreen, undo / redo.</li>
   <li><strong>Center video area</strong> — the video player. Below it sits a row of <a href="#editor-controls" class="internal">playback controls</a> and the <a href="#editor-frame-panel" class="internal">Frame Panel</a> timeline; above it, a tab strip on multi-file items.</li>
   <li><strong>Right <a href="#editor-panel" class="internal">annotation panel</a></strong> — the list of segments, boxes, polygons, cuboids, keypoints, and tags, with grouping, ordering, filtering, and quick access to properties, comments, and relationships. Can be collapsed. The <a href="#editor-tracking-modal" class="internal">tracking modal</a> overlays this panel when it is enabled.</li>
 </ul>
@@ -727,7 +728,7 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 <p>The <a href="#editor-top-toolbar" class="internal">top toolbar</a> exposes three layout helpers:</p>
 <ul>
   <li><strong>Fullscreen</strong> (<kbd>F</kbd>) — maximises the tool area within its host page to reduce visual clutter.</li>
-  <li><strong>Fit video to view</strong> (<kbd>Shift+F</kbd>) — when the video viewport is zoomed, reset it back to the fitted view.</li>
+  <li><strong>Fit video to view</strong> (<kbd>⇧+F</kbd>) — when the video viewport is zoomed, reset it back to the fitted view.</li>
   <li><strong>Dark mode toggle</strong> — flips the UI to a dark palette. The same preference is applied to this documentation popup.</li>
 </ul>
 
@@ -819,9 +820,9 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 <p>Available shortcuts in both modes:</p>
 <ul>
   <li><kbd>Space</kbd> — play / pause.</li>
-  <li><kbd>Shift+Space</kbd> — play / pause even while typing in property fields.</li>
+  <li><kbd>⇧+Space</kbd> — play / pause even while typing in property fields.</li>
   <li><kbd>,</kbd> / <kbd>.</kbd> — seek 3 s back / forward.</li>
-  <li><kbd>&lt;</kbd> / <kbd>&gt;</kbd> — seek 10 s back / forward.</li>
+  <li><kbd>⇧+,</kbd> / <kbd>⇧+.</kbd> — seek 10 s back / forward.</li>
   <li><kbd>M</kbd> — mute / unmute.</li>
 </ul>
 <p>Tool shortcuts (<kbd>S</kbd>, <kbd>G</kbd>, <kbd>B</kbd>, <kbd>P</kbd>, <kbd>L</kbd>, <kbd>D</kbd>, <kbd>K</kbd>) and class shortcuts (<kbd>1</kbd>–<kbd>9</kbd>) are <em>ignored</em> in Split View — Split View is for playback and tagging only; annotation editing and AI-assisted annotation happen in Split 0.</p>
@@ -844,7 +845,7 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 <ul>
   <li><strong><a href="#editor-tool-selector" class="internal">Tool selector</a></strong> — Select / Segment / Box / Rotated Box / Polygon / Scribble / Cuboid / Keypoint. Picking a class auto-switches to its matching annotation tool; Scribble is a separate assisted-creation tool for Polygon classes.</li>
   <li><strong><a href="#editor-class-selector" class="internal">Class selector</a></strong> — pick the active class for new annotations. Searchable; first nine classes carry <kbd>1</kbd>–<kbd>9</kbd> shortcuts.</li>
-  <li id="editor-toolbar-sam-actions"><strong>Contextual SAM actions</strong> — <strong>Generate polygon</strong> appears after drawing Scribble strokes; <strong>Track bbox</strong> / <strong>Track polygon</strong> appears only for an eligible selected instance; <strong>Tracking (N)</strong> reopens active jobs; and <strong>Creating polygons (N)</strong> reports active Scribble generations. See <a href="#editor-sam-tracking" class="internal">AI-Assisted Tracking</a>.</li>
+  <li><strong>Contextual SAM actions</strong> — <strong>Generate polygon</strong> appears after drawing Scribble strokes; <strong>Track bbox</strong> / <strong>Track polygon</strong> appears only for an eligible selected instance; <strong>Tracking (N)</strong> reopens active jobs; and <strong>Creating polygons (N)</strong> reports active Scribble generations. See <a href="#editor-sam-tracking" class="internal">AI-Assisted Tracking</a>.</li>
   <li><strong>Upload</strong> — opens the <a href="#editor-upload" class="internal">upload modal</a> (when allowed).</li>
   <li><strong>Download</strong> — exports the current item as a ZIP (when allowed). See <a href="#ie-export" class="internal">Download / Export</a>.</li>
   <li><strong>Instructions</strong> — opens the <a href="#config-instructions" class="internal">Project Instructions</a> PDF for the user's role (when uploaded).</li>
@@ -865,7 +866,7 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
   <tr><td><strong>Select</strong></td><td><kbd>S</kbd></td><td>Free cursor — click annotations to inspect, drag handles to resize, drag bodies to move. No new annotations are created.</td></tr>
   <tr><td><strong>Segment</strong></td><td><kbd>G</kbd></td><td>Add a time interval from the <a href="#editor-frame-panel" class="internal">frame panel</a>. Auto-selects when picking a class with type <em>Segment</em>.</td></tr>
   <tr><td><strong>Box</strong></td><td><kbd>B</kbd></td><td>Drag a rectangle on the video frame. Auto-selects when picking a class with type <em>Box</em>.</td></tr>
-  <tr><td><strong>Rotated Box</strong></td><td><kbd>Shift</kbd>+<kbd>B</kbd></td><td>Three-click oriented-box drawing on the video frame. Auto-selects when picking a class with type <em>Rotated Box</em>.</td></tr>
+  <tr><td><strong>Rotated Box</strong></td><td><kbd>⇧+B</kbd></td><td>Three-click oriented-box drawing on the video frame. Auto-selects when picking a class with type <em>Rotated Box</em>.</td></tr>
   <tr><td><strong>Polygon</strong></td><td><kbd>P</kbd></td><td>Click three or more vertices and double-click to finish an editable outline. Auto-selects when picking a class with type <em>Polygon</em>.</td></tr>
   <tr><td><strong>Scribble</strong></td><td><kbd>L</kbd></td><td>Draw one or more strokes through an object, then generate a Polygon with SAM 2. Available only with an editable Polygon class, a configured Fal.ai proxy, and the Scribble feature enabled.</td></tr>
   <tr><td><strong>Cuboid</strong></td><td><kbd>D</kbd></td><td>Four-click cuboid drawing on the video frame. Auto-selects when picking a class with type <em>Cuboid</em>.</td></tr>
@@ -883,6 +884,24 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 
 <hr>
 
+<h2 id="editor-shortcuts">Keyboard Shortcuts</h2>
+<p>The toolbar shortcuts button opens the same in-app reference. This table is the complete editor-level shortcut reference; feature sections explain the relevant shortcuts in context.</p>
+<table>
+  <tr><th>Shortcut</th><th>Action</th></tr>
+  <tr><td><kbd>S</kbd> / <kbd>G</kbd> / <kbd>B</kbd> / <kbd>⇧+B</kbd> / <kbd>P</kbd> / <kbd>L</kbd> / <kbd>D</kbd> / <kbd>K</kbd></td><td>Select / Segment / Box / Rotated Box / Polygon / Scribble / Cuboid / Keypoint tool.</td></tr>
+  <tr><td><kbd>1</kbd>–<kbd>9</kbd></td><td>Select class by position.</td></tr>
+  <tr><td><kbd>Space</kbd> / <kbd>⇧+Space</kbd></td><td>Play / pause; <kbd>⇧+Space</kbd> also works while editing text.</td></tr>
+  <tr><td><kbd>,</kbd> / <kbd>.</kbd>; <kbd>⇧+,</kbd> / <kbd>⇧+.</kbd></td><td>Seek 3 seconds; seek 10 seconds.</td></tr>
+  <tr><td><kbd>[</kbd> / <kbd>]</kbd>; <kbd>⇧+[</kbd> / <kbd>⇧+]</kbd></td><td>Previous / next frame; step 5 frames. Available only outside of Split View.</td></tr>
+  <tr><td><kbd>M</kbd> / <kbd>H</kbd></td><td>Mute / unmute; toggle annotation visibility.</td></tr>
+  <tr><td><kbd>O</kbd> / <kbd>⇧+O</kbd></td><td>Toggle hover labels / class names on shape labels.</td></tr>
+  <tr><td><kbd>F</kbd> / <kbd>⇧+F</kbd></td><td>Fullscreen / fit video to view.</td></tr>
+  <tr><td><kbd>Delete</kbd></td><td>Delete selected annotation. Backspace also works.</td></tr>
+  <tr><td><kbd>Tab</kbd> / <kbd>⇧+Tab</kbd></td><td>Next / previous annotation.</td></tr>
+  <tr><td><kbd>⌘+Z</kbd> / <kbd>Ctrl+Z</kbd></td><td>Undo.</td></tr>
+  <tr><td><kbd>⌘+⇧+Z</kbd> / <kbd>Ctrl+⇧+Z</kbd>; <kbd>⌘+Y</kbd> / <kbd>Ctrl+Y</kbd></td><td>Redo.</td></tr>
+</table>
+
 <h2 id="editor-waveform">Video &amp; Overlays</h2>
 <p>The center area renders the video frame with all annotation overlays drawn on top of it.</p>
 
@@ -896,7 +915,7 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
   <li><strong>Keypoint overlay</strong> — when the active tool is <em>Keypoint</em>, click to place a single point or each <a href="#config-keypoint-skeleton" class="internal">skeleton</a> joint in turn. Existing keypoints render on top of the frame at their current time; skeletons also draw their connecting bones. See <a href="#editor-drawing-keypoint" class="internal">Keypoint &amp; Skeleton</a>.</li>
   <li><strong>Zoom and pan</strong> — mouse wheel zooms around the cursor; drag pans while zoomed. Overlay geometry stays aligned with the video under the transform.</li>
   <li><strong>Overlay labels</strong> — toggled with <kbd>O</kbd> or the labels button: when on, hovering an annotation shows a small label chip with its class and primary text/value.</li>
-  <li><strong>Shape class names</strong> — toggled with <kbd>Shift+O</kbd> from the canvas label button: shape labels switch between number-only labels and class-name-plus-number labels.</li>
+  <li><strong>Shape class names</strong> — toggled with <kbd>⇧+O</kbd> from the canvas label button: shape labels switch between number-only labels and class-name-plus-number labels.</li>
 </ul>
 
 <h3 id="editor-keyframes">Keyframes</h3>
@@ -941,7 +960,7 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 <ul>
   <li>Play / pause, mute / unmute, frame-by-frame navigation (previous / next frame buttons).</li>
   <li>Current-frame number entry, time display, and playback speed.</li>
-  <li><kbd>Alt+,</kbd> / <kbd>Alt+.</kbd> shortcuts to step one frame backward / forward (frame mode only, Split 0).</li>
+  <li><kbd>[</kbd> / <kbd>]</kbd> step one frame backward / forward; <kbd>⇧+[</kbd> / <kbd>⇧+]</kbd> step five frames (Frame Panel in single-video view only).</li>
   <li>A sticky frame ruler that remains visible while annotation rows scroll below. Click anywhere on the ruler to seek.</li>
 </ul>
 
@@ -980,14 +999,14 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 <h2 id="editor-controls">Playback Controls</h2>
 <p>A row of controls under the player exposes everything needed to drive playback and switch view modes:</p>
 <ul>
-  <li><strong>Play / Pause</strong> (<kbd>Space</kbd>, or <kbd>Shift+Space</kbd> while typing), <strong>Mute</strong> (<kbd>M</kbd>).</li>
+  <li><strong>Play / Pause</strong> (<kbd>Space</kbd>, or <kbd>⇧+Space</kbd> while typing), <strong>Mute</strong> (<kbd>M</kbd>).</li>
   <li><strong>Time display</strong> — current / total in seconds.</li>
   <li><strong>Overlay labels</strong> (<kbd>O</kbd>).</li>
-  <li><strong>Shape class names</strong> (<kbd>Shift+O</kbd>, video canvas only).</li>
+  <li><strong>Shape class names</strong> (<kbd>⇧+O</kbd>, video canvas only).</li>
   <li><strong>Playback speed</strong> — dropdown with values from <code>0.25x</code> to <code>3x</code>.</li>
   <li><strong>Toggle wide view</strong> — switches to a wider layout that gives the player more horizontal space.</li>
 </ul>
-<p>Use <kbd>,</kbd> / <kbd>.</kbd> to seek 3 s back / forward and <kbd>&lt;</kbd> / <kbd>&gt;</kbd> for 10 s jumps. Press <kbd>M</kbd> to toggle mute. Press <kbd>O</kbd> to toggle overlay labels on hover, and press <kbd>Shift+O</kbd> to toggle class names on shape labels. Press <kbd>F</kbd> to toggle fullscreen, and press <kbd>Shift+F</kbd> to fit the zoomed video back to view. Press <kbd>Shift+Space</kbd> to play / pause even while typing in property fields. <kbd>Alt+,</kbd> / <kbd>Alt+.</kbd> step one frame backward / forward in the <a href="#editor-frame-panel" class="internal">Frame Panel</a>. All shortcuts also work in <a href="#editor-split-view" class="internal">Split View</a>, where they target the focused card (or all cards in broadcast mode).</p>
+<p>Use <kbd>,</kbd> / <kbd>.</kbd> to seek 3 s back / forward and <kbd>⇧+,</kbd> / <kbd>⇧+.</kbd> for 10 s jumps. Press <kbd>M</kbd> to toggle mute. Press <kbd>O</kbd> to toggle overlay labels on hover, and press <kbd>⇧+O</kbd> to toggle class names on shape labels. Press <kbd>F</kbd> to toggle fullscreen, and press <kbd>⇧+F</kbd> to fit the zoomed video back to view. Press <kbd>⇧+Space</kbd> to play / pause even while typing in property fields. <kbd>[</kbd> / <kbd>]</kbd> step one frame backward / forward, while <kbd>⇧+[</kbd> / <kbd>⇧+]</kbd> step five frames in the <a href="#editor-frame-panel" class="internal">Frame Panel</a>. Frame stepping is unavailable in <a href="#editor-split-view" class="internal">Split View</a>; the other playback shortcuts target the focused card (or all cards in broadcast mode).</p>
 <div class="callout"><strong>Keypoint drawing shortcuts.</strong> While the Keypoint tool is active with a skeleton class (or while editing a skeleton), <kbd>,</kbd> and <kbd>.</kbd> become point navigation (previous / next joint) instead of seeking, so you can walk through joints without moving the video. They revert to seeking once you leave the drawing / editing state.</div>
 
 <hr>
@@ -1027,7 +1046,7 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 <ul>
   <li><strong>Move a vertex</strong> — drag any vertex handle.</li>
   <li><strong>Add a vertex</strong> — click or drag a polygon edge; a new point is inserted at the nearest location on that edge.</li>
-  <li><strong>Delete a vertex</strong> — <kbd>Alt</kbd>-click or right-click its handle. The last three vertices cannot be removed.</li>
+  <li><strong>Delete a vertex</strong> — <kbd>⌥</kbd>-click / <kbd>Alt</kbd>-click or right-click its handle. The last three vertices cannot be removed.</li>
   <li><strong>Move the whole polygon</strong> — drag inside the filled shape. Movement is clamped so the outline remains inside the video frame.</li>
 </ul>
 <p>Editing on a later frame creates a Polygon keyframe at that frame. The new outline is held until the next Polygon keyframe; it is not point-morphed. Polygon instances otherwise behave like the existing frame annotations: they support visible ranges, properties, comments, relationships, whole-instance Delete / Backspace, undo / redo, panel and Frame Panel rows, Split View rendering, save / reload, and export.</p>
@@ -1047,7 +1066,7 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 
 <h3 id="editor-drawing-obbox">Rotated Box</h3>
 <ol>
-  <li>Pick a class of type <em>Rotated Box</em> (or press <kbd>Shift</kbd>+<kbd>B</kbd>). The Rotated Box tool selects automatically and the video frame becomes the drawing surface.</li>
+  <li>Pick a class of type <em>Rotated Box</em> (or press <kbd>⇧+B</kbd>). The Rotated Box tool selects automatically and the video frame becomes the drawing surface.</li>
   <li>Click three points on the video frame in sequence:
     <ol>
       <li><strong>Point 1</strong> — first corner of the box's "top" edge.</li>
@@ -1094,7 +1113,7 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 <ul>
   <li><strong>Move</strong> — drag anywhere inside the cuboid's body to translate the entire shape.</li>
   <li><strong>Back face handle</strong> — drag the center handle on the back face to translate all four back points uniformly, adjusting depth and perspective without changing the front face.</li>
-  <li><strong>Top face handle</strong> — drag the center handle on the top face to translate all four top points (p2, p3, p6, p7), allowing you to skew the cuboid vertically. Hold <kbd>Shift</kbd> while dragging to constrain movement to vertical only (resets the cuboid to an upright orientation).</li>
+  <li><strong>Top face handle</strong> — drag the center handle on the top face to translate all four top points (p2, p3, p6, p7), allowing you to skew the cuboid vertically. Hold <kbd>⇧</kbd> while dragging to constrain movement to vertical only (resets the cuboid to an upright orientation).</li>
   <li><strong>Front point editing (pillars)</strong> — dragging a first-click-side front point (p0 or p3) moves the entire first-click-side pillar (p0, p3, p4, p7). Dragging a second-click-side front point (p1 or p2) moves the entire second-click-side pillar (p1, p2, p5, p6). For example, if you drew left-to-right, p0/p3 control the left pillar and p1/p2 control the right pillar. Front and back face shapes stay equal.</li>
   <li><strong>Back point editing</strong> — dragging any individual back point (p4–p7) translates the entire back face uniformly, identical to the back face center handle.</li>
   <li><strong>Redraw</strong> — click the redraw icon (near p6) to replace the cuboid's geometry at the current frame using the four-click workflow. Labels <strong>1</strong> and <strong>2</strong> appear at the original p0 and p1 positions along with a directional arrow, guiding you to draw in the same direction to avoid interpolation flips.</li>
@@ -1434,7 +1453,7 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 <hr>
 
 <h2 id="editor-undo-redo">Undo / Redo</h2>
-<p>The tool maintains a single history stack of annotation actions — drawing, moving, keyframe edits, range edits, class changes, and property edits. <kbd>Ctrl(⌘)+Z</kbd> reverts to the previous snapshot; <kbd>Ctrl(⌘)+Shift+Z</kbd> (or <kbd>Ctrl(⌘)+Y</kbd>) re-applies it.</p>
+<p>The tool maintains a single history stack of annotation actions — drawing, moving, keyframe edits, range edits, class changes, and property edits. <kbd>⌘+Z</kbd> / <kbd>Ctrl+Z</kbd> reverts to the previous snapshot; <kbd>⌘+⇧+Z</kbd> / <kbd>Ctrl+⇧+Z</kbd> (or <kbd>⌘+Y</kbd> / <kbd>Ctrl+Y</kbd>) re-applies it.</p>
 <p>Each completed Scribble generation or SAM tracking commit adds one undo step. If a background result finishes for a video that is no longer active, its undo snapshot is deferred and added to the normal history when that video is opened again, so tab switching does not make the result irreversible.</p>
 
 </div>
@@ -1758,7 +1777,7 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 <h3>Workflow</h3>
 <ol>
   <li>Pause on a clear frame. Either draw the Polygon manually with <kbd>P</kbd>, or choose <a href="#editor-drawing-scribble" class="internal">Scribble</a> (<kbd>L</kbd>), make one or more strokes through the object, and press <kbd>Enter</kbd>.</li>
-  <li>Inspect the generated outline. Drag vertices, click edges to add detail, or remove unnecessary vertices with <kbd>Alt</kbd>-click / right-click.</li>
+  <li>Inspect the generated outline. Drag vertices, click edges to add detail, or remove unnecessary vertices with <kbd>⌥</kbd>-click / <kbd>Alt</kbd>-click / right-click.</li>
   <li>With the Polygon selected, click <a href="#editor-sam-tracking" class="internal"><strong>Track polygon</strong></a>. Start with a short range; use Include points on the object and Exclude points on nearby distractors if needed.</li>
   <li>Review the tracked visible range in the Frame Panel. Manual corrections create ordinary hold-semantics Polygon keyframes.</li>
   <li>Export — each instance carries <code>polygon</code>, <code>polygonKeyframes</code>, and <code>visibleRanges</code>, along with its class, properties, comments, and relationships.</li>
@@ -1797,21 +1816,6 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 
 <h3 id="tips-class-shortcuts">Class Shortcuts (1–9)</h3>
 <p>The first nine classes in your project bind to <kbd>1</kbd>–<kbd>9</kbd>. With hundreds of annotations to draw per session, keyboard shortcuts save real minutes — and because picking a class auto-selects its matching tool (Segment / Box / Rotated Box / Polygon / Cuboid / Keypoint), pressing the digit before each draw is the fastest possible flow. Put the nine most-used classes first in <a href="#config-classes" class="internal">configuration</a> and train the muscle memory.</p>
-
-<h3 id="tips-tool-shortcuts">Tool Shortcuts (S / G / B / P / L / D / K)</h3>
-<p>Even though picking a class auto-selects a tool, you can switch tools manually with <kbd>S</kbd> (Select), <kbd>G</kbd> (Segment), <kbd>B</kbd> (Box), <kbd>Shift</kbd>+<kbd>B</kbd> (Rotated Box), <kbd>P</kbd> (Polygon), <kbd>L</kbd> (Scribble), <kbd>D</kbd> (Cuboid), and <kbd>K</kbd> (Keypoint). <kbd>S</kbd> in particular is worth memorising — drop into Select mode to inspect / move existing annotations without accidentally drawing new ones. While Scribble has pending strokes, <kbd>Enter</kbd> submits them and <kbd>Esc</kbd> clears them.</p>
-
-<h3 id="tips-seek">Fast Seeking</h3>
-<p>Sub-frame precision matters for tight keyframes. The seek shortcuts skip dropdown-hunting:</p>
-<ul>
-  <li><kbd>Space</kbd> — play / pause.</li>
-  <li><kbd>,</kbd> / <kbd>.</kbd> — seek 3 s back / forward (these become joint navigation while drawing / editing a <a href="#editor-drawing-keypoint" class="internal">skeleton</a>).</li>
-  <li><kbd>&lt;</kbd> / <kbd>&gt;</kbd> — seek 10 s back / forward.</li>
-  <li><kbd>Alt+,</kbd> / <kbd>Alt+.</kbd> — step one frame back / forward in the <a href="#editor-frame-panel" class="internal">Frame Panel</a>.</li>
-  <li><kbd>M</kbd> — mute / unmute.</li>
-  <li><kbd>Tab</kbd> / <kbd>Shift+Tab</kbd> — jump to the next / previous annotation.</li>
-</ul>
-<p>Every shortcut on this list works in <a href="#editor-split-view" class="internal">Split View</a> as well — they target the card you most recently played, paused, seeked, muted, or selected from the panel.</p>
 
 <h3 id="tips-filtering">Filtering &amp; Grouping</h3>
 <p>Reviewing 500 annotations in an unsorted list is impractical. The <a href="#editor-panel" class="internal">annotation panel</a> filtering, grouping, and ordering controls turn QA from random browsing into structured inspection.</p>
@@ -1968,8 +1972,8 @@ const navData = {
     { id: 'editor-top-toolbar', label: 'Top Toolbar', children: [
       { id: 'editor-tool-selector', label: 'Tool Selector' },
       { id: 'editor-class-selector', label: 'Class Selector' },
-      { id: 'editor-toolbar-sam-actions', label: 'Contextual SAM Actions' },
     ]},
+    { id: 'editor-shortcuts', label: 'Keyboard Shortcuts' },
     { id: 'editor-waveform', label: 'Video & Overlays', children: [
       { id: 'editor-video', label: 'Video Player' },
       { id: 'editor-keyframes', label: 'Keyframes' },
@@ -2047,8 +2051,6 @@ const navData = {
   ],
   tips: [
     { id: 'tips-class-shortcuts', label: 'Class Shortcuts' },
-    { id: 'tips-tool-shortcuts', label: 'Tool Shortcuts' },
-    { id: 'tips-seek', label: 'Fast Seeking' },
     { id: 'tips-filtering', label: 'Filtering & Grouping' },
     { id: 'tips-tags-vs-props', label: 'Tags vs Properties' },
     { id: 'tips-sam-tracking', label: 'SAM Tracking & Scribble' },
