@@ -89,6 +89,7 @@ a { color:var(--link); text-decoration:none; }
 a:hover { text-decoration:underline; }
 strong { font-weight:600; }
 code { font-family:var(--mono); font-size:13px; background:var(--bg-code); padding:2px 5px; border-radius:4px; }
+kbd { display:inline-flex; align-items:center; font-family:var(--font); font-size:.9em; font-weight:600; line-height:1; padding:2px 5px; border:1px solid var(--border); border-bottom-width:2px; border-radius:4px; background:var(--bg-code); white-space:nowrap; }
 pre { background:var(--bg-code); padding:16px; border-radius:8px; overflow-x:auto; margin-bottom:16px; font-size:13px; line-height:1.5; font-family:var(--mono); }
 hr { border:none; border-top:1px solid var(--border); margin:32px 0; }
 
@@ -694,7 +695,7 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 <h2 id="editor-layout">Editor Layout</h2>
 <p>Three regions, each with a purpose:</p>
 <ul>
-  <li><strong><a href="#editor-top-toolbar" class="internal">Top toolbar</a></strong> — project-level actions: tool / class selectors (Annotation Mode), upload, download, keyboard shortcuts, documentation, dark-mode toggle, fullscreen, undo / redo.</li>
+  <li><strong><a href="#editor-top-toolbar" class="internal">Top toolbar</a></strong> — project-level actions: tool / class selectors (Annotation Mode), upload, download, <a href="#editor-shortcuts" class="internal">keyboard shortcuts</a>, documentation, dark-mode toggle, fullscreen, undo / redo.</li>
   <li><strong>Center content area</strong> — the document itself. In Edit Mode this is a full rich-text editor; in Annotation / View-Only modes it renders as read-only formatted text.</li>
   <li><strong>Right <a href="#editor-panel" class="internal">annotation panel</a></strong> — the list of NER instances with search, grouping, filtering, and quick access to properties, comments, and relationships. Can be collapsed.</li>
 </ul>
@@ -827,7 +828,18 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 </ul>
 <img class="doc-screenshot" src="images/editor-toolbar.webp" alt="Top toolbar highlighted: tool and class selectors, Upload, Download, shortcuts, adjustments, undo and redo">
 
-<hr>
+<h2 id="editor-shortcuts">Keyboard Shortcuts</h2>
+<p>The toolbar shortcuts button opens the same in-app reference. This table is the complete editor-level shortcut reference; normal rich-text editing shortcuts remain part of the text editor itself.</p>
+<table>
+  <tr><th>Shortcut</th><th>Action</th></tr>
+  <tr><td><kbd>S</kbd> / <kbd>E</kbd></td><td>Select / Entity annotation tool.</td></tr>
+  <tr><td><kbd>1</kbd>–<kbd>9</kbd></td><td>Select annotation class by position.</td></tr>
+  <tr><td><kbd>H</kbd> / <kbd>O</kbd> / <kbd>F</kbd></td><td>Toggle annotation visibility / hover labels / fullscreen.</td></tr>
+  <tr><td><kbd>Delete</kbd></td><td>Delete selected annotation. Backspace also works.</td></tr>
+  <tr><td><kbd>Tab</kbd> / <kbd>⇧+Tab</kbd></td><td>Next / previous annotation.</td></tr>
+  <tr><td><kbd>⌘+Z</kbd> / <kbd>Ctrl+Z</kbd></td><td>Undo.</td></tr>
+  <tr><td><kbd>⌘+⇧+Z</kbd> / <kbd>Ctrl+⇧+Z</kbd>; <kbd>⌘+Y</kbd> / <kbd>Ctrl+Y</kbd></td><td>Redo.</td></tr>
+</table>
 
 <h2 id="editor-text-toolbar">Text Editor Toolbar</h2>
 <p>In <a href="#config-tool-modes" class="internal">Edit Mode</a>, a second toolbar row — the <em>text editor toolbar</em> — appears beneath the top toolbar. This is where all authoring controls live. Which buttons are present is governed by the <a href="#config-te-options" class="internal">Text Editor Options &rarr; Features</a> toggles, grouped the same way:</p>
@@ -1169,7 +1181,7 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 <hr>
 
 <h2 id="editor-undo-redo">Undo / Redo</h2>
-<p>The tool maintains a single unified history stack of HTML body, annotations, and item tags. <kbd>Ctrl(⌘)+Z</kbd> reverts to the previous snapshot; <kbd>Ctrl(⌘)+Shift+Z</kbd> (or <kbd>Ctrl(⌘)+Y</kbd>) re-applies it. Because the host owns the undo stack, both authoring and annotation actions undo together — there is no separate Tiptap-internal stack to fall through.</p>
+<p>The tool maintains a single unified history stack of HTML body, annotations, and item tags. <kbd>⌘+Z</kbd> / <kbd>Ctrl+Z</kbd> reverts to the previous snapshot; <kbd>⌘+⇧+Z</kbd> / <kbd>Ctrl+⇧+Z</kbd> (or <kbd>⌘+Y</kbd> / <kbd>Ctrl+Y</kbd>) re-applies it. Because the host owns the undo stack, both authoring and annotation actions undo together — there is no separate Tiptap-internal stack to fall through.</p>
 
 <hr>
 
@@ -1244,10 +1256,11 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 <div class="callout"><strong>Name uniqueness:</strong> Each file's <code>name</code> field is required. Duplicate names are automatically deduplicated with <code> (1)</code>, <code> (2)</code> suffixes on import.</div>
 
 <h3 id="ie-jsonl-linked">Linked Type</h3>
-<p>Linked files put a <code>source</code> object at the file level — a sibling of <code>name</code>, mutually exclusive to <code>text</code>. The presence of <code>source</code> on an entry is what marks it as linked; there is no explicit <code>type: "linked"</code> field. The source can carry a URL, an SA-stored item asset reference, or inline immutable content (Markdown / plain text). Linked content is read-only inside the editor regardless of <a href="#config-tool-modes" class="internal">Tool Mode</a>.</p>
-<p><strong>Minimum required keys:</strong> <code>metadata.name</code> and a <code>texts</code> array where at least one entry has a file-level <code>source</code> carrying <em>at least one</em> of <code>url</code>, <code>uploadedFile</code>, <code>markdown</code>, or <code>plainText</code>.</p>
+<p>Linked files put a <code>source</code> object at the file level — a sibling of <code>name</code>, mutually exclusive to <code>text</code>. The presence of <code>source</code> on an entry is what marks it as linked; there is no explicit <code>type: "linked"</code> field. The source can carry a URL, a platform-provisioned uploaded-file reference, or inline immutable content (Markdown / plain text). Linked content is read-only inside the editor regardless of <a href="#config-tool-modes" class="internal">Tool Mode</a>.</p>
+<p><strong>Minimum required keys:</strong> <code>metadata.name</code> and a <code>texts</code> array where at least one entry has a file-level <code>source</code> carrying one of <code>url</code>, <code>uploadedFile</code>, <code>markdown</code>, or <code>plainText</code>.</p>
 
-<p><strong>Linked — URL source:</strong></p>
+<h4 id="ie-jsonl-linked-url">URL-Linked Text</h4>
+<p>To point at text that lives outside SuperAnnotate, use a <code>source.url</code> + <code>urlKind</code> pair:</p>
 <pre>{
   "metadata": { "name": "news-2026-04-01" },
   "data": {
@@ -1269,17 +1282,18 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 <p>The <code>urlKind</code> field on a source URL tells the tool how to reach the URL. The accepted values are:</p>
 <table>
   <tr><th>Value</th><th>Meaning</th></tr>
-  <tr><td><code>"public"</code></td><td>Publicly accessible URL — fetched directly by the browser. The URL's origin must allow CORS for the editor's origin.</td></tr>
-  <tr><td><code>"presigned"</code></td><td>URL already carries a signature (S3 SigV4, GCS, Azure SAS, etc.) — fetched directly by the browser, no further signing. May expire.</td></tr>
-  <tr><td><code>"asset"</code></td><td>Generic URL routed through the SuperAnnotate platform's URL-signing service before fetch. <strong>Default when <code>urlKind</code> is omitted on a <code>url</code> source.</strong></td></tr>
-  <tr><td><code>"integration"</code></td><td>Same signing path as <code>"asset"</code>; distinguished only for project-integration credential bookkeeping.</td></tr>
-  <tr><td><code>"uploaded"</code></td><td>The source references an SA-stored item asset via <code>source.uploadedFile.uniqueName</code>. <code>SaSdk.getFileUrl</code> produces a signed URL which is then fetched the same way as <code>"asset"</code> — the difference is just <em>how the URL is obtained</em> (SDK lookup vs. <code>signUrls</code> over an existing <code>url</code>). See <a href="#ie-jsonl-linked-asset" class="internal">Item Asset Reference</a> below.</td></tr>
+  <tr><td><code>"public"</code></td><td>External public URL — used directly by the browser.</td></tr>
+  <tr><td><code>"presigned"</code></td><td>Already-signed URL (S3 SigV4, GCS, Azure SAS, etc.) — used directly by the browser and may expire.</td></tr>
+  <tr><td><code>"integration"</code></td><td>URL associated with a project integration. It uses the platform signing route, the same route as <code>"asset"</code>, with the item's integration context.</td></tr>
+  <tr><td><code>"asset"</code></td><td>Generic URL routed through the platform signing service. This is the default for an ordinary URL when <code>urlKind</code> is omitted; it does not establish where the file is stored.</td></tr>
 </table>
-<div class="callout"><strong>Default behaviour:</strong> when <code>urlKind</code> is omitted on a <code>url</code> source, the tool classifies the URL as <code>"asset"</code> and routes it through the SuperAnnotate signing service. <code>blob:</code> / <code>data:</code> URLs auto-classify as <code>"public"</code>; URLs carrying recognizable presign query parameters (<code>X-Amz-Signature</code>, <code>Signature</code>+<code>sv=</code>, etc.) auto-classify as <code>"presigned"</code>. For raw third-party URLs that are publicly accessible, <strong>set <code>urlKind: "public"</code> explicitly</strong> — otherwise the signing call will fail and the content won't load.</div>
+<div class="callout"><strong>Default behaviour:</strong> When <code>urlKind</code> is omitted, <code>blob:</code> / <code>data:</code> URLs are treated as <code>"public"</code>, URLs with recognised cloud-signature query parameters are treated as <code>"presigned"</code>, and every other URL is treated as <code>"asset"</code> and sent through the platform signing route. For a public or already-signed URL that is not recognised automatically, set <code>urlKind</code> to <code>"public"</code> or <code>"presigned"</code> explicitly; otherwise signing will be attempted and the content will not load.</div>
 
-<p><strong>Linked — URL with explicit urlKind:</strong></p>
+<h4 id="ie-jsonl-linked-asset">Existing-Item Uploaded File Reference (advanced)</h4>
+<p>In other SuperAnnotate Custom tools, an in-editor upload stores file bytes in SuperAnnotate and persists an <code>uploadedFile</code> reference. The Text Editor differs: its Upload control reads a selected <code>.txt</code> or <code>.md</code> file in the browser and saves its contents as editable authored text. It never creates <code>source.uploadedFile</code>.</p>
+<p>The linked-source resolver supports this shape only for a later update to an existing item. Another workflow must first upload the text file to that item, then write its <code>uniqueName</code> into the item's <code>source</code> annotation data. The editor resolves that existing file through <code>SaSdk.getFileUrl</code>, then fetches it as read-only linked content.</p>
 <pre>{
-  "metadata": { "name": "news-article" },
+  "metadata": { "name": "article-uploaded-file" },
   "data": {
     "text_editor_tool": {
       "value": {
@@ -1287,9 +1301,11 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
           {
             "name": "Article",
             "source": {
-              "url": "https://storage.example.com/docs/article.md",
-              "urlKind": "presigned",
-              "fileType": "text/markdown"
+              "uploadedFile": {
+                "uniqueName": "abc123-internal-id",
+                "fileName": "article.md",
+                "fileType": "text/markdown"
+              }
             }
           }
         ]
@@ -1298,6 +1314,9 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
   }
 }</pre>
 
+<div class="callout"><strong>Not for JSONL import:</strong> JSONL upload creates the item, but an <code>uploadedFile</code> reference must point to a text file that was already uploaded to an existing item. JSONL does not upload that referenced file, so this form will not work during item creation. Use it only in a subsequent annotation-data update to an existing item after another workflow has uploaded the text file. The <code>uploadedFile.uniqueName</code> identifies that existing file; <code>urlKind: "uploaded"</code> is optional descriptive metadata.</div>
+
+<h4 id="ie-jsonl-linked-inline">Inline Linked Content</h4>
 <p><strong>Linked — inline Markdown source</strong> (immutable content shipped with the JSONL — no remote fetch needed):</p>
 <pre>{
   "metadata": { "name": "policy-doc" },
@@ -1344,32 +1363,6 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
   }
 }</pre>
 
-<h4 id="ie-jsonl-linked-asset">Item Asset Reference (advanced JSONL-only)</h4>
-<p>An alternative to URL sources: reference a file that's already been uploaded to SuperAnnotate's item-asset storage by its <code>uniqueName</code>. The platform resolves the asset through <code>SaSdk.getFileUrl</code> to produce a signed URL, which the editor then fetches like any other linked URL.</p>
-<p>This path is reachable <strong>only</strong> by hand-authoring JSONL — the in-editor upload button always produces authored content (see <a href="#ie-jsonl-authored" class="internal">Authored Type</a> above). Use it when you need a linked-mode item whose source is governed by SA's asset storage rather than a third-party URL.</p>
-<pre>{
-  "metadata": { "name": "article-asset" },
-  "data": {
-    "text_editor_tool": {
-      "value": {
-        "texts": [
-          {
-            "name": "Article",
-            "source": {
-              "uploadedFile": {
-                "uniqueName": "abc123-internal-id",
-                "fileName": "article.md",
-                "fileType": "text/markdown"
-              }
-            }
-          }
-        ]
-      }
-    }
-  }
-}</pre>
-<div class="callout"><strong>No <code>urlKind</code> needed:</strong> the presence of <code>uploadedFile.uniqueName</code> auto-classifies the source as <code>"uploaded"</code>. Setting <code>urlKind: "uploaded"</code> explicitly is allowed but redundant.</div>
-
 <div class="callout"><strong>Authored vs Linked at a glance:</strong> Markdown and plain-text content can appear in both — the difference is <em>where</em> they sit. Inline under <code>texts[].text.markdown</code> / <code>texts[].text.plainText</code> = authored (editable in Edit Mode). Inside <code>texts[].source.markdown</code> / <code>texts[].source.plainText</code> = linked (read-only). Use linked when you want the body fixed, authored when you expect users to edit.</div>
 
 <h3 id="ie-jsonl-keys">Structure Keys</h3>
@@ -1381,8 +1374,8 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
   <tr><td><code>texts[].name</code></td><td>file</td><td>Display name for the file tab (required, auto-deduped if not unique). Also shown as the source label inside the read-only banner on linked files.</td></tr>
   <tr><td><code>texts[].source</code></td><td>linked file</td><td>Linked-mode source object. Present → file is read-only and re-fetched on every load. Mutually exclusive with content in <code>texts[].text</code>; <strong>never nested under <code>text</code></strong>.</td></tr>
   <tr><td><code>texts[].source.url</code></td><td>linked URL</td><td>URL to fetch the body from. Pair with an explicit <code>urlKind</code> for predictable behaviour.</td></tr>
-  <tr><td><code>texts[].source.urlKind</code></td><td>linked URL</td><td>URL access type. See the <a href="#ie-jsonl-linked" class="internal">urlKind table</a> above.</td></tr>
-  <tr><td><code>texts[].source.uploadedFile</code></td><td>linked item asset</td><td>SA-stored asset reference: <code>{ uniqueName, fileName, fileType }</code>. Pair with <code>urlKind: "uploaded"</code>. See <a href="#ie-jsonl-linked-asset" class="internal">Item Asset Reference</a>.</td></tr>
+  <tr><td><code>texts[].source.urlKind</code></td><td>linked URL</td><td>URL access type. See the <a href="#ie-jsonl-linked" class="internal">URL-Linked Text</a> table above.</td></tr>
+  <tr><td><code>texts[].source.uploadedFile</code></td><td>existing-item uploaded file</td><td><code>{ uniqueName, fileName, fileType }</code> identifies a text file already uploaded to the item by another workflow. Do not use it for JSONL item creation; see <a href="#ie-jsonl-linked-asset" class="internal">Existing-Item Uploaded File Reference</a>.</td></tr>
   <tr><td><code>texts[].source.markdown</code></td><td>linked inline</td><td>Immutable markdown body shipped inline in the JSONL. No remote fetch.</td></tr>
   <tr><td><code>texts[].source.plainText</code></td><td>linked inline</td><td>Immutable plain-text body shipped inline in the JSONL. No remote fetch.</td></tr>
   <tr><td><code>texts[].source.fileType</code></td><td>linked (optional)</td><td>MIME type hint, e.g. <code>"text/markdown"</code>. When omitted, inferred from the URL extension.</td></tr>
@@ -1641,7 +1634,7 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 </ul>
 
 <h3 id="tips-tab-nav">Tab Navigation</h3>
-<p>Sequential review ensures nothing is skipped. <kbd>Tab</kbd> jumps to the next NER instance and scrolls it into view; <kbd>Shift+Tab</kbd> goes back. Combine with <a href="#tips-filtering" class="internal">filters</a> — filter to a class, then Tab through only those instances end-to-end.</p>
+<p>Sequential review ensures nothing is skipped. <kbd>Tab</kbd> jumps to the next NER instance and scrolls it into view; <kbd>⇧+Tab</kbd> goes back. Combine with <a href="#tips-filtering" class="internal">filters</a> — filter to a class, then Tab through only those instances end-to-end.</p>
 
 <h3 id="tips-paste">Paste Behavior</h3>
 <p>Pasting rich content into an authored item preserves formatting where the editor supports it. The <a href="#editor-content-length" class="internal">paste-score</a> chip in the editor footer ticks up with every paste — visible only to roles on the <a href="#config-te-options" class="internal">Paste Score Visibility</a> allow-list. Use it as a soft signal of originality during QA; the score is also persisted in <code>text.stats</code> on export, so downstream pipelines can filter on it.</p>
@@ -1762,6 +1755,7 @@ const navData = {
     { id: 'editor-item-context', label: 'Item Context' },
     { id: 'editor-split-view', label: 'Split View' },
     { id: 'editor-top-toolbar', label: 'Top Toolbar' },
+    { id: 'editor-shortcuts', label: 'Keyboard Shortcuts' },
     { id: 'editor-text-toolbar', label: 'Text Editor Toolbar' },
     { id: 'editor-math', label: 'Math & Equations', children: [
       { id: 'editor-math-input', label: 'How equations get in' },
