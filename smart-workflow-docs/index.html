@@ -120,11 +120,11 @@ mark { background:var(--accent-light); color:var(--accent); font-weight:700; bor
         <li><strong>Contributor profile items</strong> — each Contributor receives a dedicated item where admins manage task access and contributors request their next work.</li>
         <li><strong>Safe request handling</strong> — requests validate current access, request limits, project state, and available items before assignment.</li>
         <li><strong>Work-item controls</strong> — contributors can Submit, Skip, or Return assigned work; tasks can require several contributors to submit before an item advances.</li>
-        <li><strong>Operational visibility</strong> — profile request history and Orchestrate run history help administrators understand what happened.</li>
+        <li><strong>Operational visibility</strong> — profile request history, Explore fields, and Orchestrate run history help administrators understand what happened.</li>
       </ul>
       <h2 id="overview-lifecycle">How it works</h2>
       <ol>
-        <li>An administrator completes the preparations of the <a class="internal" href="#config-workflow">workflow requirements</a>, sets up the automation orchestration (once per team), and publishes the project with component configuration.</li>
+        <li>An administrator completes the preparations of the <a class="internal" href="#config-workflow">workflow requirements</a>, sets up the automation orchestration (once per team), creates the profile folder in configuration, and publishes the project with component configuration.</li>
         <li>When a user is added as a Contributor, automation creates or recovers that user’s profile item.</li>
         <li>An administrator grants or changes access to the tasks on the profile, or relies on default task seeding mechanism for new profiles.</li>
         <li>The contributor opens their profile, chooses a task, and requests work.</li>
@@ -152,7 +152,7 @@ mark { background:var(--accent-light); color:var(--accent); font-weight:700; bor
         <li>Download the <a href="assets/smart-workflow-orchestration-template.json" download data-doc-download="smart-workflow-orchestration-template.json">Smart Workflow orchestration template</a>.</li>
         <li>Import it into Orchestrate for the same team as the project.</li>
         <li>On the import screen, select the <strong>Contributor</strong> role and a <strong>Team API key</strong> to mount them on the template.
-          <img class="doc-screenshot" src="images/workflow-example.webp" alt="Orchestration import screen with the Contributor role and a Team API key selected">
+          <img class="doc-screenshot" src="images/import-orchestration.webp" alt="Orchestration import screen with the Contributor role and a Team API key selected">
         </li>
         <li>Confirm the contributor-added and contributor-role-updated triggers point to the profile handler action.</li>
         <li>Confirm that the Team API key is mounted on both actions.
@@ -171,11 +171,20 @@ mark { background:var(--accent-light); color:var(--accent); font-weight:700; bor
       <div class="callout warning"><strong>Use the team’s own webhook details.</strong> Imported webhook settings are copied unchanged. Before publishing, confirm that they belong to an orchestration in this team; a webhook from another team receives the request but cannot access this project and fails.</div>
       <h3 id="config-profile-requests">User Profile &amp; Requests</h3>
       <ul>
-        <li><strong>Profile folder</strong> — profile items use a dedicated folder, normally <code>0_User_profiles</code>. The live folder name is shown here, and its resolved ID keeps it recognized after a rename once configuration has been published.</li>
+        <li><strong>Profile folder</strong> — profile items use a dedicated folder, normally <code>0_User_profiles</code>. Configuration checks the live folder list, allows creating one when needed, and stores its resolved ID for rename-safe recovery.</li>
         <li><strong>Project task requests</strong> — pauses new requests project-wide without affecting already assigned work. It is independent from <a class="internal" href="#profiles-admin-controls">pause state for individual contributors</a>.</li>
         <li><strong>Request by category</strong> — requires contributors to select one or more categories and limits new assignments to matching items.</li>
         <li><strong>Exclude folders</strong> — prevents work items from selected project folders from being assigned through requests. The active profile folder is always excluded from this selector.</li>
       </ul>
+      <h3 id="config-profile-folder">Create and maintain the profile folder</h3>
+      <p>Before inviting Contributors, open configuration and check the <strong>Profile folder</strong> card:</p>
+      <ol>
+        <li>If an existing profile folder is found, its name is shown and no action is required.</li>
+        <li>If no profile folder exists, select <strong>Create profile folder</strong>. The component creates the standard folder and stores it as the profile location.</li>
+        <li>If the folder list cannot be checked, select <strong>Recheck folder</strong>. Creation is unavailable until the current folder list can be confirmed.</li>
+      </ol>
+      <p>Publish configuration after setup to retain the folder ID in the project. That ID lets Smart Workflow continue using the same folder if it is later renamed. If a stored folder was deleted, configuration shows that no profile folder exists and lets an administrator create a replacement.</p>
+      <div class="callout warning"><strong>Create the folder before onboarding.</strong> Creating it in configuration prevents simultaneous contributor invitations from trying to create the profile folder. Otherwise, duplicate folders can be created, which may split profile items across folders and make administration confusing.</div>
       <h3 id="config-tasks">Tasks</h3>
       <p>Each task represents a portion of the workflow. Its read-only ID is used by contributor profile access and request history, so existing task IDs remain stable while newly created tasks have IDs normalized from a task name.</p>
       <table>
@@ -191,6 +200,16 @@ mark { background:var(--accent-light); color:var(--accent); font-weight:700; bor
         </tbody>
       </table>
       <div class="callout"><strong>Configure workflow transitions first.</strong> Attached and destination status choices come from the workflow assigned to this project, and must be accessible to the Contributor role. For each task, the Submits to, Skips to, and Returns to lists contain only statuses that the workflow allows Contributors to reach from every attached status. If a task has multiple attached statuses, its destination must be a valid transition from all of them. The same attached status cannot be selected in another task, which keeps every working item assigned to exactly one task.</div>
+      <h3 id="config-explore">Explore fields</h3>
+      <p>Opening configuration registers the following Smart Workflow profile fields in Explore. <strong>allowedTaskIds</strong> is the only field that can be edited in Explore; the other four record profile facts:</p>
+      <ul>
+        <li><strong>userProfile</strong> — marks contributor profile items with <code>true</code>. New regular work items leave this field empty; items uploaded with existing component data may retain a pre-seeded <code>false</code> value.</li>
+        <li><strong>users</strong> — records the email addresses of everyone who has opened the item. It is an opening record, not an assignment or task-access list.</li>
+        <li><strong>requestedTaskIds</strong> — the contributor's deduplicated, recency-ordered list of requested task IDs.</li>
+        <li><strong>requestedCategories</strong> — the normalized, deduplicated union of every category selected in category-based requests. It is a summary without chronology or recency ordering.</li>
+        <li><strong>allowedTaskIds</strong> — the tasks a contributor is currently allowed to request.</li>
+      </ul>
+      <div class="callout"><strong>allowedTaskIds</strong> is available as a multiselect whose choices <strong>dynamically match the project's current task IDs</strong>. It controls future requests only; it does not change work already assigned to the contributor. When a task is removed from configuration, an existing profile item removes that deleted task from its allowed list the next time the profile is opened.</div>
       <h3 id="config-import-export">Import and export</h3>
       <p>Export downloads the complete component configuration, including webhook URL and API key. Store it securely. Import replaces the current configuration only after confirmation and takes effect only after <strong>Next</strong> and <strong>Update</strong>.</p>
       <ul>
@@ -205,7 +224,7 @@ mark { background:var(--accent-light); color:var(--accent); font-weight:700; bor
       <h1>Contributor Profiles</h1>
       <p>A contributor profile is a dedicated item where the contributor requests work and an administrator manages the contributor’s task access.</p>
       <h2 id="profiles-creation">Profile creation and recovery</h2>
-      <p>The profile handler runs when a user is added to the project as a Contributor or their project role changes to Contributor. It first confirms that the published form includes Smart Workflow, then finds or creates the profile item.</p>
+      <p>The profile handler runs when a user is added to the project as a Contributor or their project role changes to Contributor. It first confirms that the published form includes Smart Workflow, then finds or creates the profile item in the profile folder prepared during configuration.</p>
       <ul>
         <li>A new profile is created in the profile folder with the <strong>Profile</strong> status.</li>
         <li>If a matching unassigned profile item already exists, it is recovered and assigned to the contributor.</li>
@@ -221,15 +240,16 @@ mark { background:var(--accent-light); color:var(--accent); font-weight:700; bor
         <li>Change the default selection, publish again, and then add the next group. The next group receives the new defaults; the first group keeps its existing access.</li>
       </ol>
       <div class="callout"><strong>Best practice.</strong> Select one default task when onboarding a batch unless you deliberately want every new contributor to start with multiple task options. Use the administrator controls on an existing profile to make exceptions or to change previously granted access.</div>
-      <h2 id="profiles-admin-controls">What administrators manage</h2>
-      <p>Administrators can update a contributor’s profile at any time. Each task-access or pause change is saved immediately, and concurrent contributor request history is preserved.</p>
+      <h2 id="profiles-admin-controls">Managing access and requests</h2>
+      <p>Administrators manage a contributor’s future work requests from that person’s profile. Changing task access or pausing requests never changes work that is already assigned.</p>
       <ul>
-        <li><strong>Allowed tasks</strong> — selects which current tasks this contributor may request.</li>
+        <li><strong>Allowed tasks</strong> — grants or removes the current tasks this contributor may request.</li>
         <li><strong>Pause requests</strong> — blocks new requests for this contributor while keeping their already assigned work available.</li>
-        <li><strong>Request history</strong> — shows successful, empty, and rejected request attempts so administrators can see the contributor’s request activity.</li>
+        <li><strong>Request history</strong> — provides an audit of successful, empty, and rejected request attempts.</li>
       </ul>
+      <p>See <a class="internal" href="#editor-admin-profile">Administrator profile view</a> for the controls available in the editor.</p>
       <h2 id="profiles-folder-recovery">Profile folder naming and recovery</h2>
-      <p>Keep the automatically created <code>0_User_profiles</code> folder name whenever possible. Folder renames are supported only after the folder’s live ID has been captured by opening and publishing configuration; renaming during setup can create an unintended second profile folder.</p>
+      <p>Keep the standard <code>0_User_profiles</code> folder name whenever possible. Folder renames are supported after the folder’s live ID has been captured by configuration and published; renaming during setup can create an unintended second profile folder.</p>
       <p>If a rename is necessary, use this sequence:</p>
       <ol>
         <li>Open the configuration screen and confirm that it detects the current profile folder.</li>
@@ -237,18 +257,18 @@ mark { background:var(--accent-light); color:var(--accent); font-weight:700; bor
         <li>Rename the folder in SuperAnnotate.</li>
         <li>Reopen configuration, verify the renamed folder is detected, and publish again before inviting more contributors.</li>
       </ol>
-      <p>Once a live ID is stored, Smart Workflow continues to recognize that folder after its name changes. If it is deleted, the next configuration or provisioning flow attempts recovery by the configured name and may create or resolve a replacement for future profiles.</p>
+      <p>Once a live ID is stored, Smart Workflow continues to recognize that folder after its name changes. If it is deleted, reopen configuration and create a replacement before inviting more Contributors.</p>
       <div class="callout warning"><strong>Avoid untracked renames.</strong> If a profile folder is renamed before its ID has ever been saved through configuration, Smart Workflow cannot safely identify the arbitrary renamed folder. The next invite may create a new <code>0_User_profiles</code> folder, splitting future profiles from the renamed folder.</div>
     </div>
 
     <div class="tab-content" data-tab="editor">
       <h1>Working Items &amp; Requests</h1>
       <h2 id="editor-admin-profile">Administrator profile view</h2>
-      <p>On a user-profile item, administrators see task access chips, the contributor’s request-pause state, the request history, and the list of people who opened the item. Task and pause changes save immediately, and the profile refreshes when another session made an overlapping access change.</p>
+      <p>On a user-profile item, administrators use task-access chips and the request-pause control, review the request-history table, and see who has opened the item. Task and pause changes save immediately. If another session makes an overlapping access change, the profile refreshes to show the latest state.</p>
       <p>Below is an example of the administrator view for a contributor profile.</p>
       <img class="doc-screenshot" src="images/administrator-profile-view.webp" alt="Administrator view of a contributor profile showing allowed-task controls, pause requests control, and request history">
       <h2 id="editor-contributor-request">Contributor requests</h2>
-      <p>Contributors open their own profile, choose one granted task, choose categories when category-based reqeust is enabled, and select <strong>Request</strong>. The system verifies the current profile, task access, project/user pause state, request caps, and candidate availability before assigning work. A request records the chosen task, categories when applicable, and its final outcome in the profile history.</p>
+      <p>Contributors open their own profile, choose one of the granted tasks, choose categories when category-based request is enabled, and click <strong>Request</strong>. The system verifies the current profile, task access, project/user pause state, request caps, and candidate availability before assigning work. A request records the chosen task, categories when applicable, and its final outcome in the profile history.</p>
       <p>Request controls are unavailable when the webhook has not been configured, the contributor or project is paused, no task is granted, a task cap or lifetime limit is reached, or required categories have not been selected.</p>
       <p>Below is an example of the contributor profile, including the task selector, category selection, Request button, and assigned-item queue.</p>
       <img class="doc-screenshot" src="images/contributor-profile-request.webp" alt="Contributor profile view showing task selection, category selection, Request button, and assigned-item queue">
@@ -276,6 +296,7 @@ mark { background:var(--accent-light); color:var(--accent); font-weight:700; bor
       <p>After a successful action, Smart Workflow automatically moves the contributor to their next assigned working item, or to their profile when no working items remain.</p>
       <h3>Timeout reminders</h3>
       <p>A two-to-ten-minute time limit shows one reminder halfway through. A longer limit shows two reminders: one halfway through and one later reminder. Reminders only require acknowledgement; they do not extend the time limit. The item still moves to its Timeout status when the limit is reached, even if a reminder has not been acknowledged.</p>  
+      <img class="doc-screenshot" src="images/timeout-reminder.webp" alt="Timeout reminder shown on the working item">
       <h2 id="editor-stale-pages">Working from a stale page</h2>
       <p>Profile and request changes can occur while a contributor has a profile open. Requests always use the current server-side profile state, and request-history saves preserve newer administrator task and pause changes. When displayed controls are no longer current, Smart Workflow explains what changed and asks the contributor to refresh the profile page.</p>
     </div>
@@ -297,7 +318,7 @@ mark { background:var(--accent-light); color:var(--accent); font-weight:700; bor
       <h2 id="faq-webhook-team">Can I use webhook settings from another team?</h2>
       <p>No. A cross-team webhook can receive the request but its team-scoped automation cannot read the foreign project/item and the request fails. Exported webhook settings should only be imported into projects on the same team.</p>
       <h2 id="faq-folder">What if the profile folder was deleted or renamed?</h2>
-      <p>A published folder ID survives renaming. A deleted folder is recovered by name when possible; otherwise a replacement profile folder may be created for future profiles. Avoid renaming the folder, especially before configuration has saved its ID. If you must rename it, follow the <a class="internal" href="#profiles-folder-recovery">recommended sequence</a>, then reopen and publish configuration before inviting more contributors.</p>
+      <p>A published folder ID survives renaming. If the folder was deleted, reopen configuration: it shows that no profile folder exists and lets an administrator create a replacement. Avoid renaming the folder before configuration has saved its ID. If you must rename it, follow the <a class="internal" href="#profiles-folder-recovery">recommended sequence</a>, then reopen and publish configuration before inviting more contributors.</p>
       <h2 id="faq-import">Can I replace configuration on an active project?</h2>
       <p>You can, but avoid replacing the task list or task IDs while existing profiles are in use. Their granted access and historical requests are not migrated to new task IDs. Export the current configuration first, make the change deliberately, and update affected profiles if needed.</p>
       <h2 id="faq-retry">What is safe to retry?</h2>
@@ -312,7 +333,7 @@ window.addEventListener('message', event => {
 });
 const navData = {
   overview:[{id:'overview-capabilities',label:'Capabilities'},{id:'overview-lifecycle',label:'How it works'}],
-  configuration:[{id:'config-workflow',label:'Workflow requirements'},{id:'config-orchestration',label:'Install orchestration'},{id:'config-component',label:'Configure component',children:[{id:'config-webhook',label:'Request webhook'},{id:'config-profile-requests',label:'User Profile & Requests'},{id:'config-tasks',label:'Tasks'},{id:'config-import-export',label:'Import & export'}]}],
+  configuration:[{id:'config-workflow',label:'Workflow requirements'},{id:'config-orchestration',label:'Install orchestration'},{id:'config-component',label:'Configure component',children:[{id:'config-webhook',label:'Request webhook'},{id:'config-profile-requests',label:'User Profile & Requests'},{id:'config-profile-folder',label:'Profile folder'},{id:'config-tasks',label:'Tasks'},{id:'config-explore',label:'Explore fields'},{id:'config-import-export',label:'Import & export'}]}],
   profiles:[{id:'profiles-creation',label:'Profile creation & recovery'},{id:'profiles-default-access',label:'Default task access'},{id:'profiles-admin-controls',label:'Admin controls'},{id:'profiles-folder-recovery',label:'Profile folder naming'}],
   editor:[{id:'editor-admin-profile',label:'Administrator profile view'},{id:'editor-contributor-request',label:'Contributor requests'},{id:'editor-request-outcomes',label:'Request outcomes'},{id:'editor-work-items',label:'Working on assigned items'},{id:'editor-stale-pages',label:'Stale pages'}],
   faq:[{id:'faq-profile-missing',label:'Why was no profile created?'},{id:'faq-default-access',label:'Why did a default task not update an existing profile?'},{id:'faq-profile-changed',label:'Why does a contributor still see old profile access?'},{id:'faq-request-disabled',label:'Why is Request disabled?'},{id:'faq-no-items',label:'Why did no items arrive?'},{id:'faq-request-failed',label:'Why did the request fail?'},{id:'faq-webhook-team',label:'Can I use webhook settings from another team?'},{id:'faq-folder',label:'What if the profile folder was deleted or renamed?'},{id:'faq-import',label:'Can I replace configuration on an active project?'},{id:'faq-retry',label:'What is safe to retry?'}],
