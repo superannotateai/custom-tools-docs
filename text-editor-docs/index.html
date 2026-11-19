@@ -626,10 +626,11 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 <p>Once the AI Property Proxy is selected, the <strong>Model</strong> dropdown next to it is unlocked. Three models are offered for each provider, sorted from cheapest/fastest to most capable — the middle option is selected by default. The currently available models are:</p>
 <table>
   <tr><th>Provider</th><th>Models (cheapest → most capable)</th></tr>
-  <tr><td>OpenAI</td><td><code>gpt-5.4-nano</code>, <code>gpt-5.4-mini</code>, <code>gpt-5.5</code></td></tr>
-  <tr><td>Gemini</td><td><code>gemini-3.1-flash-lite</code>, <code>gemini-3.5-flash</code>, <code>gemini-3.1-pro-preview</code></td></tr>
-  <tr><td>Anthropic</td><td><code>claude-haiku-4-5</code>, <code>claude-sonnet-4-6</code>, <code>claude-opus-4-7</code></td></tr>
+  <tr><td>OpenAI</td><td><code>gpt-6-luna</code>, <code>gpt-6.1-terra</code>, <code>gpt-6.2-astra</code></td></tr>
+  <tr><td>Gemini</td><td><code>gemini-3.5-flash-lite</code>, <code>gemini-4-hydrogen</code>, <code>gemini-4-carbon</code></td></tr>
+  <tr><td>Anthropic</td><td><code>claude-haiku-5-5</code>, <code>claude-sonnet-5-5</code>, <code>claude-opus-5-5</code></td></tr>
 </table>
+<div class="callout"><strong>Older-generation models are deprecated.</strong> When a model update replaces a provider's lineup, the previous generation is no longer offered for new selections. If the project's <strong>Model</strong> dropdown, any <strong>per-property model override</strong>, or any <strong>Model Arena slot</strong> is still set to one of these older models, it keeps working and the dropdown shows it as <em>(deprecated)</em>. Once you switch that dropdown to a current model, the deprecated one can't be selected again. Deprecated models may be removed in a future release; after that, any dropdown still set to one automatically uses the provider's default (middle-tier) model. To keep control over which model runs and what it costs, switch every dropdown showing <em>(deprecated)</em> to a current model yourself.</div>
 <p>Changing the proxy to a different provider resets the model to that provider's default (middle tier). The selected model applies to all AI properties not having their own <a href="#config-ai-property-proxy-override" class="internal">proxy/model override</a>. Annotators do not see the selected provider/models in the editor.</p>
 <img class="doc-screenshot" src="images/config-ai-proxy-setup.webp" alt="Configuration screen showing proxy selection dropdowns">
 
@@ -2334,7 +2335,7 @@ ${docsContext}
     ];
 
     try {
-      const data = await proxyOpenAI({ messages: messages, temperature: 0.3, max_completion_tokens: 1024 });
+      const data = await proxyOpenAI({ messages: messages, temperature: 0.3, max_completion_tokens: 4096 });
 
       removeTyping();
 
