@@ -254,7 +254,7 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
   <li><strong>Video annotation</strong> — synchronised video player with axis-aligned <em>bounding boxes</em> drawn over the frame and tracked across time with keyframes. Live brightness / contrast / saturation / shape-opacity adjustments. For frame-level video work (frame panel, cuboids, rotated boxes, visible ranges), use the dedicated <strong>Video Annotation Tool</strong>. <a href="#editor-video" class="internal">Video →</a></li>
   <li><strong>Three annotation tool types</strong> — <strong>Segment</strong> (time interval on audio/video), <strong>Box</strong> (axis-aligned rectangle on a video frame, optionally keyframed), and <strong>Entity</strong> (span over a transcript). <a href="#config-classes" class="internal">Classes &amp; Tools →</a></li>
   <li><strong>Per-class properties</strong> — Free Text, AI Text, AI Select, Select (single / multi), Numeric, Rating, and Approval properties on every class. Per-role visibility and option-visibility rules. <a href="#config-properties" class="internal">Properties →</a></li>
-  <li><strong>Auto-transcription</strong> — Whisper or Gemini turns audio into a timed transcript that pairs 1-to-1 with segment annotations. Edit text inline or via AI re-extraction. <a href="#editor-transcript" class="internal">Transcript →</a></li>
+  <li><strong>Auto-transcription</strong> — OpenAI or Gemini turns audio into a timed transcript that pairs 1-to-1 with segment annotations. Edit text inline or via AI re-extraction. <a href="#editor-transcript" class="internal">Transcript →</a></li>
   <li><strong>AI autofill</strong> — for each AI Text or AI Select property, the model receives the segment's transcribed text (or the raw audio when no transcript exists) and the per-property prompt, then fills the value (for AI Select, choosing from the predefined option list). <a href="#editor-ai-autofill" class="internal">AI Autofill →</a></li>
   <li><strong>In-browser recording</strong> — record fresh audio directly into the editor when the role and project allow it. <a href="#editor-recording" class="internal">Recording →</a></li>
   <li><strong>Multi-media items</strong> — a single item can hold up to <strong>10</strong> audio / video files, each with its own annotations, transcript, and tags. Navigate via tabs, or open <a href="#editor-split-view" class="internal">Split View</a> to play and compare every file in parallel as live, interactive cards. <a href="#editor-multifile" class="internal">Multi-File Items →</a></li>
@@ -607,12 +607,13 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 <p>Once the Proxy is selected, the <strong>Model</strong> dropdown next to it is unlocked. Three models are offered for each provider (except OpenAI Transcription), sorted from cheapest/fastest to most capable — the middle option is selected by default. The currently available models are:</p>
 <table>
   <tr><th>Provider</th><th>Models (cheapest → most capable)</th></tr>
-  <tr><td>OpenAI (Transcription)</td><td>Only a single model available: <code>whisper-1</code></td></tr>
-  <tr><td>OpenAI (AI Properties)</td><td><code>gpt-5.4-nano</code>, <code>gpt-5.4-mini</code>, <code>gpt-5.5</code></td></tr>
-  <tr><td>Gemini (Transcription)</td><td><code>gemini-3.1-flash-lite</code>, <code>gemini-3.5-flash</code>, <code>gemini-3.1-pro-preview</code></td></tr>
-  <tr><td>Gemini (AI Properties)</td><td><code>gemini-3.1-flash-lite</code>, <code>gemini-3.5-flash</code>, <code>gemini-3.1-pro-preview</code></td></tr>
-  <tr><td>Anthropic (AI Properties)</td><td><code>claude-haiku-4-5</code>, <code>claude-sonnet-4-6</code>, <code>claude-opus-4-7</code></td></tr>
+  <tr><td>OpenAI (Transcription)</td><td>Only a single model available: <code>gpt-transcribe</code></td></tr>
+  <tr><td>OpenAI (AI Properties)</td><td><code>gpt-6-luna</code>, <code>gpt-6.1-terra</code>, <code>gpt-6.2-astra</code></td></tr>
+  <tr><td>Gemini (Transcription)</td><td><code>gemini-3.5-flash-lite</code>, <code>gemini-4-hydrogen</code>, <code>gemini-4-carbon</code></td></tr>
+  <tr><td>Gemini (AI Properties)</td><td><code>gemini-3.5-flash-lite</code>, <code>gemini-4-hydrogen</code>, <code>gemini-4-carbon</code></td></tr>
+  <tr><td>Anthropic (AI Properties)</td><td><code>claude-haiku-5-5</code>, <code>claude-sonnet-5-5</code>, <code>claude-opus-5-5</code></td></tr>
 </table>
+<div class="callout"><strong>Older-generation models are deprecated.</strong> When a model update replaces a provider's lineup, the previous generation is no longer offered for new selections. If the <strong>Transcription</strong> model dropdown, the AI Property Proxy's <strong>Model</strong> dropdown, or any <strong>per-property model override</strong> is still set to one of these older models, it keeps working and the dropdown shows it as <em>(deprecated)</em>. Once you switch that dropdown to a current model, the deprecated one can't be selected again. Deprecated models may be removed in a future release; after that, any dropdown still set to one automatically uses the provider's default (middle-tier) model. To keep control over which model runs and what it costs, switch every dropdown showing <em>(deprecated)</em> to a current model yourself.</div>
 <p>Changing the proxy to a different provider resets the model to that provider's default (middle tier). The selected AI Property Proxy model applies to all AI properties not having their own <a href="#config-ai-property-proxy-override" class="internal">proxy/model override</a>. Annotators do not see the selected provider/models in the editor.</p>
 <img class="doc-screenshot" src="images/config-ai-proxy-setup.webp" alt="Configuration screen showing proxy selection dropdowns">
 
@@ -1067,7 +1068,7 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
   <li>A <strong>user payload</strong> with text describing the annotation, built using one of two paths:
     <ul>
       <li><strong>Linked-segment path</strong> — when the annotation is a Segment linked to a transcript segment with non-empty text, the linked transcript text is sent. This is the common case after auto-transcription.</li>
-      <li><strong>Audio-segment path</strong> — when there is no linked transcript text, the editor extracts a WAV snippet, sends it through Whisper / Gemini transcription first, then feeds the resulting text into the chat call.</li>
+      <li><strong>Audio-segment path</strong> — when there is no linked transcript text, the editor extracts a WAV snippet, sends it through OpenAI / Gemini transcription first, then feeds the resulting text into the chat call.</li>
     </ul>
   </li>
   <li>For <strong>Box</strong> and <strong>Entity</strong> annotations, the payload is built from the annotation's surrounding text (entity span text and any linked transcript context for entities).</li>
@@ -1144,7 +1145,7 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
   <li>Populates the transcript panel from the response.</li>
   <li>Optionally creates one Segment annotation per transcript segment, depending on the project configuration.</li>
 </ol>
-<p>For OpenAI proxies, transcription uses Whisper (<code>whisper-1</code>) with verbose JSON segment timestamps. For Gemini proxies, the admin-selected model handles transcription via an inline-data path that's bounded at <strong>~12 MB</strong> per call — long media will fail on Gemini and need a shorter clip or an OpenAI proxy.</p>
+<p>For OpenAI proxies, transcription uses <code>gpt-transcribe</code> (up to <strong>25 MB</strong> per upload). For Gemini proxies, the admin-selected model handles transcription via an inline-data path that's bounded at <strong>~12 MB</strong> per call — long media will fail on Gemini and need a shorter clip or an OpenAI proxy.</p>
 
 <h3 id="editor-transcript-edit">Editing Transcript Segments</h3>
 <p>When <a href="#config-audio-subsettings" class="internal">Editable Transcript</a> is on, segment text is editable inline both in the transcript panel and in the table view's <em>Transcript</em> column. Off, transcripts are read-only.</p>
@@ -1645,7 +1646,7 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 <p>If you find yourself wanting a property on every annotation in a media file, it probably belongs as a media-level tag instead.</p>
 
 <h3 id="tips-transcript-link">Use Linked Transcript Segments for AI Autofill</h3>
-<p>When a Segment annotation has a linked transcript segment with non-empty text, <a href="#editor-ai-autofill" class="internal">AI Text autofill</a> takes the fast path and reads the transcript text directly — no extra Whisper call per extraction. This is roughly 5–10× faster than the audio-segment path, and free of the Gemini ~12 MB ceiling. The simplest way to set this up: turn <em>Transcript</em> on in Feature Control and let auto-transcription seed both transcript segments and Segment annotations on first open.</p>
+<p>When a Segment annotation has a linked transcript segment with non-empty text, <a href="#editor-ai-autofill" class="internal">AI Text autofill</a> takes the fast path and reads the transcript text directly — no extra transcription call per extraction. This is roughly 5–10× faster than the audio-segment path, and free of the Gemini ~12 MB ceiling. The simplest way to set this up: turn <em>Transcript</em> on in Feature Control and let auto-transcription seed both transcript segments and Segment annotations on first open.</p>
 
 <h3 id="tips-autosave">Auto-Save Timing</h3>
 <p><a href="#ie-autosave" class="internal">Auto-save</a> debounces to the local data layer ~1 second after annotation actions; the server push runs on a 60-second interval whenever unsaved changes exist. There's no manual Save button on the main toolbar, so <strong>wait a couple of seconds</strong> after your last edit before closing the tab to ensure the local layer has captured your work — and ideally wait for the next 60-second server push cycle for full server-side persistence.</p>
@@ -1664,7 +1665,7 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 <p>Gemini's <code>inline_data</code> path used for transcription has a request-size ceiling around 20 MB; the editor enforces a safer <strong>~12 MB</strong> per call to leave room for base64 bloat and JSON wrapping. Calls over this cap fail upfront with a clear error message. Mitigations:</p>
 <ul>
   <li>Use shorter clips for Gemini-routed projects.</li>
-  <li>Switch to an OpenAI proxy — Whisper accepts larger uploads.</li>
+  <li>Switch to an OpenAI proxy — OpenAI transcription accepts larger uploads.</li>
   <li>Pre-segment long media into multiple files in one item (still subject to the <a href="#limits-multifile" class="internal">10-file cap</a>).</li>
 </ul>
 
@@ -2349,7 +2350,7 @@ ${docsContext}
     ];
 
     try {
-      const data = await proxyOpenAI({ messages: messages, temperature: 0.3, max_completion_tokens: 1024 });
+      const data = await proxyOpenAI({ messages: messages, temperature: 0.3, max_completion_tokens: 4096 });
 
       removeTyping();
 
