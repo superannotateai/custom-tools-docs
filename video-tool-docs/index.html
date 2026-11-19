@@ -621,9 +621,10 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 <p>Once the AI Property Proxy is selected, the <strong>Model</strong> dropdown next to it is unlocked. Three models are offered for each provider, sorted from cheapest/fastest to most capable — the middle option is selected by default. The currently available models are:</p>
 <table>
   <tr><th>Provider</th><th>Models (cheapest → most capable)</th></tr>
-  <tr><td>OpenAI</td><td><code>gpt-5.4-nano</code>, <code>gpt-5.4-mini</code>, <code>gpt-5.5</code></td></tr>
-  <tr><td>Gemini</td><td><code>gemini-3.1-flash-lite</code>, <code>gemini-3.5-flash</code>, <code>gemini-3.1-pro-preview</code></td></tr>
+  <tr><td>OpenAI</td><td><code>gpt-6-luna</code>, <code>gpt-6.1-terra</code>, <code>gpt-6.2-astra</code></td></tr>
+  <tr><td>Gemini</td><td><code>gemini-3.5-flash-lite</code>, <code>gemini-4-hydrogen</code>, <code>gemini-4-carbon</code></td></tr>
 </table>
+<div class="callout"><strong>Older-generation models are deprecated.</strong> When a model update replaces a provider's lineup, the previous generation is no longer offered for new selections. If the project's <strong>Model</strong> dropdown or any <strong>per-property model override</strong> is still set to one of these older models, it keeps working and the dropdown shows it as <em>(deprecated)</em>. Once you switch that dropdown to a current model, the deprecated one can't be selected again. Deprecated models may be removed in a future release; after that, any dropdown still set to one automatically uses the provider's default (middle-tier) model. To keep control over which model runs and what it costs, switch every dropdown showing <em>(deprecated)</em> to a current model yourself.</div>
 <p>Changing the proxy to a different provider resets the model to that provider's default (middle tier). The selected model applies to all AI properties not having their own <a href="#config-ai-property-proxy-override" class="internal">proxy/model override</a>. Annotators do not see the selected provider/models in the editor.</p>
 <img class="doc-screenshot" src="images/config-ai-proxy-setup.webp" alt="Configuration screen showing proxy selection dropdowns">
 
@@ -666,9 +667,9 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 <h2 id="config-advanced">Advanced Settings</h2>
 <p>Advanced Settings contains project-wide behaviour choices, primarily for video-heavy workflows:</p>
 <ul>
-  <li><strong>Video Loading</strong> — sets how each video starts. <strong>Download First</strong> (default) downloads the whole file (with a progress bar) before playback, giving the most reliable seeking and frame stepping; <strong>Stream First</strong> starts playback sooner by streaming from the source. Each file adapts to its host: a <em>Download First</em> file whose host blocks cross-origin downloads (CORS) <strong>falls back to streaming</strong>, and a <em>Stream First</em> file whose host doesn't support range requests <strong>falls back to a full download</strong> (needed for reliable seeking). On any fallback, a <strong>toast</strong> appears — stacking for multiple files, shown regardless of the active file or view — and a persistent <strong>yellow warning icon</strong> marks the file: left of the card title in <a href="#editor-split-view" class="internal">Split View</a>, left of the mute button in single view, with a hover tooltip explaining why. Cross-origin (CORS-blocked) videos still play and annotate normally; only frame extraction may be limited. Applies to both timeline and frame panel modes.</li>
-  <li><strong>Split frame seek fallback FPS</strong> — used only when a video has no imported frame metadata and no per-video FPS value; exact frame timestamps and per-video FPS metadata take priority.</li>
-  <li><strong>FPS Control</strong> — controls whether annotators can edit the FPS field in the Frame Panel. When off, the field is still visible but disabled: it shows the stored per-video FPS when present, otherwise the project fallback FPS.</li>
+  <li><strong>Video Loading</strong> — sets how each video starts. <strong>Download First</strong> (default) downloads the whole file (with a progress bar) before playback, giving the most reliable seeking and frame stepping; <strong>Stream First</strong> starts playback sooner by streaming from the source. Each file adapts to its host: a <em>Download First</em> file whose host blocks cross-origin downloads (CORS) <strong>falls back to streaming</strong>, and a <em>Stream First</em> file whose host doesn't support range requests <strong>falls back to a full download</strong> (needed for reliable seeking). On any fallback, a <strong>toast</strong> appears — stacking for multiple files, shown regardless of the active file or view — and a persistent <strong>yellow warning icon</strong> marks the file: left of the card title in <a href="#editor-split-view" class="internal">Split View</a>, left of the mute button in single view, with a hover tooltip explaining why. Cross-origin (CORS-blocked) videos still play and annotate normally; only frame extraction may be limited.</li>
+  <li><strong>Default Fallback FPS</strong> — used for any video that doesn't have its own FPS. A video gets its own FPS when it's imported in JSONL, set in the editor, or automatically when its first instance is created (this value is saved onto it). Changing this value later only affects videos that don't have their own FPS yet. The video file's native frame rate is not detected.</li>
+  <li><strong>Allow per-video FPS editing</strong> — when on, annotators can set a video's FPS in the <a href="#editor-frame-panel-fps" class="internal">Frame Panel</a> until the first instance is created on that video. After that, FPS is locked for that video, including when its instances are hidden from the current user. Tags do not lock FPS. When off, the FPS is shown but can't be edited.</li>
 </ul>
 <img class="doc-screenshot" src="images/config-advanced-settings.webp" alt="Configuration screen showing advanced settings">
 
@@ -810,7 +811,7 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 
 <h3 id="editor-split-parallel-playback">Parallel Playback &amp; Keyboard Focus</h3>
 <p>Multiple cards can play simultaneously — useful for A/B comparing similar takes or aligning content across files. Audio mixing is the user's responsibility (mute the cards you don't want to hear).</p>
-<p>The global transport strip above the card grid provides controls that apply to every card at once: play / pause all, mute / unmute all, seek all by seconds, seek all by frame, and a shared playback speed.</p>
+<p>The global transport strip above the card grid provides controls that apply to every card at once: play / pause all, mute / unmute all, seek all by seconds, seek all by frame, and a shared playback speed. Seeking by frame uses each video's own <a href="#editor-frame-panel-fps" class="internal">FPS</a>, or the Default Fallback FPS for videos without one.</p>
 
 <p>Keyboard shortcuts in Split View follow one of two modes:</p>
 <ul>
@@ -992,7 +993,19 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 <p>An <strong>X</strong> button in the upper frame timeline exits Instance View and returns to the full multi-row Frame Panel.</p>
 
 <h3 id="editor-frame-panel-fps">FPS</h3>
-<p>If the current video has per-video FPS metadata, frame stepping uses it. Otherwise the editor falls back to the project-level FPS value from <a href="#config-advanced" class="internal">Advanced Settings</a>. The FPS field remains visible either way: when FPS Control is enabled, annotators can edit per-video FPS (or clear it to use the fallback); when disabled, the field is read-only and still shows the stored value or fallback.</p>
+<p>Every frame number, frame step, and timeline position is based on the video's FPS: its own FPS when it has one (imported in JSONL or set here), otherwise the project <strong>Default Fallback FPS</strong> from <a href="#config-advanced" class="internal">Advanced Settings</a>. The video file's native frame rate is not detected. The FPS field is always visible and shows the value in use.</p>
+<p>The field can be edited only while all of these are true:</p>
+<ul>
+  <li><strong>Allow per-video FPS editing</strong> is on in Advanced Settings;</li>
+  <li>the video has no instances, counting instances hidden from you (other users' instances under annotation isolation or hidden classes). Tags never lock FPS;</li>
+  <li>no SAM tracking or Scribble generation is pending or running for the video.</li>
+</ul>
+<p>When the field is locked, hovering it explains why. When unlocked, enter a value to set the video's FPS, or clear the field to go back to the Default Fallback FPS. Locking applies to each video separately, so annotating one video of a multi-file item doesn't lock the others.</p>
+<ul>
+  <li><strong>First instance saves the FPS.</strong> If the video was using the Default Fallback FPS, that number is saved onto the video when its first instance is created, so later changes to the project default don't shift frames on already-annotated videos. Items imported with instances but no FPS keep using the project default until their next change.</li>
+  <li><strong>Unlocking.</strong> Deleting all instances on the video unlocks the field again. The saved FPS stays until you change or clear it.</li>
+  <li><strong>Undo history.</strong> Changing FPS clears the undo / redo history for that video, so undo can't bring back instances drawn on a different frame grid.</li>
+</ul>
 
 <hr>
 
@@ -1186,7 +1199,7 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
 <p>Points are shown both on the video and in the modal with include / exclude counts. For Polygon tracking, the editor automatically derives a small set of positive interior points from the current outline when no Include points were supplied, so the provider still receives a target seed. Added prompts belong only to the current setup and disappear when it is closed, re-anchored, or queued.</p>
 
 <h3 id="editor-tracking-preparation">Automatic timestamp preparation</h3>
-<p>Opening Track setup automatically resolves the video's exact source presentation timestamps. Existing valid <code>videoFrameMetadata.frameTimestamps</code> are reused immediately; otherwise the browser indexes the source. There is no manual preparation button. The modal reports <em>Preparing video for tracking…</em>, progress as frames are indexed, and finally <em>Video ready for tracking</em>. A newly prepared index is reused for that video for the rest of the editor session.</p>
+<p>Opening Track setup automatically indexes the video's exact source presentation timestamps in the browser. There is no manual preparation button. The modal reports <em>Preparing video for tracking…</em>, progress as frames are indexed, and finally <em>Video ready for tracking</em>. A newly prepared index is reused for that video for the rest of the editor session.</p>
 <p>Exact source timestamps keep extraction aligned for both constant- and variable-frame-rate video. <strong>Queue tracking</strong> remains disabled until preparation succeeds. If indexing fails, the modal explains the problem and provides <strong>Retry</strong>; reloading the item and verifying that the source is accessible and decodable are the first troubleshooting steps.</p>
 
 <h3 id="editor-tracking-jobs">Queue, progress, results &amp; cancellation</h3>
@@ -1574,7 +1587,7 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
   <tr><td><code>videos[].name</code></td><td>file</td><td>Display name for the file tab (required, auto-deduped if not unique).</td></tr>
   <tr><td><code>videos[].uploadedFile</code></td><td>file</td><td><code>{ uniqueName, fileName, fileType, fileSize }</code> for SA-stored bytes. Mutually exclusive with <code>url</code>.</td></tr>
   <tr><td><code>videos[].url</code> + <code>urlKind</code></td><td>file</td><td>External URL with access kind. See <a href="#ie-jsonl-url" class="internal">URL-Linked Video</a>.</td></tr>
-  <tr><td><code>videos[].videoFrameMetadata</code></td><td>file</td><td>Optional <code>{ fps?, totalFrames?, frameTimestamps?, source? }</code> used for frame-accurate stepping in the <a href="#editor-frame-panel" class="internal">Frame Panel</a>.</td></tr>
+  <tr><td><code>videos[].videoFrameMetadata</code></td><td>file</td><td>Optional <code>{ fps? }</code> — the video's own FPS, used for frame numbers and stepping in the <a href="#editor-frame-panel" class="internal">Frame Panel</a>. When absent, the project <a href="#config-advanced" class="internal">Default Fallback FPS</a> is used and saved here when the video's first instance is created. Other keys are ignored and dropped on save.</td></tr>
   <tr><td><code>videos[].instances</code></td><td>file</td><td>Array of <code>StoredAnnotation</code> for this video file.</td></tr>
   <tr><td><code>videos[].tags</code></td><td>file</td><td>Array of video-scoped tags: <code>{ tagClassId, propertyValues }</code>.</td></tr>
   <tr><td><code>itemTags</code></td><td>value</td><td>Array of item-scoped tags: <code>{ tagClassId, propertyValues }</code>. Apply to the whole item regardless of file count.</td></tr>
@@ -1879,7 +1892,7 @@ html[data-docs-ask-ai="enabled"] .ai-chat-panel { display:flex !important; overf
   <li><strong>Single editable view only.</strong> Track and Scribble controls are hidden in Split View and preview / view-only contexts.</li>
   <li><strong>Supported geometry.</strong> Tracking supports axis-aligned Boxes and Polygons. Scribble creates Polygons. Rotated Boxes, Cuboids, Keypoints, and Segments are not SAM targets.</li>
   <li><strong>Browser media support.</strong> Tracking requires exact timestamp indexing, frame extraction, and H.264 encoding in the browser. Unsupported codecs, inaccessible sources, or browser limitations surface as preparation errors without changing annotations.</li>
-  <li><strong>Timestamp source and cache.</strong> Imported exact <code>frameTimestamps</code> are reusable metadata. When they are absent, the browser prepares a session-only index, reused until the editor closes or the video source changes.</li>
+  <li><strong>Timestamp index.</strong> The browser always prepares the exact timestamp index itself; it can't be imported. The index is kept for the session and reused until the editor closes or the video source changes.</li>
   <li><strong>Remote output still needs review.</strong> Occlusion, motion blur, scene cuts, small targets, and similar nearby objects can cause gaps or drift. Use shorter runs, point prompts, higher processing resolution, and manual keyframe correction.</li>
 </ul>
 
@@ -2566,7 +2579,7 @@ ${docsContext}
     ];
 
     try {
-      const data = await proxyOpenAI({ messages: messages, temperature: 0.3, max_completion_tokens: 1024 });
+      const data = await proxyOpenAI({ messages: messages, temperature: 0.3, max_completion_tokens: 4096 });
 
       removeTyping();
 
