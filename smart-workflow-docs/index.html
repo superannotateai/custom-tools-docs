@@ -230,6 +230,7 @@ mark { background:var(--accent-light); color:var(--accent); font-weight:700; bor
         <li>If a matching unassigned profile item already exists, it is recovered and assigned to the contributor.</li>
         <li>If the matching item is already assigned to the same contributor, it is retained.</li>
         <li>If it belongs to another contributor, provisioning fails instead of taking over that person’s profile.</li>
+        <li>Re-inviting a contributor (adding them again or re-saving their Contributor role) never changes a valid profile. If the profile’s data is missing or broken, re-inviting resets it to a fresh profile with the current default tasks. The previous broken data, if any, is kept in the automation run output, so task access or request history can be restored by hand.</li>
       </ul>
       <h2 id="profiles-default-access">Default task access</h2>
       <p>Tasks marked <strong>New profile access</strong> are copied into a profile only at the moment it is created. This is a starting point, not a live rule: changing this setting later never modifies an existing profile.</p>
@@ -304,6 +305,31 @@ mark { background:var(--accent-light); color:var(--accent); font-weight:700; bor
 
     <div class="tab-content" data-tab="faq">
       <h1>Troubleshooting &amp; FAQ</h1>
+      <h2 id="faq-data-reference">Smart Workflow data reference</h2>
+      <p>Smart Workflow stores its data as one value on each item, under the <code>user_profile</code> component. Only Smart Workflow itself and the profile handler (which creates each profile’s first value) should write it. If you must change it through the SDK or another automation, keep every field in the shape below.</p>
+      <ul>
+        <li><strong>Profile items</strong> are created by the profile handler with every profile field. <code>userProfile</code> must be <code>"true"</code>; any other profile field may be missing and is then read as empty (no tasks, not paused, no history).</li>
+        <li><strong>Work items</strong> need no fields at all. Smart Workflow adds <code>users</code> when the item is first opened and <code>taskIterations</code> on the first Submit.</li>
+      </ul>
+      <table>
+        <thead><tr><th>Field</th><th>Used on</th><th>Shape</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td><code>userProfile</code></td><td>Profile (required)<br>Work item (optional)</td><td>the text <code>"true"</code> or <code>"false"</code></td><td><code>"true"</code> marks a contributor profile. Work items normally leave it out; items uploaded with pre-filled data may carry <code>"false"</code>.</td></tr>
+          <tr><td><code>allowedTaskIds</code></td><td>Profile</td><td>list of task ID texts</td><td>Tasks the contributor may request. Seeded from the default tasks when the profile is created.</td></tr>
+          <tr><td><code>pauseUser</code></td><td>Profile</td><td><code>true</code> or <code>false</code></td><td>Pauses this contributor’s requests.</td></tr>
+          <tr><td><code>requestedTaskIds</code></td><td>Profile</td><td>list of task ID texts</td><td>Tasks the contributor has requested, most recent first.</td></tr>
+          <tr><td><code>requestedCategories</code></td><td>Profile</td><td>list of category name texts</td><td>Every category selected in requests.</td></tr>
+          <tr><td><code>requestHistory</code></td><td>Profile</td><td>list of rows, each with <code>date</code>, <code>userId</code>, <code>taskId</code> (texts), <code>ok</code> (true/false), and optional <code>itemIds</code> (whole numbers) and <code>categories</code> (texts)</td><td>Every request and its result. Counts toward request limits.</td></tr>
+          <tr><td><code>users</code></td><td>Both</td><td>list of email texts</td><td>Everyone who has opened the item.</td></tr>
+          <tr><td><code>taskIterations</code></td><td>Work item</td><td>map of task ID to a list of email texts</td><td>Who has submitted each task, used for the required number of submits.</td></tr>
+        </tbody>
+      </table>
+      <p>What happens when the data has the wrong shape:</p>
+      <ul>
+        <li>A wrong shape in <code>userProfile</code>, <code>users</code>, <code>requestedTaskIds</code>, <code>requestedCategories</code>, or <code>allowedTaskIds</code> (for example a number instead of a list) makes SuperAnnotate reject the whole value on open: “The user_profile component data was invalid and not imported”.</li>
+        <li>In every wrong-shape case, Smart Workflow stops with “This item’s Smart Workflow data is invalid” instead of overwriting the stored value (see <a class="internal" href="#faq-item-not-loaded">Data didn’t load</a>).</li>
+        <li>On a profile, re-inviting the contributor resets it to a fresh profile (see <a class="internal" href="#profiles-creation">Profile creation and recovery</a>). A malformed <code>requestHistory</code> row, or any wrong shape on a work item, is not reset automatically. Such data can only come from a write outside Smart Workflow (for example an SDK script or another automation) and must be corrected the same way.</li>
+      </ul>
       <h2 id="faq-profile-missing">Why was no profile created?</h2>
       <p>Confirm the user was added as a Contributor, the workflow meets the required structure, the user-profile component has been published on the project form, and the profile-provisioning action is enabled with a Team API key. Then inspect the corresponding Orchestrate run.</p>
       <h2 id="faq-default-access">Why did a default task not update an existing profile?</h2>
@@ -326,6 +352,14 @@ mark { background:var(--accent-light); color:var(--accent); font-weight:700; bor
       <p>A temporarily busy request and a “no items available” result are safe to retry later. A failed Orchestrate run should be inspected and corrected before repeated retries. Profile provisioning is designed to recover a matching unassigned profile safely, but never takes a profile from another contributor.</p>
       <h2 id="faq-item-not-released">A contributor says an item couldn’t be unassigned or released</h2>
       <p>Smart Workflow only releases an item after its submission and status change are confirmed, and retries a failed release once automatically. If it still fails, the contributor is asked to stop working on the item and send you its name or URL. Open the item and unassign the contributor. Check its status: an action that went through has already moved it, and after a time limit it may be in the Timeout status or still in its original status. Move it only if the intended move is missing. A recorded submission is kept and is never counted twice, so the contributor retrying does no harm. Activity logs can show the same unassign more than once per action; this is an intentional safety re-check.</p>
+      <h2 id="faq-item-not-loaded">A contributor sees “profile data is missing” or “didn’t load correctly”</h2>
+      <p>When an item’s data does not reach the editor on open, Smart Workflow checks the data stored in SuperAnnotate before saving anything and never overwrites it. The item does not open, and one of these messages explains why:</p>
+      <ul>
+        <li><strong>“This item didn’t load correctly”</strong> — the stored data is fine, but the editor did not receive it. The contributor should refresh the page, and contact you if it keeps happening.</li>
+        <li><strong>“Your profile data is missing”</strong> — the contributor’s profile item has no stored Smart Workflow data. Re-invite the contributor to reset it to a fresh profile, or restore its data through the SuperAnnotate SDK.</li>
+        <li><strong>“This item’s Smart Workflow data is invalid”</strong> — the stored value is malformed (see the <a class="internal" href="#faq-data-reference">data reference</a>). On a profile, re-inviting the contributor resets it; otherwise an administrator corrects the value through the SuperAnnotate SDK.</li>
+      </ul>
+      <p>The browser console shows a line starting with <code>[user_profile</code> that identifies the case.</p>
     </div>
   </main>
 </div>
@@ -339,7 +373,7 @@ const navData = {
   configuration:[{id:'config-workflow',label:'Workflow requirements'},{id:'config-orchestration',label:'Install orchestration'},{id:'config-component',label:'Configure component',children:[{id:'config-webhook',label:'Request webhook'},{id:'config-profile-requests',label:'User Profile & Requests'},{id:'config-profile-folder',label:'Profile folder'},{id:'config-tasks',label:'Tasks'},{id:'config-explore',label:'Explore fields'},{id:'config-import-export',label:'Import & export'}]}],
   profiles:[{id:'profiles-creation',label:'Profile creation & recovery'},{id:'profiles-default-access',label:'Default task access'},{id:'profiles-admin-controls',label:'Admin controls'},{id:'profiles-folder-recovery',label:'Profile folder naming'}],
   editor:[{id:'editor-admin-profile',label:'Administrator profile view'},{id:'editor-contributor-request',label:'Contributor requests'},{id:'editor-request-outcomes',label:'Request outcomes'},{id:'editor-work-items',label:'Working on assigned items'},{id:'editor-stale-pages',label:'Stale pages'}],
-  faq:[{id:'faq-profile-missing',label:'Why was no profile created?'},{id:'faq-default-access',label:'Why did a default task not update an existing profile?'},{id:'faq-profile-changed',label:'Why does a contributor still see old profile access?'},{id:'faq-request-disabled',label:'Why is Request disabled?'},{id:'faq-no-items',label:'Why did no items arrive?'},{id:'faq-request-failed',label:'Why did the request fail?'},{id:'faq-webhook-team',label:'Can I use webhook settings from another team?'},{id:'faq-folder',label:'What if the profile folder was deleted or renamed?'},{id:'faq-import',label:'Can I replace configuration on an active project?'},{id:'faq-retry',label:'What is safe to retry?'},{id:'faq-item-not-released',label:'A contributor says an item couldn’t be unassigned or released'}],
+  faq:[{id:'faq-data-reference',label:'Smart Workflow data reference'},{id:'faq-profile-missing',label:'Why was no profile created?'},{id:'faq-default-access',label:'Why did a default task not update an existing profile?'},{id:'faq-profile-changed',label:'Why does a contributor still see old profile access?'},{id:'faq-request-disabled',label:'Why is Request disabled?'},{id:'faq-no-items',label:'Why did no items arrive?'},{id:'faq-request-failed',label:'Why did the request fail?'},{id:'faq-webhook-team',label:'Can I use webhook settings from another team?'},{id:'faq-folder',label:'What if the profile folder was deleted or renamed?'},{id:'faq-import',label:'Can I replace configuration on an active project?'},{id:'faq-retry',label:'What is safe to retry?'},{id:'faq-item-not-released',label:'A contributor says an item couldn’t be unassigned or released'},{id:'faq-item-not-loaded',label:'A contributor sees “profile data is missing” or “didn’t load correctly”'}],
 };
 const tabLabels = {overview:'Overview',configuration:'Setup & Configuration',profiles:'Contributor Profiles',editor:'Working Items & Requests',faq:'Troubleshooting & FAQ'};
 const anchorToTab = {};
